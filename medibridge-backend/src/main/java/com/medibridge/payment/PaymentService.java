@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -68,13 +69,21 @@ public class PaymentService {
             throw new BadRequestException("Cannot pay for a cancelled appointment");
         }
 
-        BigDecimal amount = appointment.getDoctor().getConsultationFee();
+        // The amount agreed at booking, not the doctor's current rate - and the
+        // full total including platform fee, which is what the UI quoted.
+        BigDecimal amount = appointment.getTotalAmount();
+        if (amount == null || amount.signum() <= 0) {
+            throw new BadRequestException("This appointment has no payable amount");
+        }
+
         String receipt = "MB-APPT-" + appointment.getId();
         String orderId = razorpayGateway.createOrder(amount, receipt);
 
         PaymentTransaction payment = paymentRepository.save(PaymentTransaction.builder()
                 .appointment(appointment)
                 .amount(amount)
+                .consultationAmount(appointment.getBookedFee())
+                .platformFee(appointment.getPlatformFee())
                 .paymentMethod("RAZORPAY")
                 .gateway(PaymentTransaction.Gateway.RAZORPAY)
                 .gatewayOrderId(orderId)
@@ -140,7 +149,7 @@ public class PaymentService {
         payment.setTransactionStatus(PaymentStatus.PAID);
         payment = paymentRepository.save(payment);
 
-        appointmentService.markPaid(payment.getAppointment().getId());
+        appointmentService.markPaidAndConfirm(payment.getAppointment().getId());
 
         return toDto(payment);
     }
@@ -183,11 +192,13 @@ public class PaymentService {
             throw new BadRequestException("Cannot pay for a cancelled appointment");
         }
 
-        BigDecimal amount = appointment.getDoctor().getConsultationFee();
+        BigDecimal amount = appointment.getTotalAmount();
 
         PaymentTransaction payment = PaymentTransaction.builder()
                 .appointment(appointment)
                 .amount(amount)
+                .consultationAmount(appointment.getBookedFee())
+                .platformFee(appointment.getPlatformFee())
                 .paymentMethod(request.paymentMethod())
                 .gateway(PaymentTransaction.Gateway.SIMULATED)
                 .transactionRef("MB-" + UUID.randomUUID().toString()
@@ -197,7 +208,7 @@ public class PaymentService {
 
         payment = paymentRepository.save(payment);
 
-        appointmentService.markPaid(appointment.getId());
+        appointmentService.markPaidAndConfirm(appointment.getId());
 
         return toDto(payment);
     }
@@ -218,9 +229,15 @@ public class PaymentService {
                 .stream().map(this::toDto).toList();
     }
 
-    /** Admin-initiated refund. */
+    /**
+     * Admin-initiated full refund.
+     *
+     * <p>Calls the gateway for real gateway payments. Previously this only
+     * flipped a status, which told the patient they had been repaid while
+     * nothing left the account.
+     */
     @Transactional
-    public PaymentResponse refund(Integer transactionId) {
+    public PaymentResponse refund(Integer transactionId, String reason) {
         PaymentTransaction payment = paymentRepository.findById(transactionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
@@ -230,11 +247,53 @@ public class PaymentService {
                             + payment.getTransactionStatus().getDbValue() + ")");
         }
 
-        payment.setTransactionStatus(PaymentStatus.REFUNDED);
-        payment.setRefundAmount(payment.getAmount());
-        payment.setRefundedAt(LocalDateTime.now());
+        return toDto(doRefund(payment, payment.getAmount(), reason));
+    }
 
-        return toDto(paymentRepository.save(payment));
+    /**
+     * Automatic refund on cancellation. Driven by the event the appointment
+     * module publishes, so the money rules live with the money.
+     *
+     * @param refundPercent 100 for a full refund, less inside the
+     *                      late-cancellation window
+     */
+    @Transactional
+    public BigDecimal refundForCancellation(Integer appointmentId, int refundPercent,
+                                            String reason) {
+        PaymentTransaction payment = paymentRepository.findByAppointmentId(appointmentId)
+                .orElse(null);
+
+        // Nothing was paid - an unpaid hold that lapsed, for instance.
+        if (payment == null || payment.getTransactionStatus() != PaymentStatus.PAID) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal refundAmount = payment.getAmount()
+                .multiply(BigDecimal.valueOf(refundPercent))
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+        if (refundAmount.signum() <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        doRefund(payment, refundAmount, reason);
+        return refundAmount;
+    }
+
+    private PaymentTransaction doRefund(PaymentTransaction payment, BigDecimal amount,
+                                        String reason) {
+        if (payment.getGateway() == PaymentTransaction.Gateway.RAZORPAY) {
+            String refundId = razorpayGateway.refund(
+                    payment.getGatewayPaymentId(), amount, reason);
+            payment.setGatewayRefundId(refundId);
+        }
+
+        payment.setTransactionStatus(PaymentStatus.REFUNDED);
+        payment.setRefundAmount(amount);
+        payment.setRefundedAt(LocalDateTime.now());
+        payment.setRefundReason(reason);
+
+        return paymentRepository.save(payment);
     }
 
     private PaymentResponse toDto(PaymentTransaction p) {

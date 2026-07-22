@@ -26,8 +26,15 @@ public class PaymentTransaction {
     @JoinColumn(name = "appointment_id", nullable = false)
     private Appointment appointment;
 
+    /** Total charged = consultationAmount + platformFee. */
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
+
+    @Column(name = "consultation_amount", precision = 10, scale = 2)
+    private BigDecimal consultationAmount;
+
+    @Column(name = "platform_fee", precision = 10, scale = 2)
+    private BigDecimal platformFee;
 
     @Column(name = "payment_method", nullable = false, length = 50)
     private String paymentMethod;
@@ -63,6 +70,13 @@ public class PaymentTransaction {
 
     @Column(name = "refunded_at")
     private LocalDateTime refundedAt;
+
+    /** Razorpay's refund id - proof the money actually went back. */
+    @Column(name = "gateway_refund_id", length = 100)
+    private String gatewayRefundId;
+
+    @Column(name = "refund_reason", length = 255)
+    private String refundReason;
 
     @Column(name = "processed_at", insertable = false, updatable = false)
     private LocalDateTime processedAt;
