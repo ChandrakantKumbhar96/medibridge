@@ -105,6 +105,41 @@ public class RazorpayGateway {
     }
 
     /**
+     * Issues a real refund through Razorpay.
+     *
+     * @param paymentId the gateway payment id captured at verification time
+     * @param amount    rupees to return; converted to paise
+     * @return the gateway's refund id - evidence the money actually moved
+     */
+    public String refund(String paymentId, BigDecimal amount, String reason) {
+        if (!isEnabled()) {
+            throw new BadRequestException("Online payments are not configured on this server");
+        }
+        if (paymentId == null || paymentId.isBlank()) {
+            throw new BadRequestException(
+                    "This payment has no gateway reference and cannot be refunded online");
+        }
+
+        try {
+            JSONObject request = new JSONObject();
+            request.put("amount", amount.multiply(BigDecimal.valueOf(100)).longValueExact());
+            request.put("speed", "normal");
+
+            JSONObject notes = new JSONObject();
+            notes.put("reason", reason == null ? "Appointment cancelled" : reason);
+            request.put("notes", notes);
+
+            var refund = client.payments.refund(paymentId, request);
+            return refund.get("id");
+
+        } catch (Exception e) {
+            log.error("Razorpay refund failed for payment {}: {}", paymentId, e.getMessage());
+            throw new BadRequestException(
+                    "The refund could not be processed. Please contact support.");
+        }
+    }
+
+    /**
      * Recomputes the expected signature and compares it in constant time.
      *
      * <p>{@link MessageDigest#isEqual} rather than {@code String.equals}: a

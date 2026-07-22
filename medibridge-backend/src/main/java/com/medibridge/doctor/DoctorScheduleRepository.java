@@ -4,6 +4,7 @@ import com.medibridge.doctor.entity.DoctorSchedule;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -31,4 +32,14 @@ public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule, 
     Optional<DoctorSchedule> findByIdForUpdate(@Param("id") Integer id);
 
     long countByDoctorIdAndAvailableDateGreaterThanEqual(String doctorId, LocalDate from);
+
+    /**
+     * Clears future slots nobody has booked, so they can be regenerated at a new
+     * consultation length. Booked slots are excluded - a patient has already
+     * been promised that time.
+     */
+    @Modifying
+    @Query("DELETE FROM DoctorSchedule s WHERE s.doctor.id = :doctorId "
+            + "AND s.availableDate >= :from AND s.isBooked = false")
+    int deleteUnbookedFrom(@Param("doctorId") String doctorId, @Param("from") LocalDate from);
 }

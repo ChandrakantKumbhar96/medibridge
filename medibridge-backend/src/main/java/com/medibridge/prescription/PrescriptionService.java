@@ -37,6 +37,7 @@ public class PrescriptionService {
     private final AppointmentRepository appointmentRepository;
     private final MedicalReportRepository reportRepository;
     private final PdfService pdfService;
+    private final com.medibridge.notification.NotificationService notificationService;
 
     /**
      * Doctor records the consultation and issues the prescription. Both writes
@@ -52,8 +53,20 @@ public class PrescriptionService {
         if (appointment.getStatus() != AppointmentStatus.ACCEPTED
                 && appointment.getStatus() != AppointmentStatus.COMPLETED) {
             throw new BadRequestException(
-                    "A prescription can only be issued for an accepted or completed appointment");
+                    "A prescription can only be issued for a confirmed appointment");
         }
+
+        // A prescription is a record of a consultation that happened. Without
+        // this check a doctor could write up - and thereby complete - a
+        // consultation scheduled for next month, which would also unlock a
+        // patient review for a visit that never took place.
+        if (!appointment.hasStarted()) {
+            throw new BadRequestException(
+                    "This consultation is scheduled for "
+                            + AppointmentMapper.describe(appointment)
+                            + ". A prescription cannot be issued before it takes place.");
+        }
+
         if (consultationRepository.existsByAppointmentId(appointment.getId())) {
             throw new ConflictException("This appointment already has a consultation record");
         }
@@ -90,7 +103,10 @@ public class PrescriptionService {
 
         // Issuing a prescription implies the consultation happened.
         appointment.setStatus(AppointmentStatus.COMPLETED);
+        appointment.setCompletedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
+
+        notificationService.sendPrescriptionReady(appointment);
 
         return toDto(prescription);
     }

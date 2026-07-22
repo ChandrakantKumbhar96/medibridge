@@ -35,6 +35,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     boolean existsByScheduleId(Integer scheduleId);
 
+    /** Backs the hold-expiry job. */
+    List<Appointment> findByStatusAndHoldExpiresAtBefore(
+            AppointmentStatus status, LocalDateTime cutoff);
+
+    /** Backs the reminder job. */
+    List<Appointment> findByStatusAndAppointmentDateBetween(
+            AppointmentStatus status, LocalDateTime from, LocalDateTime to);
+
     Optional<Appointment> findByIdAndPatientId(Integer id, Integer patientId);
 
     Optional<Appointment> findByIdAndDoctorId(Integer id, String doctorId);

@@ -23,6 +23,8 @@
         <openhtmltopdf.version>1.0.10</openhtmltopdf.version>
         <google-api-client.version>2.7.0</google-api-client.version>
         <razorpay.version>1.4.8</razorpay.version>
+        <!-- 3.x is the Spring Boot 4 / Spring Framework 7 line; 2.x targets Boot 3. -->
+        <springdoc.version>3.0.3</springdoc.version>
     </properties>
 
     <dependencies>
@@ -122,6 +124,13 @@
             <groupId>com.razorpay</groupId>
             <artifactId>razorpay-java</artifactId>
             <version>${razorpay.version}</version>
+        </dependency>
+
+        <!-- Interactive API docs at /api/swagger-ui.html -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
 
         <!-- Boilerplate reduction -->

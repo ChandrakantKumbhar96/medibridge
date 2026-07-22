@@ -76,6 +76,12 @@ public class SecurityConfig {
                     .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+                    // API docs. Fine to expose locally; behind a real deployment
+                    // these should be disabled or restricted, since they
+                    // enumerate every endpoint for an attacker too.
+                    .requestMatchers("/swagger-ui/**", "/swagger-ui.html",
+                                     "/v3/api-docs/**", "/api-docs/**").permitAll()
+
                     // --- role gates ---
                     .requestMatchers("/admin/**").hasRole("ADMIN")
                     .requestMatchers("/doctor/**").hasRole("DOCTOR")

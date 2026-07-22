@@ -10,6 +10,9 @@ import com.medibridge.doctor.entity.DoctorAvailability;
 import com.medibridge.doctor.entity.DoctorSchedule;
 import com.medibridge.doctor.entity.Specialization;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class DoctorService {
+
+    private static final Logger log = LoggerFactory.getLogger(DoctorService.class);
 
     /** Slot generation windows for the morning/afternoon flags on the schedule screen. */
     private static final LocalTime MORNING_START = LocalTime.of(9, 0);
@@ -151,13 +156,21 @@ public class DoctorService {
                     doctor.getId(), date, start)) {
                 continue;
             }
-            scheduleRepository.save(DoctorSchedule.builder()
-                    .doctor(doctor)
-                    .availableDate(date)
-                    .startTime(start)
-                    .endTime(start.plusMinutes(duration))
-                    .isBooked(false)
-                    .build());
+            try {
+                scheduleRepository.saveAndFlush(DoctorSchedule.builder()
+                        .doctor(doctor)
+                        .availableDate(date)
+                        .startTime(start)
+                        .endTime(start.plusMinutes(duration))
+                        .isBooked(false)
+                        .build());
+            } catch (DataIntegrityViolationException e) {
+                // Two patients opened this doctor's calendar at the same moment
+                // and both passed the exists() check above. The unique key on
+                // (doctor, date, start_time) settles it - the slot exists either
+                // way, so this is success, not failure.
+                log.debug("Slot {} {} already created concurrently", date, start);
+            }
         }
     }
 
@@ -197,6 +210,8 @@ public class DoctorService {
                 .orElseThrow(() -> new BadRequestException(
                         "Unknown specialization: " + request.specialization()));
 
+        Integer previousDuration = doctor.getConsultationDurationMin();
+
         doctor.setFullName(request.fullName());
         doctor.setPhone(request.phone());
         doctor.setSpecialization(specialization);
@@ -205,7 +220,30 @@ public class DoctorService {
         doctor.setConsultationDurationMin(request.consultationDurationMin());
         doctor.setBio(request.bio());
 
-        return DoctorMapper.toDto(doctorRepository.save(doctor));
+        doctor = doctorRepository.save(doctor);
+
+        // Slot boundaries are derived from the consultation duration, so a
+        // change leaves already-generated slots at the old length. Rebuild the
+        // unbooked future ones; booked slots are left alone because a patient
+        // has already been told that time.
+        if (previousDuration != null
+                && !previousDuration.equals(request.consultationDurationMin())) {
+            regenerateFutureSlots(doctor);
+        }
+
+        return DoctorMapper.toDto(doctor);
+    }
+
+    private void regenerateFutureSlots(Doctor doctor) {
+        LocalDate today = LocalDate.now();
+
+        int removed = scheduleRepository.deleteUnbookedFrom(doctor.getId(), today);
+        for (int i = 0; i < SLOT_HORIZON_DAYS; i++) {
+            ensureSlotsGenerated(doctor, today.plusDays(i));
+        }
+
+        log.info("Consultation duration changed for {}: rebuilt {} unbooked future slots",
+                doctor.getId(), removed);
     }
 
     /**

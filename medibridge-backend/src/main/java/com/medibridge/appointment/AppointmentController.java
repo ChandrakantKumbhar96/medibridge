@@ -44,13 +44,21 @@ public class AppointmentController {
         return appointmentService.book(me.idAsInt(), request);
     }
 
+    /**
+     * Cancels and refunds automatically per policy: a doctor cancelling always
+     * refunds in full; a patient cancelling gets the full amount outside the
+     * free-cancellation window and a partial refund inside it.
+     */
     @PatchMapping("/{appointmentId}/cancel")
     @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
     public AppointmentResponse cancel(@CurrentUser SecurityUser me,
-                                      @PathVariable Integer appointmentId) {
+                                      @PathVariable Integer appointmentId,
+                                      @RequestBody(required = false) Map<String, String> body) {
+        String reason = body == null ? null : body.get("reason");
+
         return switch (me.getUserType()) {
-            case PATIENT -> appointmentService.cancelAsPatient(me.idAsInt(), appointmentId);
-            case DOCTOR -> appointmentService.cancelAsDoctor(me.getId(), appointmentId);
+            case PATIENT -> appointmentService.cancelAsPatient(me.idAsInt(), appointmentId, reason);
+            case DOCTOR -> appointmentService.cancelAsDoctor(me.getId(), appointmentId, reason);
             default -> throw new BadRequestException("Unsupported role for this action");
         };
     }
@@ -69,12 +77,18 @@ public class AppointmentController {
         return appointmentService.getDoctorAppointments(me.getId());
     }
 
-    /** Body: {@code { "action": "accept" | "reject" | "complete" }} */
-    @PatchMapping("/{appointmentId}/respond")
+    /**
+     * Marks a consultation done.
+     *
+     * <p>There is deliberately no accept/reject endpoint. Publishing a slot is
+     * the doctor's agreement to be booked, so payment confirms the appointment
+     * outright - the same model Practo and Apollo use. A doctor who genuinely
+     * cannot attend cancels, which refunds the patient in full.
+     */
+    @PatchMapping("/{appointmentId}/complete")
     @PreAuthorize("hasRole('DOCTOR')")
-    public AppointmentResponse respond(@CurrentUser SecurityUser me,
-                                       @PathVariable Integer appointmentId,
-                                       @RequestBody Map<String, String> body) {
-        return appointmentService.respond(me.getId(), appointmentId, body.get("action"));
+    public AppointmentResponse complete(@CurrentUser SecurityUser me,
+                                        @PathVariable Integer appointmentId) {
+        return appointmentService.complete(me.getId(), appointmentId);
     }
 }
