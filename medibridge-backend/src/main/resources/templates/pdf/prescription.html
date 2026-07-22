@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Prescription</title>
+    <style>
+        @page { size: A4; margin: 40px 40px 60px 40px;
+                @bottom-center { content: "Page " counter(page) " of " counter(pages);
+                                 font-family: sans-serif; font-size: 9px; color: #94a3b8; } }
+        body { font-family: sans-serif; color: #0f172a; font-size: 12px; }
+
+        .header { border-bottom: 3px solid #2563eb; padding-bottom: 14px; margin-bottom: 22px; }
+        .brand { font-size: 26px; font-weight: bold; color: #2563eb; }
+        .tagline { font-size: 10px; color: #64748b; margin-top: 2px; }
+        .doc-title { float: right; text-align: right; margin-top: -34px; }
+        .doc-title .label { font-size: 17px; font-weight: bold; letter-spacing: 1px; }
+        .doc-title .meta { font-size: 10px; color: #64748b; margin-top: 3px; }
+
+        .panels { width: 100%; margin-bottom: 20px; }
+        .panel { width: 48%; vertical-align: top; padding: 12px 14px;
+                 background: #f8fafc; border-left: 3px solid #2563eb; }
+        .panel h3 { margin: 0 0 8px 0; font-size: 10px; text-transform: uppercase;
+                    letter-spacing: 1px; color: #2563eb; }
+        .panel .name { font-weight: bold; font-size: 13px; margin-bottom: 3px; }
+        .panel .line { font-size: 11px; color: #475569; margin-top: 2px; }
+
+        .diagnosis { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px;
+                     padding: 12px 14px; margin-bottom: 20px; }
+        .diagnosis h3 { margin: 0 0 5px 0; font-size: 10px; text-transform: uppercase;
+                        letter-spacing: 1px; color: #1d4ed8; }
+        .diagnosis .value { font-size: 14px; font-weight: bold; }
+        .diagnosis .notes { font-size: 11px; color: #475569; margin-top: 6px; }
+
+        /* Plain "Rx" text, not the U+211E glyph: openhtmltopdf's built-in
+           Helvetica has no such glyph and silently renders a fallback box.
+           Embedding a font just for one character is not worth it. */
+        .rx { font-size: 26px; font-weight: bold; color: #2563eb;
+              font-style: italic; margin-bottom: 6px; letter-spacing: -1px; }
+
+        table.meds { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+        table.meds th { background: #2563eb; color: #ffffff; text-align: left;
+                        padding: 8px 10px; font-size: 10px; text-transform: uppercase;
+                        letter-spacing: 0.5px; }
+        table.meds td { padding: 9px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
+        table.meds tr.alt td { background: #f8fafc; }
+        .med-name { font-weight: bold; }
+        .med-note { color: #64748b; font-size: 10px; font-style: italic; }
+
+        .advice { border: 1px dashed #cbd5e1; border-radius: 4px; padding: 11px 13px;
+                  margin-bottom: 18px; font-size: 11px; }
+        .advice h3 { margin: 0 0 5px 0; font-size: 10px; text-transform: uppercase;
+                     letter-spacing: 1px; color: #475569; }
+
+        .followup { background: #fef3c7; border-left: 3px solid #f59e0b;
+                    padding: 9px 13px; font-size: 11px; margin-bottom: 26px; }
+
+        .sign { width: 100%; margin-top: 30px; }
+        .sign .box { width: 45%; }
+        .sign .line { border-top: 1px solid #0f172a; padding-top: 5px;
+                      font-size: 11px; font-weight: bold; }
+        .sign .sub { font-size: 10px; color: #64748b; }
+
+        .footer { margin-top: 34px; border-top: 1px solid #e2e8f0; padding-top: 10px;
+                  font-size: 9px; color: #94a3b8; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="brand">MediBridge</div>
+    <div class="tagline">Digital Healthcare Platform</div>
+    <div class="doc-title">
+        <div class="label">PRESCRIPTION</div>
+        <div class="meta">Rx No. <span th:text="${prescriptionNo}">MB-RX-0001</span></div>
+        <div class="meta">Date: <span th:text="${dateIssued}">2026-07-23</span></div>
+    </div>
+</div>
+
+<table class="panels">
+    <tr>
+        <td class="panel">
+            <h3>Patient</h3>
+            <div class="name" th:text="${patientName}">John Doe</div>
+            <div class="line">Age: <span th:text="${patientAge}">35</span> &#183;
+                <span th:text="${patientGender}">Male</span></div>
+            <div class="line">Blood Group: <span th:text="${patientBloodGroup}">O+</span></div>
+            <div class="line" th:text="${patientPhone}">+91 90000 00000</div>
+        </td>
+        <td style="width:4%;"></td>
+        <td class="panel">
+            <h3>Prescribed By</h3>
+            <div class="name" th:text="${doctorName}">Dr. Sarah Johnson</div>
+            <div class="line" th:text="${doctorSpecialization}">Cardiology</div>
+            <div class="line">Reg. No: <span th:text="${doctorLicense}">MD-12345</span></div>
+            <div class="line" th:text="${doctorPhone}">+91 90000 00001</div>
+        </td>
+    </tr>
+</table>
+
+<div class="diagnosis">
+    <h3>Diagnosis</h3>
+    <div class="value" th:text="${diagnosis}">Viral fever</div>
+    <div class="notes" th:if="${notes != null and !notes.isEmpty()}" th:text="${notes}">Notes</div>
+</div>
+
+<div class="rx">Rx</div>
+
+<table class="meds">
+    <thead>
+    <tr>
+        <th style="width:5%;">#</th>
+        <th style="width:37%;">Medicine</th>
+        <th style="width:16%;">Dosage</th>
+        <th style="width:16%;">Frequency</th>
+        <th style="width:16%;">Duration</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="med, iter : ${medicines}" th:class="${iter.odd} ? 'alt' : ''">
+        <td th:text="${iter.count}">1</td>
+        <td>
+            <div class="med-name" th:text="${med.medicineName()}">Paracetamol</div>
+            <div class="med-note"
+                 th:if="${med.instructions() != null and !med.instructions().isEmpty()}"
+                 th:text="${med.instructions()}">After food</div>
+        </td>
+        <td th:text="${med.dosage()}">500 mg</td>
+        <td th:text="${med.frequency()}">1-0-1</td>
+        <td th:text="${med.duration()}">5 days</td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="advice" th:if="${advice != null and !advice.isEmpty()}">
+    <h3>General Advice</h3>
+    <div th:text="${advice}">Rest and stay hydrated.</div>
+</div>
+
+<div class="followup" th:if="${followUpDate != null}">
+    <strong>Follow-up:</strong> Please schedule a follow-up consultation on
+    <span th:text="${followUpDate}">2026-08-01</span>.
+</div>
+
+<table class="sign">
+    <tr>
+        <td class="box"></td>
+        <td style="width:10%;"></td>
+        <td class="box">
+            <div class="line" th:text="${doctorName}">Dr. Sarah Johnson</div>
+            <div class="sub" th:text="${doctorSpecialization}">Cardiology</div>
+            <div class="sub">Reg. No: <span th:text="${doctorLicense}">MD-12345</span></div>
+        </td>
+    </tr>
+</table>
+
+<div class="footer">
+    This is a digitally generated prescription issued through MediBridge and is valid
+    without a physical signature.<br/>
+    Generated on <span th:text="${generatedOn}">2026-07-23 01:30</span> &#183;
+    Not to be used for medico-legal purposes.
+</div>
+
+</body>
+</html>
