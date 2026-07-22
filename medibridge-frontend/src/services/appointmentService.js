@@ -13,9 +13,10 @@ export const appointmentService = {
     const { data } = await axiosClient.post('/appointments', payload)
     return data
   },
-  async cancelAppointment(id) {
-    if (USE_MOCK) return mockResolve({ appointment_id: id, status: 'Cancelled' })
-    const { data } = await axiosClient.patch(`/appointments/${id}/cancel`)
+  /** Cancelling triggers an automatic refund on the server, per policy. */
+  async cancelAppointment(id, reason) {
+    if (USE_MOCK) return mockResolve({ appointment_id: id, status: 'cancelled' })
+    const { data } = await axiosClient.patch(`/appointments/${id}/cancel`, { reason })
     return data
   },
   async getDoctorDashboard() {
@@ -23,9 +24,22 @@ export const appointmentService = {
     const { data } = await axiosClient.get('/appointments/doctor/dashboard')
     return data
   },
-  async respondToRequest(id, action) {
-    if (USE_MOCK) return mockResolve({ id, action })
-    const { data } = await axiosClient.patch(`/appointments/${id}/respond`, { action })
+  /**
+   * Marks a consultation done.
+   *
+   * There is no accept/reject any more: paying for a published slot confirms
+   * the appointment outright. A doctor who cannot attend cancels instead,
+   * which refunds the patient in full.
+   */
+  async completeAppointment(id) {
+    if (USE_MOCK) return mockResolve({ appointment_id: id, status: 'confirmed' })
+    const { data } = await axiosClient.patch(`/appointments/${id}/complete`)
+    return data
+  },
+
+  async getDoctorAppointments() {
+    if (USE_MOCK) return mockResolve([])
+    const { data } = await axiosClient.get('/appointments/doctor')
     return data
   },
 }

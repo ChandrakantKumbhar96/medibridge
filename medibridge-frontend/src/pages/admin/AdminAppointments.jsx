@@ -6,6 +6,7 @@ import Card from '../../components/common/Card'
 import Badge from '../../components/common/Badge'
 import { adminNav } from './adminNav'
 import { fetchAdminAppointments } from '../../features/admin/adminSlice'
+import { exportCsv, datedFilename } from '../../utils/exportCsv'
 
 export default function AdminAppointments() {
   const dispatch = useDispatch()
@@ -25,7 +26,19 @@ export default function AdminAppointments() {
     <DashboardLayout badge="Admin" navItems={adminNav}>
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-extrabold text-slate-900">All Appointments</h1>
-        <button className="flex items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"><Download size={16} /> Export Report</button>
+        <button
+          onClick={() => exportCsv(datedFilename('appointments'), rows, [
+            { key: 'appointment_id', label: 'ID' },
+            { key: 'patient', label: 'Patient' },
+            { key: 'doctor', label: 'Doctor' },
+            { key: 'date', label: 'Date' },
+            { key: 'time', label: 'Time' },
+            { key: 'type', label: 'Type' },
+            { key: 'status', label: 'Status' },
+          ])}
+          className="flex items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
+          <Download size={16} /> Export Report
+        </button>
       </div>
 
       <Card className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
