@@ -73,10 +73,16 @@ public class PaymentController {
         return paymentService.getForAppointment(me.idAsInt(), appointmentId);
     }
 
-    /** Refunds are admin-only: a patient must not be able to reverse their own charge. */
+    /**
+     * Manual full refund. Admin-only - a patient must not be able to reverse
+     * their own charge. Cancellation refunds happen automatically; this is for
+     * disputes and goodwill.
+     */
     @PostMapping("/{transactionId}/refund")
     @PreAuthorize("hasRole('ADMIN')")
-    public PaymentResponse refund(@PathVariable Integer transactionId) {
-        return paymentService.refund(transactionId);
+    public PaymentResponse refund(@PathVariable Integer transactionId,
+                                  @RequestBody(required = false) Map<String, String> body) {
+        String reason = body == null ? "Refunded by administrator" : body.get("reason");
+        return paymentService.refund(transactionId, reason);
     }
 }

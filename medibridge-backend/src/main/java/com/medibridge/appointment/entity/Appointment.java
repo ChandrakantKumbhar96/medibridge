@@ -7,6 +7,7 @@ import com.medibridge.patient.entity.Patient;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -51,6 +52,28 @@ public class Appointment {
     @Column(name = "consult_type", length = 50)
     private String consultType;
 
+    /**
+     * Price agreed when the appointment was created, not looked up at payment
+     * time. A doctor raising their rate afterwards must not change what this
+     * patient owes, and the invoice must stay reproducible.
+     */
+    @Column(name = "booked_fee", precision = 10, scale = 2)
+    private BigDecimal bookedFee;
+
+    @Column(name = "platform_fee", precision = 10, scale = 2)
+    private BigDecimal platformFee;
+
+    /** bookedFee + platformFee - the exact amount charged. */
+    @Column(name = "total_amount", precision = 10, scale = 2)
+    private BigDecimal totalAmount;
+
+    /**
+     * A PENDING_PAYMENT appointment holds its slot only until this instant.
+     * Without it, closing the checkout tab would block that slot forever.
+     */
+    @Column(name = "hold_expires_at")
+    private LocalDateTime holdExpiresAt;
+
     @Column(columnDefinition = "TEXT")
     private String reason;
 
@@ -60,6 +83,30 @@ public class Appointment {
 
     @Column(name = "meeting_sent_at")
     private LocalDateTime meetingSentAt;
+
+    // The link only works inside this window - a forwarded URL should not let a
+    // stranger join a consultation weeks later.
+    @Column(name = "meeting_join_from")
+    private LocalDateTime meetingJoinFrom;
+
+    @Column(name = "meeting_valid_until")
+    private LocalDateTime meetingValidUntil;
+
+    @Column(name = "confirmed_at")
+    private LocalDateTime confirmedAt;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cancelled_by")
+    private ActorRole cancelledBy;
+
+    @Column(name = "cancellation_reason", length = 255)
+    private String cancellationReason;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -71,5 +118,29 @@ public class Appointment {
     void applyDefaults() {
         if (status == null) status = AppointmentStatus.PENDING_PAYMENT;
         if (consultType == null) consultType = "Consultation";
+    }
+
+    /** True once the consultation time has actually arrived. */
+    public boolean hasStarted() {
+        return appointmentDate != null && !appointmentDate.isAfter(LocalDateTime.now());
+    }
+
+    /** The join link is live only inside the configured window. */
+    public boolean isMeetingJoinable() {
+        if (meetingLink == null || meetingJoinFrom == null || meetingValidUntil == null) {
+            return false;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        return !now.isBefore(meetingJoinFrom) && !now.isAfter(meetingValidUntil);
+    }
+
+    public boolean isHoldExpired() {
+        return status == AppointmentStatus.PENDING_PAYMENT
+                && holdExpiresAt != null
+                && holdExpiresAt.isBefore(LocalDateTime.now());
+    }
+
+    public enum ActorRole {
+        PATIENT, DOCTOR, ADMIN, SYSTEM
     }
 }
