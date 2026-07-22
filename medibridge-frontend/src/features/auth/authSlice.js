@@ -21,9 +21,12 @@ export const registerDoctor = createAsyncThunk('auth/registerDoctor', async (pay
   try { return await authService.registerDoctor(payload) } catch (e) { return rejectWithValue(e?.response?.data?.message || 'Registration failed') }
 })
 
-const persist = (token, user) => {
+const persist = (token, user, refreshToken) => {
   localStorage.setItem('mb_token', token)
   localStorage.setItem('mb_user', JSON.stringify(user))
+  // Needed by the 401 interceptor in axiosClient to silently renew the
+  // 15-minute access token. Without it the session dies mid-use.
+  if (refreshToken) localStorage.setItem('mb_refresh_token', refreshToken)
 }
 
 const initialState = {
@@ -44,16 +47,23 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       localStorage.removeItem('mb_token')
       localStorage.removeItem('mb_user')
+      localStorage.removeItem('mb_refresh_token')
     },
     clearError(state) { state.error = null },
   },
   extraReducers: (builder) => {
     const fulfilled = (state, { payload }) => {
+      // Doctor registration returns a user but no token - the account is
+      // pending admin approval, so there is no session to establish.
+      if (!payload.token) {
+        state.status = 'succeeded'
+        return
+      }
       state.status = 'succeeded'
       state.user = payload.user
       state.token = payload.token
       state.isAuthenticated = true
-      persist(payload.token, payload.user)
+      persist(payload.token, payload.user, payload.refresh_token)
     }
     const pending = (state) => { state.status = 'loading'; state.error = null }
     const rejected = (state, { payload }) => { state.status = 'failed'; state.error = payload }
