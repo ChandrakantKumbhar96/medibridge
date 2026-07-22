@@ -1,0 +1,113 @@
+spring:
+  application:
+    name: medibridge-backend
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:medibridge}?useSSL=false&serverTimezone=Asia/Kolkata&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      # Flyway owns the schema. 'validate' fails fast if an entity and the
+      # migration disagree, which is exactly what we want.
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: Asia/Kolkata
+
+  flyway:
+    enabled: true
+    # Deliberately false. With baseline-on-migrate=true, pointing at a database
+    # that already has tables makes Flyway silently baseline and skip V1 - which
+    # is how a schema mismatch hides instead of failing loudly.
+    baseline-on-migrate: false
+    locations: classpath:db/migration
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api      # matches VITE_API_BASE_URL in the frontend .env
+  error:
+    include-stacktrace: never
+    include-message: never
+
+# Only /health and /info are public. Everything else on actuator is locked
+# down in SecurityConfig - /actuator/env would otherwise leak DB and JWT secrets.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    com.medibridge: DEBUG
+    org.hibernate.SQL: DEBUG
+
+medibridge:
+  cors:
+    allowed-origins: http://localhost:5173
+
+  jwt:
+    # Override in application-local.yml. Must be >= 32 bytes for HS256.
+    secret: ${JWT_SECRET:change-me-in-application-local-yml-min-32-bytes-long}
+    access-token-minutes: 15
+    refresh-token-days: 7
+
+  storage:
+    # Uploaded medical reports. Kept outside the app so files survive redeploys.
+    upload-dir: ${UPLOAD_DIR:./storage/reports}
+
+  meeting:
+    # No Zoom SDK/integration: we generate a unique room URL per appointment and
+    # email it. Jitsi Meet needs no account or API key. Swap the base URL for a
+    # Zoom/Meet/Teams personal room later without touching any code.
+    base-url: https://meet.jit.si/
+    room-prefix: medibridge-
+
+  mail:
+    from: ${MAIL_FROM:no-reply@medibridge.com}
+    # false = log the email body to console instead of sending (dev default)
+    enabled: ${MAIL_ENABLED:false}
+
+  google:
+    # OAuth 2.0 Web client ID from Google Cloud Console.
+    # Blank = Google Sign-In disabled and the button is hidden.
+    # This value is public; there is no client secret in this flow.
+    client-id: ${GOOGLE_CLIENT_ID:}
+
+  razorpay:
+    # Test keys from the Razorpay dashboard (rzp_test_...).
+    # Blank = payments fall back to the simulated form.
+    key-id: ${RAZORPAY_KEY_ID:}
+    # NEVER commit this and never send it to the browser - it is what makes
+    # the payment signature unforgeable.
+    key-secret: ${RAZORPAY_KEY_SECRET:}

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Medical History Report</title>
+    <style>
+        @page { size: A4; margin: 40px 40px 60px 40px;
+                @bottom-center { content: "Page " counter(page) " of " counter(pages);
+                                 font-family: sans-serif; font-size: 9px; color: #94a3b8; } }
+        body { font-family: sans-serif; color: #0f172a; font-size: 12px; }
+
+        .header { border-bottom: 3px solid #16a34a; padding-bottom: 14px; margin-bottom: 22px; }
+        .brand { font-size: 26px; font-weight: bold; color: #16a34a; }
+        .tagline { font-size: 10px; color: #64748b; margin-top: 2px; }
+        .doc-title { float: right; text-align: right; margin-top: -34px; }
+        .doc-title .label { font-size: 15px; font-weight: bold; letter-spacing: 1px; }
+        .doc-title .meta { font-size: 10px; color: #64748b; margin-top: 3px; }
+
+        .patient { background: #f0fdf4; border-left: 3px solid #16a34a;
+                   padding: 13px 15px; margin-bottom: 22px; }
+        .patient h3 { margin: 0 0 8px 0; font-size: 10px; text-transform: uppercase;
+                      letter-spacing: 1px; color: #15803d; }
+        .patient .name { font-size: 15px; font-weight: bold; margin-bottom: 5px; }
+        .patient td { font-size: 11px; color: #475569; padding: 1px 0; width: 33%; }
+
+        h2.section { font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+                     color: #15803d; border-bottom: 1px solid #dcfce7;
+                     padding-bottom: 5px; margin: 24px 0 10px 0; }
+
+        table.data { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+        table.data th { background: #16a34a; color: #ffffff; text-align: left;
+                        padding: 7px 9px; font-size: 10px; text-transform: uppercase; }
+        table.data td { padding: 8px 9px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
+        table.data tr.alt td { background: #f8fafc; }
+
+        .stats { width: 100%; margin-bottom: 8px; }
+        .stat { width: 24%; background: #f8fafc; border: 1px solid #e2e8f0;
+                border-radius: 4px; padding: 10px; text-align: center; }
+        .stat .n { font-size: 20px; font-weight: bold; color: #16a34a; }
+        .stat .l { font-size: 9px; color: #64748b; text-transform: uppercase; margin-top: 2px; }
+
+        .empty { color: #94a3b8; font-style: italic; font-size: 11px; padding: 8px 0; }
+
+        .footer { margin-top: 34px; border-top: 1px solid #e2e8f0; padding-top: 10px;
+                  font-size: 9px; color: #94a3b8; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="brand">MediBridge</div>
+    <div class="tagline">Digital Healthcare Platform</div>
+    <div class="doc-title">
+        <div class="label">MEDICAL HISTORY REPORT</div>
+        <div class="meta">Ref: <span th:text="${reportNo}">MB-MH-0001</span></div>
+        <div class="meta">Generated: <span th:text="${generatedOn}">2026-07-23</span></div>
+    </div>
+</div>
+
+<div class="patient">
+    <h3>Patient Details</h3>
+    <div class="name" th:text="${patientName}">John Doe</div>
+    <table>
+        <tr>
+            <td>Age: <span th:text="${patientAge}">35</span></td>
+            <td>Gender: <span th:text="${patientGender}">Male</span></td>
+            <td>Blood Group: <span th:text="${patientBloodGroup}">O+</span></td>
+        </tr>
+        <tr>
+            <td>Phone: <span th:text="${patientPhone}">+91 90000 00000</span></td>
+            <td colspan="2">Email: <span th:text="${patientEmail}">john@email.com</span></td>
+        </tr>
+    </table>
+</div>
+
+<table class="stats">
+    <tr>
+        <td class="stat">
+            <div class="n" th:text="${totalAppointments}">8</div>
+            <div class="l">Appointments</div>
+        </td>
+        <td style="width:1.3%;"></td>
+        <td class="stat">
+            <div class="n" th:text="${completedConsults}">5</div>
+            <div class="l">Consultations</div>
+        </td>
+        <td style="width:1.3%;"></td>
+        <td class="stat">
+            <div class="n" th:text="${totalPrescriptions}">3</div>
+            <div class="l">Prescriptions</div>
+        </td>
+        <td style="width:1.3%;"></td>
+        <td class="stat">
+            <div class="n" th:text="${totalReports}">4</div>
+            <div class="l">Uploaded Files</div>
+        </td>
+    </tr>
+</table>
+
+<h2 class="section">Consultation History</h2>
+<div class="empty" th:if="${consultations.isEmpty()}">No consultations recorded.</div>
+<table class="data" th:unless="${consultations.isEmpty()}">
+    <thead>
+    <tr>
+        <th style="width:14%;">Date</th>
+        <th style="width:26%;">Doctor</th>
+        <th style="width:20%;">Specialization</th>
+        <th style="width:40%;">Diagnosis</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="c, iter : ${consultations}" th:class="${iter.odd} ? 'alt' : ''">
+        <td th:text="${c.date}">2026-04-20</td>
+        <td th:text="${c.doctor}">Dr. Sarah Johnson</td>
+        <td th:text="${c.specialization}">Cardiology</td>
+        <td th:text="${c.diagnosis}">Hypertension</td>
+    </tr>
+    </tbody>
+</table>
+
+<h2 class="section">Prescription History</h2>
+<div class="empty" th:if="${prescriptions.isEmpty()}">No prescriptions issued.</div>
+<table class="data" th:unless="${prescriptions.isEmpty()}">
+    <thead>
+    <tr>
+        <th style="width:14%;">Date</th>
+        <th style="width:26%;">Doctor</th>
+        <th style="width:60%;">Medicines</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="p, iter : ${prescriptions}" th:class="${iter.odd} ? 'alt' : ''">
+        <td th:text="${p.date}">2026-04-20</td>
+        <td th:text="${p.doctor}">Dr. Sarah Johnson</td>
+        <td th:text="${p.medicines}">Paracetamol 500 mg, Azithromycin 250 mg</td>
+    </tr>
+    </tbody>
+</table>
+
+<h2 class="section">Uploaded Documents</h2>
+<div class="empty" th:if="${reports.isEmpty()}">No documents uploaded.</div>
+<table class="data" th:unless="${reports.isEmpty()}">
+    <thead>
+    <tr>
+        <th style="width:16%;">Date</th>
+        <th style="width:48%;">Document</th>
+        <th style="width:22%;">Type</th>
+        <th style="width:14%;">Size</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="r, iter : ${reports}" th:class="${iter.odd} ? 'alt' : ''">
+        <td th:text="${r.date}">2026-04-20</td>
+        <td th:text="${r.name}">Blood Test Report</td>
+        <td th:text="${r.type}">Lab Report</td>
+        <td th:text="${r.size}">2.4 MB</td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="footer">
+    Confidential medical record generated by MediBridge on
+    <span th:text="${generatedOn}">2026-07-23</span>.<br/>
+    This document contains protected health information and is intended solely for the
+    named patient and their treating clinicians.
+</div>
+
+</body>
+</html>
