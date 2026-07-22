@@ -1,0 +1,43 @@
+# =============================================================================
+# SECRETS - never commit. Anything here would end up in git history permanently,
+# where deleting the file later does not remove it.
+# =============================================================================
+**/application-local.yml
+**/application-secrets.yml
+.env
+**/.env
+!**/.env.example
+*.pem
+*.key
+
+# Database dumps - contain real patient data
+*.sql.bak
+medibridge-backup-*.sql
+
+# =============================================================================
+# Build output
+# =============================================================================
+target/
+dist/
+build/
+node_modules/
+
+# Uploaded medical reports and generated PDFs
+storage/
+sample-output/
+
+# =============================================================================
+# IDE / OS
+# =============================================================================
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
