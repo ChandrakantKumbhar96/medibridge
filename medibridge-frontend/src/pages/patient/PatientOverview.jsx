@@ -10,6 +10,7 @@ import { patientNav } from './patientNav'
 import { fetchPatientAppointments } from '../../features/appointments/appointmentsSlice'
 import { fetchRecords } from '../../features/records/recordsSlice'
 import { patientProfileService } from '../../services/profileService'
+import { recordService } from '../../services/recordService'
 
 const STAT_CARDS = [
   { key: 'upcomingAppointments', icon: Calendar, label: 'Upcoming Appointments', grad: 'from-blue-500 to-blue-600' },
@@ -92,7 +93,11 @@ export default function PatientOverview() {
                   <div className="text-sm text-slate-500">{r.upload_date} • {r.size}</div>
                 </div>
               </div>
-              <button className="text-primary-600 hover:text-primary-700"><Download size={18} /></button>
+              <button title="Download"
+                onClick={() => recordService.download(r.report_id, r.report_name)}
+                className="text-primary-600 hover:text-primary-700">
+                <Download size={18} />
+              </button>
             </div>
           ))}
         </div>

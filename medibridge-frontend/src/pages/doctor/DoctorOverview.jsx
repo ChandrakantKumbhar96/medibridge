@@ -1,28 +1,37 @@
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Calendar, Clock, CheckCircle2, Users, Check } from 'lucide-react'
+import { Calendar, Clock, CheckCircle2, Users, Video, FileText } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Card from '../../components/common/Card'
 import Badge from '../../components/common/Badge'
-import Avatar from '../../components/common/Avatar'
 import Button from '../../components/common/Button'
 import { doctorNav } from './doctorNav'
 import { fetchDoctorDashboard } from '../../features/appointments/appointmentsSlice'
 
-const stats = [
-  { icon: Calendar, value: 4, label: "Today's Appointments", grad: 'from-blue-500 to-blue-600' },
-  { icon: Clock, value: 3, label: 'Pending Requests', grad: 'from-amber-400 to-amber-500' },
-  { icon: CheckCircle2, value: 2, label: 'Completed Today', grad: 'from-green-500 to-green-600' },
-  { icon: Users, value: 156, label: 'Total Patients', grad: 'from-purple-500 to-purple-600' },
-]
-
 export default function DoctorOverview() {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const user = useSelector((s) => s.auth.user)
-  const { today, pending } = useSelector((s) => s.appointments.doctor)
+  const { today = [], upcoming = [], pending = [], completed = [] } =
+    useSelector((s) => s.appointments.doctor)
+
   useEffect(() => { dispatch(fetchDoctorDashboard()) }, [dispatch])
 
   const lastName = (user?.name || 'Dr. Johnson').split(' ').slice(-1)[0]
+
+  // Counts derived from the loaded dashboard, not hardcoded, so the tiles
+  // always agree with the lists underneath them.
+  const stats = [
+    { icon: Calendar, value: today.length, label: "Today's Appointments",
+      grad: 'from-blue-500 to-blue-600' },
+    { icon: Clock, value: pending.length, label: 'Awaiting Notes',
+      grad: 'from-amber-400 to-amber-500' },
+    { icon: CheckCircle2, value: completed.length, label: 'Completed',
+      grad: 'from-green-500 to-green-600' },
+    { icon: Users, value: upcoming.length, label: 'Upcoming',
+      grad: 'from-purple-500 to-purple-600' },
+  ]
 
   return (
     <DashboardLayout badge="Doctor" navItems={doctorNav}>
@@ -42,49 +51,78 @@ export default function DoctorOverview() {
       <Card className="mt-6">
         <h2 className="text-lg font-bold text-slate-900">Today's Schedule</h2>
         <div className="mt-4 space-y-3">
-          {today.map((t) => (
-            <div key={t.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-4">
+          {today.length === 0 && (
+            <div className="py-3 text-sm text-slate-500">Nothing scheduled today.</div>
+          )}
+          {today.map((a) => (
+            <div key={a.appointment_id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-4">
               <div className="flex items-center gap-4">
                 <div className="rounded-lg bg-blue-50 px-3 py-1.5 text-center">
                   <div className="text-[10px] uppercase text-slate-400">Time</div>
-                  <div className="text-sm font-bold text-primary-600">{t.time}</div>
+                  <div className="text-sm font-bold text-primary-600">{a.time}</div>
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-800">{t.name}</div>
-                  <div className="text-sm text-slate-500">{t.age} years • {t.type}</div>
+                  <div className="font-semibold text-slate-800">{a.patient}</div>
+                  <div className="text-sm text-slate-500">
+                    {a.age != null ? `${a.age} years • ` : ''}{a.type}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Badge status={t.status} />
-                <Button className="px-4 py-1.5">Start Consultation</Button>
+                <Badge status={a.status} />
+                {/* Only rendered when the join window is open - the backend
+                    withholds the link outside it. */}
+                {a.meeting_link && (
+                  <a href={a.meeting_link} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-green-700">
+                    <Video size={14} /> Start Consultation
+                  </a>
+                )}
               </div>
             </div>
           ))}
         </div>
       </Card>
 
+      {/*
+        Replaces the old "Pending Appointment Requests" panel. There are no
+        requests to accept any more: paying for a published slot confirms the
+        appointment outright. What a doctor actually owes is consultation notes
+        for visits that have already happened.
+      */}
       <Card className="mt-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">Pending Appointment Requests</h2>
-          <Badge status="pending">{pending.length} Pending</Badge>
+          <h2 className="text-lg font-bold text-slate-900">Awaiting Consultation Notes</h2>
+          {pending.length > 0 && <Badge status="pending">{pending.length} pending</Badge>}
         </div>
         <div className="mt-4 space-y-4">
-          {pending.map((p) => (
-            <div key={p.id} className="rounded-xl border border-slate-100 p-4">
+          {pending.length === 0 && (
+            <div className="py-3 text-sm text-slate-500">
+              You are up to date - no consultations awaiting notes.
+            </div>
+          )}
+          {pending.map((a) => (
+            <div key={a.appointment_id} className="rounded-xl border border-slate-100 p-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-semibold text-slate-800">{p.name}</div>
-                  <div className="text-sm text-slate-500">{p.age} years</div>
+                  <div className="font-semibold text-slate-800">{a.patient}</div>
+                  <div className="text-sm text-slate-500">
+                    {a.age != null ? `${a.age} years` : ''}
+                  </div>
                 </div>
                 <div className="text-right text-sm text-slate-500">
-                  <div>{p.date}</div><div>{p.time}</div>
+                  <div>{a.appointment_date}</div><div>{a.time}</div>
                 </div>
               </div>
-              <div className="mt-2 text-sm text-slate-500">Reason: {p.reason}</div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <button className="flex items-center justify-center gap-1.5 rounded-lg bg-green-600 py-2 text-sm font-semibold text-white hover:bg-green-700"><Check size={15} /> Accept</button>
-                <button className="rounded-lg bg-amber-500 py-2 text-sm font-semibold text-white hover:bg-amber-600">Reschedule</button>
-                <button className="rounded-lg bg-red-500 py-2 text-sm font-semibold text-white hover:bg-red-600">Reject</button>
+              {a.reason && (
+                <div className="mt-2 text-sm text-slate-500">Reason: {a.reason}</div>
+              )}
+              <div className="mt-3">
+                <Button className="w-full py-2"
+                  onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
+                  <FileText size={15} /> Write Prescription
+                </Button>
               </div>
             </div>
           ))}

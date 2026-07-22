@@ -22,6 +22,7 @@ import DoctorAppointments from '../pages/doctor/DoctorAppointments'
 import PatientRecordsDoctor from '../pages/doctor/PatientRecordsDoctor'
 import ManageSchedule from '../pages/doctor/ManageSchedule'
 import DoctorSettings from '../pages/doctor/DoctorSettings'
+import WritePrescription from '../pages/doctor/WritePrescription'
 
 // Admin
 import AdminOverview from '../pages/admin/AdminOverview'
@@ -57,6 +58,7 @@ export default function AppRoutes() {
       <Route path="/doctor" element={doctor(<DoctorOverview />)} />
       <Route path="/doctor/appointments" element={doctor(<DoctorAppointments />)} />
       <Route path="/doctor/patients" element={doctor(<PatientRecordsDoctor />)} />
+      <Route path="/doctor/prescribe/:appointmentId" element={doctor(<WritePrescription />)} />
       <Route path="/doctor/schedule" element={doctor(<ManageSchedule />)} />
       <Route path="/doctor/settings" element={doctor(<DoctorSettings />)} />
 
