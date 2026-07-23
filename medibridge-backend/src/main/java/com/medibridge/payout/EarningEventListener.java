@@ -2,6 +2,7 @@ package com.medibridge.payout;
 
 import com.medibridge.appointment.AppointmentRepository;
 import com.medibridge.appointment.AppointmentService;
+import com.medibridge.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,15 +43,18 @@ public class EarningEventListener {
     /**
      * A refunded consultation is no longer owed to the doctor.
      *
-     * <p>Without this, cancelling a completed-and-refunded appointment would
-     * leave the platform paying a doctor for money it had given back.
+     * <p>Driven by the payment module rather than the cancellation path,
+     * because there are two ways money goes back: a cancellation, and an admin
+     * issuing a manual refund on a completed consultation. Listening only to
+     * cancellations left the second case refunding the patient while still
+     * paying the doctor.
      */
     @TransactionalEventListener
-    public void onCancelled(AppointmentService.AppointmentCancelledEvent event) {
+    public void onRefunded(PaymentService.PaymentRefundedEvent event) {
         try {
             payoutService.reverseEarning(event.appointmentId(), event.reason());
         } catch (Exception e) {
-            log.error("Could not reverse earning for appointment {}: {}",
+            log.error("Could not reverse earning for appointment {} after refund: {}",
                     event.appointmentId(), e.getMessage());
         }
     }
