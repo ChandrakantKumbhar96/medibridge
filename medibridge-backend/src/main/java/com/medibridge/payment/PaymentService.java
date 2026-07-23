@@ -40,6 +40,7 @@ public class PaymentService {
     private final AppointmentService appointmentService;
     private final RazorpayGateway razorpayGateway;
     private final PaymentFailureRecorder failureRecorder;
+    private final org.springframework.context.ApplicationEventPublisher events;
 
     // ------------------------------------------------------- gateway payment
 
@@ -293,7 +294,21 @@ public class PaymentService {
         payment.setRefundedAt(LocalDateTime.now());
         payment.setRefundReason(reason);
 
-        return paymentRepository.save(payment);
+        PaymentTransaction saved = paymentRepository.save(payment);
+
+        // Money returned to the patient must also stop being owed to the doctor.
+        // Announced from here rather than only from the cancellation path,
+        // because an admin can refund a completed consultation directly - and
+        // without this the platform would refund the patient and still pay out.
+        events.publishEvent(new PaymentRefundedEvent(
+                saved.getAppointment().getId(), amount, reason));
+
+        return saved;
+    }
+
+    /** Published whenever money goes back to a patient, from any path. */
+    public record PaymentRefundedEvent(Integer appointmentId, BigDecimal amount,
+                                       String reason) {
     }
 
     private PaymentResponse toDto(PaymentTransaction p) {
