@@ -37,6 +37,18 @@ export const appointmentService = {
     return data
   },
 
+  /**
+   * Moves an appointment to another slot with the same doctor.
+   * The appointment id survives, so the payment carries across - no refund
+   * and recharge.
+   */
+  async reschedule(id, scheduleId) {
+    if (USE_MOCK) return mockResolve({ appointment_id: id, schedule_id: scheduleId })
+    const { data } = await axiosClient.patch(`/appointments/${id}/reschedule`,
+      { schedule_id: scheduleId })
+    return data
+  },
+
   async getDoctorAppointments() {
     if (USE_MOCK) return mockResolve([])
     const { data } = await axiosClient.get('/appointments/doctor')
