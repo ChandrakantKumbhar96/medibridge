@@ -6,6 +6,8 @@ import com.medibridge.doctor.entity.DoctorSchedule;
 import com.medibridge.patient.entity.Patient;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -108,6 +110,28 @@ public class Appointment {
     @Column(name = "cancellation_reason", length = 255)
     private String cancellationReason;
 
+    /**
+     * Capped by policy so a slot cannot be shuffled indefinitely.
+     *
+     * <p>TINYINT declared explicitly: Java's Short defaults to SMALLINT, which
+     * ddl-auto:validate rejects against the column type. Same trap as
+     * rating.stars.
+     */
+    @JdbcTypeCode(SqlTypes.TINYINT)
+    @Column(name = "reschedule_count", nullable = false)
+    private Short rescheduleCount;
+
+    /** The first date booked, preserved so the history is not lost on a move. */
+    @Column(name = "original_date")
+    private LocalDateTime originalDate;
+
+    @Column(name = "last_rescheduled_at")
+    private LocalDateTime lastRescheduledAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rescheduled_by")
+    private ActorRole rescheduledBy;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -118,6 +142,7 @@ public class Appointment {
     void applyDefaults() {
         if (status == null) status = AppointmentStatus.PENDING_PAYMENT;
         if (consultType == null) consultType = "Consultation";
+        if (rescheduleCount == null) rescheduleCount = 0;
     }
 
     /** True once the consultation time has actually arrived. */

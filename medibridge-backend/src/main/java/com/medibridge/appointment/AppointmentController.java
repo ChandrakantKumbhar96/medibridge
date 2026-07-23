@@ -2,6 +2,7 @@ package com.medibridge.appointment;
 
 import com.medibridge.appointment.dto.AppointmentResponse;
 import com.medibridge.appointment.dto.BookAppointmentRequest;
+import com.medibridge.appointment.entity.Appointment;
 import com.medibridge.common.exception.BadRequestException;
 import com.medibridge.common.security.CurrentUser;
 import com.medibridge.common.security.SecurityUser;
@@ -90,5 +91,34 @@ public class AppointmentController {
     public AppointmentResponse complete(@CurrentUser SecurityUser me,
                                         @PathVariable Integer appointmentId) {
         return appointmentService.complete(me.getId(), appointmentId);
+    }
+
+    /**
+     * Moves an appointment to a different slot with the same doctor.
+     *
+     * <p>Body: {@code { "schedule_id": 123 }}
+     *
+     * <p>The appointment id survives, so the payment carries across and no
+     * refund/recharge cycle is needed. Patient reschedules are limited by
+     * notice period and count; a doctor rescheduling is not restricted.
+     */
+    @PatchMapping("/{appointmentId}/reschedule")
+    @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
+    public AppointmentResponse reschedule(@CurrentUser SecurityUser me,
+                                          @PathVariable Integer appointmentId,
+                                          @RequestBody Map<String, Integer> body) {
+
+        Integer newScheduleId = body.get("schedule_id");
+        if (newScheduleId == null) {
+            throw new BadRequestException("schedule_id is required");
+        }
+
+        return switch (me.getUserType()) {
+            case PATIENT -> appointmentService.reschedule(appointmentId, newScheduleId,
+                    Appointment.ActorRole.PATIENT, me.idAsInt(), null);
+            case DOCTOR -> appointmentService.reschedule(appointmentId, newScheduleId,
+                    Appointment.ActorRole.DOCTOR, null, me.getId());
+            default -> throw new BadRequestException("Unsupported role for this action");
+        };
     }
 }
