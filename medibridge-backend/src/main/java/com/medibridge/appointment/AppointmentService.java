@@ -266,6 +266,139 @@ public class AppointmentService {
         }
     }
 
+    // ------------------------------------------------------------ reschedule
+
+    /**
+     * Moves a confirmed appointment to a different slot.
+     *
+     * <p>The appointment id is deliberately preserved. The payment, any
+     * prescription and the audit trail all reference it, so cancelling and
+     * rebooking would orphan them and force a refund/recharge cycle for what is
+     * really just a change of time.
+     *
+     * <p>Both slot rows are locked before either is touched, always in ascending
+     * id order. Two patients swapping into each other's slots concurrently would
+     * otherwise be a textbook deadlock - each holding what the other needs.
+     *
+     * <p>The new slot is claimed before the old one is released. If that order
+     * were reversed and the claim then failed, the patient would end up holding
+     * neither.
+     */
+    @Transactional
+    public AppointmentResponse reschedule(Integer appointmentId, Integer newScheduleId,
+                                          Appointment.ActorRole by, Integer patientId,
+                                          String doctorId) {
+
+        Appointment appointment = (by == Appointment.ActorRole.PATIENT)
+                ? appointmentRepository.findByIdAndPatientId(appointmentId, patientId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"))
+                : appointmentRepository.findByIdAndDoctorId(appointmentId, doctorId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+
+        if (appointment.getStatus() != AppointmentStatus.ACCEPTED) {
+            throw new BadRequestException(
+                    "Only a confirmed appointment can be rescheduled (status: "
+                            + appointment.getStatus().getDbValue() + ")");
+        }
+
+        // Policy limits apply to patients only. A doctor with an emergency must
+        // always be able to move a slot, and the patient is not penalised.
+        if (by == Appointment.ActorRole.PATIENT) {
+            int maxReschedules = settings.getInt("max_reschedules", 2);
+            if (appointment.getRescheduleCount() != null
+                    && appointment.getRescheduleCount() >= maxReschedules) {
+                throw new BadRequestException(
+                        "This appointment has already been rescheduled "
+                                + maxReschedules + " times. Please cancel and book again.");
+            }
+
+            long hoursUntil = Duration.between(
+                    LocalDateTime.now(), appointment.getAppointmentDate()).toHours();
+            int minHours = settings.getInt("reschedule_min_hours", 4);
+            if (hoursUntil < minHours) {
+                throw new BadRequestException(
+                        "Appointments can only be rescheduled at least " + minHours
+                                + " hours in advance. Please cancel instead.");
+            }
+        }
+
+        DoctorSchedule oldSlot = appointment.getSchedule();
+        if (oldSlot != null && oldSlot.getId().equals(newScheduleId)) {
+            throw new BadRequestException("That is already the booked slot");
+        }
+
+        // Lock in ascending id order to avoid a deadlock between two concurrent
+        // reschedules moving in opposite directions.
+        List<Integer> lockOrder = new ArrayList<>();
+        lockOrder.add(newScheduleId);
+        if (oldSlot != null) lockOrder.add(oldSlot.getId());
+        Collections.sort(lockOrder);
+
+        Map<Integer, DoctorSchedule> locked = new HashMap<>();
+        for (Integer id : lockOrder) {
+            locked.put(id, scheduleRepository.findByIdForUpdate(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Time slot not found")));
+        }
+
+        DoctorSchedule newSlot = locked.get(newScheduleId);
+
+        if (!newSlot.getDoctor().getId().equals(appointment.getDoctor().getId())) {
+            throw new BadRequestException(
+                    "The new slot belongs to a different doctor. "
+                            + "To change doctor, cancel and book again.");
+        }
+        if (Boolean.TRUE.equals(newSlot.getIsBooked())
+                || appointmentRepository.existsByScheduleId(newSlot.getId())) {
+            throw new ConflictException("That time slot has just been taken. Please pick another.");
+        }
+
+        LocalDateTime newWhen = LocalDateTime.of(
+                newSlot.getAvailableDate(), newSlot.getStartTime());
+        if (newWhen.isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("That time slot is in the past");
+        }
+
+        if (appointment.getOriginalDate() == null) {
+            appointment.setOriginalDate(appointment.getAppointmentDate());
+        }
+
+        // Claim the new slot first; only then let the old one go.
+        appointment.setSchedule(newSlot);
+        appointment.setAppointmentDate(newWhen);
+        appointment.setRescheduleCount(
+                (short) ((appointment.getRescheduleCount() == null
+                        ? 0 : appointment.getRescheduleCount()) + 1));
+        appointment.setLastRescheduledAt(LocalDateTime.now());
+        appointment.setRescheduledBy(by);
+
+        // The join window moves with the appointment. The link itself is kept -
+        // the patient already has it, and reissuing would invalidate a URL they
+        // may have saved.
+        appointment.setMeetingJoinFrom(
+                newWhen.minusMinutes(settings.meetingJoinBeforeMinutes()));
+        appointment.setMeetingValidUntil(
+                newWhen.plusMinutes(settings.meetingValidAfterMinutes()));
+
+        try {
+            appointmentRepository.saveAndFlush(appointment);
+        } catch (DataIntegrityViolationException e) {
+            throw new ConflictException("That time slot has just been taken. Please pick another.");
+        }
+
+        newSlot.setIsBooked(true);
+        scheduleRepository.save(newSlot);
+
+        if (oldSlot != null) {
+            DoctorSchedule released = locked.get(oldSlot.getId());
+            released.setIsBooked(false);
+            scheduleRepository.save(released);
+        }
+
+        notificationService.sendRescheduled(appointment, by.name());
+
+        return AppointmentMapper.toDto(appointment, true);
+    }
+
     // --------------------------------------------------------- doctor views
 
     @Transactional(readOnly = true)
@@ -347,6 +480,10 @@ public class AppointmentService {
         appointment.setCompletedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
 
+        // The payout module listens and accrues the doctor's earning. Announced
+        // rather than called directly so this module stays unaware of money.
+        events.publishEvent(new AppointmentCompletedEvent(appointment.getId()));
+
         return AppointmentMapper.toDto(appointment, false);
     }
 
@@ -402,5 +539,9 @@ public class AppointmentService {
     /** Published on cancellation so the payment module can refund. */
     public record AppointmentCancelledEvent(Integer appointmentId, int refundPercent,
                                             String reason) {
+    }
+
+    /** Published on completion so the payout module can accrue the earning. */
+    public record AppointmentCompletedEvent(Integer appointmentId) {
     }
 }

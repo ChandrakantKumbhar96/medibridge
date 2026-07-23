@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Calendar, Clock, Video, Star, CreditCard } from 'lucide-react'
+import { Calendar, Clock, Video, Star, CreditCard, CalendarClock } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Card from '../../components/common/Card'
 import Badge from '../../components/common/Badge'
@@ -10,6 +10,7 @@ import Button from '../../components/common/Button'
 import { patientNav } from './patientNav'
 import { fetchPatientAppointments } from '../../features/appointments/appointmentsSlice'
 import { appointmentService } from '../../services/appointmentService'
+import RescheduleModal from '../../components/common/RescheduleModal'
 
 export default function PatientAppointments() {
   const dispatch = useDispatch()
@@ -18,6 +19,7 @@ export default function PatientAppointments() {
 
   const [busy, setBusy] = useState(null)
   const [msg, setMsg] = useState(null)
+  const [rescheduling, setRescheduling] = useState(null)
 
   useEffect(() => { dispatch(fetchPatientAppointments()) }, [dispatch])
 
@@ -105,6 +107,15 @@ export default function PatientAppointments() {
                   </a>
                 )}
 
+                {/* Only a confirmed appointment can move - an unpaid hold has
+                    nothing to carry over, so cancel/rebook is the right path. */}
+                {a.status === 'confirmed' && (
+                  <Button variant="outline" className="px-3 py-1.5"
+                    onClick={() => setRescheduling(a)}>
+                    <CalendarClock size={14} /> Reschedule
+                  </Button>
+                )}
+
                 <Button variant="danger" className="px-3 py-1.5"
                   disabled={busy === `c-${a.appointment_id}`}
                   onClick={() => cancel(a)}>
@@ -151,6 +162,18 @@ export default function PatientAppointments() {
           ))}
         </div>
       </Card>
+
+      {rescheduling && (
+        <RescheduleModal
+          appointment={rescheduling}
+          onClose={() => setRescheduling(null)}
+          onDone={(text) => {
+            setRescheduling(null)
+            dispatch(fetchPatientAppointments())
+            notify(text)
+          }}
+        />
+      )}
     </DashboardLayout>
   )
 }

@@ -23,6 +23,7 @@ import PatientRecordsDoctor from '../pages/doctor/PatientRecordsDoctor'
 import ManageSchedule from '../pages/doctor/ManageSchedule'
 import DoctorSettings from '../pages/doctor/DoctorSettings'
 import WritePrescription from '../pages/doctor/WritePrescription'
+import DoctorEarnings from '../pages/doctor/DoctorEarnings'
 
 // Admin
 import AdminOverview from '../pages/admin/AdminOverview'
@@ -30,6 +31,7 @@ import ManagePatients from '../pages/admin/ManagePatients'
 import ManageDoctors from '../pages/admin/ManageDoctors'
 import AdminAppointments from '../pages/admin/AdminAppointments'
 import Analytics from '../pages/admin/Analytics'
+import Payouts from '../pages/admin/Payouts'
 import SystemSettings from '../pages/admin/SystemSettings'
 
 const patient = (el) => <ProtectedRoute role="patient">{el}</ProtectedRoute>
@@ -59,6 +61,7 @@ export default function AppRoutes() {
       <Route path="/doctor/appointments" element={doctor(<DoctorAppointments />)} />
       <Route path="/doctor/patients" element={doctor(<PatientRecordsDoctor />)} />
       <Route path="/doctor/prescribe/:appointmentId" element={doctor(<WritePrescription />)} />
+      <Route path="/doctor/earnings" element={doctor(<DoctorEarnings />)} />
       <Route path="/doctor/schedule" element={doctor(<ManageSchedule />)} />
       <Route path="/doctor/settings" element={doctor(<DoctorSettings />)} />
 
@@ -67,6 +70,7 @@ export default function AppRoutes() {
       <Route path="/admin/patients" element={admin(<ManagePatients />)} />
       <Route path="/admin/doctors" element={admin(<ManageDoctors />)} />
       <Route path="/admin/appointments" element={admin(<AdminAppointments />)} />
+      <Route path="/admin/payouts" element={admin(<Payouts />)} />
       <Route path="/admin/analytics" element={admin(<Analytics />)} />
       <Route path="/admin/settings" element={admin(<SystemSettings />)} />
 

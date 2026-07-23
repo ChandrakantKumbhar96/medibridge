@@ -134,6 +134,43 @@ public class NotificationService {
                         refundLine));
     }
 
+    /**
+     * Not de-duplicated by the usual key alone: an appointment can legitimately
+     * be rescheduled more than once, so the count is folded into the type to
+     * keep each move notifiable.
+     */
+    public void sendRescheduled(Appointment a, String by) {
+        String who = "DOCTOR".equals(by)
+                ? a.getDoctor().getFullName() + " has rescheduled your appointment"
+                : "Your appointment has been rescheduled";
+
+        record(Notification.RecipientType.PATIENT,
+                String.valueOf(a.getPatient().getId()),
+                a.getPatient().getEmail(),
+                Notification.Type.APPOINTMENT_RESCHEDULED + "_" + a.getRescheduleCount(),
+                "Your MediBridge appointment has moved",
+                """
+                Hello %s,
+
+                %s.
+
+                New time: %s
+                Previously: %s
+
+                Your existing consultation link still works:
+                %s
+
+                - MediBridge
+                """.formatted(
+                        a.getPatient().getFullName(),
+                        who,
+                        a.getAppointmentDate().format(WHEN),
+                        a.getOriginalDate() == null ? "-" : a.getOriginalDate().format(WHEN),
+                        a.getMeetingLink() == null ? "(available after confirmation)"
+                                : a.getMeetingLink()),
+                "APPOINTMENT", String.valueOf(a.getId()));
+    }
+
     public void sendHoldExpired(Appointment a) {
         deliver(a, Notification.Type.HOLD_EXPIRED,
                 "Your MediBridge slot was released",

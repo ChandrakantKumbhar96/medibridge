@@ -38,6 +38,7 @@ public class PrescriptionService {
     private final MedicalReportRepository reportRepository;
     private final PdfService pdfService;
     private final com.medibridge.notification.NotificationService notificationService;
+    private final org.springframework.context.ApplicationEventPublisher events;
 
     /**
      * Doctor records the consultation and issues the prescription. Both writes
@@ -101,10 +102,17 @@ public class PrescriptionService {
 
         prescription = prescriptionRepository.save(prescription);
 
-        // Issuing a prescription implies the consultation happened.
+        // Issuing a prescription implies the consultation happened. This is the
+        // second path to COMPLETED (the other is the doctor pressing Complete),
+        // so it must publish the same event or earnings would be missed for
+        // every consultation that ended with a prescription.
         appointment.setStatus(AppointmentStatus.COMPLETED);
         appointment.setCompletedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
+
+        events.publishEvent(
+                new com.medibridge.appointment.AppointmentService
+                        .AppointmentCompletedEvent(appointment.getId()));
 
         notificationService.sendPrescriptionReady(appointment);
 
