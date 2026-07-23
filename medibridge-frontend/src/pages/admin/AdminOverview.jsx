@@ -14,15 +14,20 @@ export default function AdminOverview() {
   useEffect(() => { dispatch(fetchAdminDashboard()) }, [dispatch])
   if (!stats) return <DashboardLayout badge="Admin" navItems={adminNav}><div className="p-10 text-slate-400">Loading...</div></DashboardLayout>
 
+  // Coerced through Number() rather than calling .toLocaleString() on the raw
+  // field: a value the API stops sending would otherwise crash the whole page.
+  const num = (n) => Number(n ?? 0).toLocaleString('en-IN')
+  const money = (n) => `₹${Number(n ?? 0).toLocaleString('en-IN')}`
+
   const bigStats = [
-    { icon: Users, value: stats.totalPatients.toLocaleString(), label: 'Total Patients', grad: 'from-blue-500 to-blue-600' },
-    { icon: UserCheck, value: stats.activeDoctors, label: 'Active Doctors', grad: 'from-green-500 to-green-600' },
-    { icon: Calendar, value: stats.totalAppointments.toLocaleString(), label: 'Total Appointments', grad: 'from-purple-500 to-purple-600' },
+    { icon: Users, value: num(stats.totalPatients), label: 'Total Patients', grad: 'from-blue-500 to-blue-600' },
+    { icon: UserCheck, value: num(stats.activeDoctors), label: 'Active Doctors', grad: 'from-green-500 to-green-600' },
+    { icon: Calendar, value: num(stats.totalAppointments), label: 'Total Appointments', grad: 'from-purple-500 to-purple-600' },
   ]
   const small = [
-    { label: 'Active Today', value: stats.activeToday, icon: CalendarDays, c: 'bg-amber-100 text-amber-500' },
-    { label: 'Completed Today', value: stats.completedToday, icon: FileText, c: 'bg-green-100 text-green-600' },
-    { label: 'Revenue (MTD)', value: `$${stats.revenueMTD.toLocaleString()}`, icon: TrendingUp, c: 'bg-blue-100 text-primary-600' },
+    { label: 'Active Today', value: num(stats.activeToday), icon: CalendarDays, c: 'bg-amber-100 text-amber-500' },
+    { label: 'Completed Today', value: num(stats.completedToday), icon: FileText, c: 'bg-green-100 text-green-600' },
+    { label: 'Revenue (MTD)', value: money(stats.revenueMTD), icon: TrendingUp, c: 'bg-blue-100 text-primary-600' },
   ]
 
   return (
