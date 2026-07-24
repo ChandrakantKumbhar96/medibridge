@@ -215,8 +215,8 @@ In an IDE, set the active profile to `local` (or env var `SPRING_PROFILES_ACTIVE
 
 | Role | Email | Password |
 |---|---|---|
-| Patient | john.doe@email.com | Test@1234 |
-| Doctor | sarah.johnson@medibridge.com | Test@1234 |
+| Patient | aarav.gupta@email.com | Test@1234 |
+| Doctor | aditya.nair@medibridge.com | Test@1234 |
 | Admin | admin@medibridge.com | Admin@123 |
 
 ---
