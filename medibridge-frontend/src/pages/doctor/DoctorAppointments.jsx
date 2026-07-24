@@ -6,6 +6,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout'
 import Card from '../../components/common/Card'
 import Avatar from '../../components/common/Avatar'
 import Button from '../../components/common/Button'
+import JoinButton from '../../components/common/JoinButton'
 import Badge from '../../components/common/Badge'
 import { doctorNav } from './doctorNav'
 import { fetchDoctorDashboard } from '../../features/appointments/appointmentsSlice'
@@ -104,12 +105,7 @@ export default function DoctorAppointments() {
           )}
           {today.map((a) => (
             <Row key={a.appointment_id} a={a} actions={<>
-              {a.meeting_link && (
-                <a href={a.meeting_link} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-xl bg-success-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
-                  <Video size={14} /> Start Consultation
-                </a>
-              )}
+              <JoinButton appointment={a} label="Start Consultation" onError={(m) => notify(m, true)} />
               <Button variant="outline" className="px-4 py-1.5"
                 onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
                 <FileText size={14} /> Prescribe
