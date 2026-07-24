@@ -6,6 +6,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout'
 import Card from '../../components/common/Card'
 import Badge from '../../components/common/Badge'
 import Button from '../../components/common/Button'
+import JoinButton from '../../components/common/JoinButton'
 import { doctorNav } from './doctorNav'
 import { fetchDoctorDashboard } from '../../features/appointments/appointmentsSlice'
 
@@ -71,14 +72,7 @@ export default function DoctorOverview() {
               </div>
               <div className="flex items-center gap-3">
                 <Badge status={a.status} />
-                {/* Only rendered when the join window is open - the backend
-                    withholds the link outside it. */}
-                {a.meeting_link && (
-                  <a href={a.meeting_link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-xl bg-success-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
-                    <Video size={14} /> Start Consultation
-                  </a>
-                )}
+                <JoinButton appointment={a} label="Start Consultation" />
               </div>
             </div>
           ))}

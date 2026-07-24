@@ -71,19 +71,16 @@ public class NotificationService {
 
                 Amount paid: Rs. %s
 
-                Join here at your appointment time:
-                %s
-
-                The link opens in your browser - no account or installation
-                needed. It becomes active shortly before your appointment.
+                When it is time, open MediBridge, go to My Appointments, and press
+                Join. The video room opens shortly before your appointment and runs
+                in your browser - no account or installation needed.
 
                 - MediBridge
                 """.formatted(
                         a.getPatient().getFullName(),
                         a.getDoctor().getFullName(),
                         a.getAppointmentDate().format(WHEN),
-                        a.getTotalAmount(),
-                        a.getMeetingLink()));
+                        a.getTotalAmount()));
     }
 
     public void sendReminder(Appointment a) {
@@ -94,8 +91,8 @@ public class NotificationService {
 
                 A reminder that your consultation with %s is on %s.
 
-                Join here:
-                %s
+                Open MediBridge and press Join on the appointment when it is time -
+                the video room opens shortly before your slot.
 
                 If you can no longer attend, please cancel from the app so the
                 slot can be offered to someone else.
@@ -104,9 +101,7 @@ public class NotificationService {
                 """.formatted(
                         a.getPatient().getFullName(),
                         a.getDoctor().getFullName(),
-                        a.getAppointmentDate().format(WHEN),
-                        a.getMeetingLink() == null ? "(available after confirmation)"
-                                : a.getMeetingLink()));
+                        a.getAppointmentDate().format(WHEN)));
     }
 
     public void sendCancelled(Appointment a, BigDecimal refundAmount, String reason) {
@@ -157,17 +152,15 @@ public class NotificationService {
                 New time: %s
                 Previously: %s
 
-                Your existing consultation link still works:
-                %s
+                Nothing else changes - just press Join on MediBridge at the new
+                time. The video room opens shortly before your slot.
 
                 - MediBridge
                 """.formatted(
                         a.getPatient().getFullName(),
                         who,
                         a.getAppointmentDate().format(WHEN),
-                        a.getOriginalDate() == null ? "-" : a.getOriginalDate().format(WHEN),
-                        a.getMeetingLink() == null ? "(available after confirmation)"
-                                : a.getMeetingLink()),
+                        a.getOriginalDate() == null ? "-" : a.getOriginalDate().format(WHEN)),
                 "APPOINTMENT", String.valueOf(a.getId()));
     }
 

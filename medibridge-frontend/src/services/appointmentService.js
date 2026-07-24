@@ -54,4 +54,14 @@ export const appointmentService = {
     const { data } = await axiosClient.get('/appointments/doctor')
     return data
   },
+
+  /**
+   * Fetches the video room URL on demand. The link is never in the appointment
+   * list — the server issues it here only inside the join window, so a failure
+   * carries the reason (e.g. "opens at 09:45 AM") in the error message.
+   */
+  async getJoinLink(id) {
+    const { data } = await axiosClient.get(`/appointments/${id}/join`)
+    return data.meeting_link
+  },
 }
