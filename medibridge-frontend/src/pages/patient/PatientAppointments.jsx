@@ -55,7 +55,7 @@ export default function PatientAppointments() {
   return (
     <DashboardLayout navItems={patientNav}>
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold text-slate-900">My Appointments</h1>
+        <h1 className="text-3xl font-extrabold text-sand-900">My Appointments</h1>
         <Link to="/patient/book" className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700">
           Book New Appointment
         </Link>
@@ -63,25 +63,25 @@ export default function PatientAppointments() {
 
       {msg && (
         <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
-          msg.error ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>{msg.text}</div>
+          msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Upcoming</h2>
+        <h2 className="text-lg font-bold text-sand-900">Upcoming</h2>
         <div className="mt-4 space-y-3">
           {upcoming.length === 0 && (
-            <div className="py-4 text-sm text-slate-500">
+            <div className="py-4 text-sm text-sand-500">
               No upcoming appointments. Book one to get started.
             </div>
           )}
           {upcoming.map((a) => (
-            <div key={a.appointment_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-4">
+            <div key={a.appointment_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand-100 p-4">
               <div className="flex items-center gap-3">
                 <Avatar />
                 <div>
-                  <div className="font-semibold text-slate-800">{a.doctor}</div>
-                  <div className="text-sm text-slate-500">{a.specialization}</div>
-                  <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
+                  <div className="font-semibold text-sand-800">{a.doctor}</div>
+                  <div className="text-sm text-sand-500">{a.specialization}</div>
+                  <div className="mt-1 flex items-center gap-3 text-xs text-sand-500">
                     <span className="flex items-center gap-1"><Calendar size={12} /> {a.appointment_date}</span>
                     <span className="flex items-center gap-1"><Clock size={12} /> {a.time}</span>
                     {a.consultation_fee != null && <span>₹{a.consultation_fee}</span>}
@@ -102,7 +102,7 @@ export default function PatientAppointments() {
                 {/* Only rendered once the backend says the join window is open. */}
                 {a.meeting_link && (
                   <a href={a.meeting_link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-green-700">
+                    className="flex items-center gap-1.5 rounded-lg bg-success-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
                     <Video size={14} /> Join
                   </a>
                 )}
@@ -128,19 +128,19 @@ export default function PatientAppointments() {
       </Card>
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Past Appointments</h2>
+        <h2 className="text-lg font-bold text-sand-900">Past Appointments</h2>
         <div className="mt-4 space-y-3">
           {past.length === 0 && (
-            <div className="py-4 text-sm text-slate-500">No past appointments yet.</div>
+            <div className="py-4 text-sm text-sand-500">No past appointments yet.</div>
           )}
           {past.map((a) => (
-            <div key={a.appointment_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4">
+            <div key={a.appointment_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-sand-50 p-4">
               <div className="flex items-center gap-3">
                 <Avatar color="gray" />
                 <div>
-                  <div className="font-semibold text-slate-800">{a.doctor}</div>
-                  <div className="text-sm text-slate-500">{a.specialization}</div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="font-semibold text-sand-800">{a.doctor}</div>
+                  <div className="text-sm text-sand-500">{a.specialization}</div>
+                  <div className="mt-1 text-xs text-sand-500">
                     {a.appointment_date} • {a.time}
                     {a.reason ? ` • ${a.reason}` : ''}
                   </div>

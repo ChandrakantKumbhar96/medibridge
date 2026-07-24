@@ -73,15 +73,15 @@ export default function PatientSettings() {
 
   const Banner = ({ msg }) => msg ? (
     <div className={`mt-4 rounded-lg px-4 py-2.5 text-sm ${
-      msg.error ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>{msg.text}</div>
+      msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
   ) : null
 
   return (
     <DashboardLayout navItems={patientNav}>
-      <h1 className="text-3xl font-extrabold text-slate-900">Settings</h1>
+      <h1 className="text-3xl font-extrabold text-sand-900">Settings</h1>
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Profile Information</h2>
+        <h2 className="text-lg font-bold text-sand-900">Profile Information</h2>
         <Banner msg={profileMsg} />
         <form onSubmit={saveProfile}>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -90,7 +90,7 @@ export default function PatientSettings() {
             </Field>
             <Field label="Email">
               {/* Read-only: the email is the login identifier. */}
-              <Input value={form.email} disabled className="bg-slate-50 text-slate-500" />
+              <Input value={form.email} disabled className="bg-sand-50 text-sand-500" />
             </Field>
             <Field label="Phone Number">
               <Input required value={form.phone} onChange={set('phone')} />
@@ -102,13 +102,13 @@ export default function PatientSettings() {
               <Input required type="date" value={form.date_of_birth || ''} onChange={set('date_of_birth')} />
             </Field>
             <Field label="Gender">
-              <select className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm"
+              <select className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm"
                 value={form.gender} onChange={set('gender')}>
                 <option>Male</option><option>Female</option><option>Other</option>
               </select>
             </Field>
             <Field label="Blood Group">
-              <select className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm"
+              <select className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm"
                 value={form.blood_group} onChange={set('blood_group')}>
                 {['O+','O-','A+','A-','B+','B-','AB+','AB-'].map((b) => <option key={b}>{b}</option>)}
               </select>
@@ -126,7 +126,7 @@ export default function PatientSettings() {
       </Card>
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Change Password</h2>
+        <h2 className="text-lg font-bold text-sand-900">Change Password</h2>
         <Banner msg={pwMsg} />
         <form onSubmit={savePassword}>
           <div className="mt-5 max-w-md space-y-4">

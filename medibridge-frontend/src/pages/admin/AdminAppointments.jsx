@@ -25,7 +25,7 @@ export default function AdminAppointments() {
   return (
     <DashboardLayout badge="Admin" navItems={adminNav}>
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold text-slate-900">All Appointments</h1>
+        <h1 className="text-3xl font-extrabold text-sand-900">All Appointments</h1>
         <button
           onClick={() => exportCsv(datedFilename('appointments'), rows, [
             { key: 'appointment_id', label: 'ID' },
@@ -36,35 +36,35 @@ export default function AdminAppointments() {
             { key: 'type', label: 'Type' },
             { key: 'status', label: 'Status' },
           ])}
-          className="flex items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
+          className="flex items-center gap-2 rounded-lg bg-success-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-success-700">
           <Download size={16} /> Export Report
         </button>
       </div>
 
       <Card className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <select className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
+        <select className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option>All Status</option><option>Confirmed</option><option>Pending</option><option>Cancelled</option>
         </select>
-        <input type="date" className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm" />
-        <input placeholder="Search patient..." className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm" value={patient} onChange={(e) => setPatient(e.target.value)} />
-        <input placeholder="Search doctor..." className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm" value={doctor} onChange={(e) => setDoctor(e.target.value)} />
+        <input type="date" className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm" />
+        <input placeholder="Search patient..." className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm" value={patient} onChange={(e) => setPatient(e.target.value)} />
+        <input placeholder="Search doctor..." className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm" value={doctor} onChange={(e) => setDoctor(e.target.value)} />
       </Card>
 
       <Card className="mt-5 overflow-x-auto p-0">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-100 text-slate-500">
+            <tr className="border-b border-sand-100 text-sand-500">
               {['Patient', 'Doctor', 'Date', 'Time', 'Type', 'Status', 'Actions'].map((h) => <th key={h} className="px-6 py-4 font-semibold">{h}</th>)}
             </tr>
           </thead>
           <tbody>
             {rows.map((a) => (
-              <tr key={a.appointment_id} className="border-b border-slate-50 last:border-0">
-                <td className="px-6 py-4 font-semibold text-slate-800">{a.patient}</td>
-                <td className="px-6 py-4 text-slate-600">{a.doctor}</td>
-                <td className="px-6 py-4 text-slate-600">{a.date}</td>
-                <td className="px-6 py-4 text-slate-600">{a.time}</td>
-                <td className="px-6 py-4 text-slate-600">{a.type}</td>
+              <tr key={a.appointment_id} className="border-b border-sand-50 last:border-0">
+                <td className="px-6 py-4 font-semibold text-sand-800">{a.patient}</td>
+                <td className="px-6 py-4 text-sand-600">{a.doctor}</td>
+                <td className="px-6 py-4 text-sand-600">{a.date}</td>
+                <td className="px-6 py-4 text-sand-600">{a.time}</td>
+                <td className="px-6 py-4 text-sand-600">{a.type}</td>
                 <td className="px-6 py-4"><Badge status={a.status} /></td>
                 <td className="px-6 py-4"><button className="text-primary-600 hover:text-primary-700"><Edit size={17} /></button></td>
               </tr>

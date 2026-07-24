@@ -1,21 +1,41 @@
+/**
+ * Status pill.
+ *
+ * Each status carries a small coloured dot alongside the label — a pattern
+ * real dashboards use because colour alone fails for colour-blind users and
+ * at a glance. Ring + tinted fill instead of a flat block.
+ */
 const map = {
-  confirmed: 'bg-green-100 text-green-700',
-  active: 'bg-green-100 text-green-700',
-  Available: 'bg-green-100 text-green-700',
-  Paid: 'bg-green-100 text-green-700',
-  pending: 'bg-yellow-100 text-yellow-700',
-  Requested: 'bg-yellow-100 text-yellow-700',
-  inactive: 'bg-slate-100 text-slate-500',
-  Unavailable: 'bg-slate-100 text-slate-500',
-  cancelled: 'bg-red-100 text-red-600',
-  Cancelled: 'bg-red-100 text-red-600',
-  suspended: 'bg-red-100 text-red-600',
+  confirmed:   { s: 'bg-success-50 text-success-700 ring-success-100', d: 'bg-success-500' },
+  active:      { s: 'bg-success-50 text-success-700 ring-success-100', d: 'bg-success-500' },
+  Available:   { s: 'bg-success-50 text-success-700 ring-success-100', d: 'bg-success-500' },
+  Paid:        { s: 'bg-success-50 text-success-700 ring-success-100', d: 'bg-success-500' },
+  completed:   { s: 'bg-success-50 text-success-700 ring-success-100', d: 'bg-success-500' },
+
+  pending:     { s: 'bg-warning-50 text-warning-700 ring-warning-100', d: 'bg-warning-500' },
+  Requested:   { s: 'bg-warning-50 text-warning-700 ring-warning-100', d: 'bg-warning-500' },
+  Processing:  { s: 'bg-warning-50 text-warning-700 ring-warning-100', d: 'bg-warning-500' },
+
+  inactive:    { s: 'bg-sand-100 text-sand-600 ring-sand-200', d: 'bg-sand-400' },
+  Unavailable: { s: 'bg-sand-100 text-sand-600 ring-sand-200', d: 'bg-sand-400' },
+
+  cancelled:   { s: 'bg-danger-50 text-danger-700 ring-danger-100', d: 'bg-danger-500' },
+  Cancelled:   { s: 'bg-danger-50 text-danger-700 ring-danger-100', d: 'bg-danger-500' },
+  suspended:   { s: 'bg-danger-50 text-danger-700 ring-danger-100', d: 'bg-danger-500' },
+  Refunded:    { s: 'bg-accent-50 text-accent-700 ring-accent-200', d: 'bg-accent-500' },
 }
 
-export default function Badge({ status, children, className = '' }) {
-  const style = map[status] || 'bg-blue-100 text-primary-600'
+const fallback = { s: 'bg-primary-50 text-primary-700 ring-primary-200', d: 'bg-primary-500' }
+
+export default function Badge({ status, children, className = '', dot = true }) {
+  const tone = map[status] || fallback
   return (
-    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${style} ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1
+                  text-[11px] font-bold uppercase tracking-wide ring-1
+                  ${tone.s} ${className}`}
+    >
+      {dot && <span className={`h-1.5 w-1.5 rounded-full ${tone.d}`} />}
       {children || status}
     </span>
   )

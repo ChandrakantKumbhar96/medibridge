@@ -42,11 +42,11 @@ export default function DoctorRegisterForm() {
 
   return (
     <form onSubmit={submit} className="mt-6">
-      <h2 className="text-2xl font-extrabold text-slate-900">Create Doctor Account</h2>
-      <p className="mt-1 text-sm text-slate-500">Join MediBridge as a healthcare provider</p>
+      <h2 className="text-2xl font-extrabold text-sand-900">Create Doctor Account</h2>
+      <p className="mt-1 text-sm text-sand-500">Join MediBridge as a healthcare provider</p>
 
       {notice && (
-        <div className="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">{notice}</div>
+        <div className="mt-4 rounded-lg bg-success-50 px-4 py-3 text-sm text-success-700">{notice}</div>
       )}
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -54,7 +54,7 @@ export default function DoctorRegisterForm() {
         <Field label="Email"><Input required type="email" value={f.email} onChange={set('email')} placeholder="you@medibridge.com" /></Field>
         <Field label="Phone"><Input required value={f.phone} onChange={set('phone')} placeholder="+1 234 567 8900" /></Field>
         <Field label="Specialization">
-          <select className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm" value={f.specialization} onChange={set('specialization')}>
+          <select className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" value={f.specialization} onChange={set('specialization')}>
             {specializations.map((s) => <option key={s}>{s}</option>)}
           </select>
         </Field>
@@ -62,7 +62,7 @@ export default function DoctorRegisterForm() {
         <Field label="Experience (Years)"><Input required type="number" value={f.experience_years} onChange={set('experience_years')} placeholder="15" /></Field>
         <Field label="Consultation Fee ($)"><Input required type="number" value={f.consultation_fee} onChange={set('consultation_fee')} placeholder="150" /></Field>
         <Field label="Avg. Duration (min)">
-          <select className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm" value={f.consultation_duration_min} onChange={set('consultation_duration_min')}>
+          <select className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" value={f.consultation_duration_min} onChange={set('consultation_duration_min')}>
             <option value={15}>15 minutes</option><option value={30}>30 minutes</option><option value={45}>45 minutes</option><option value={60}>60 minutes</option>
           </select>
         </Field>
@@ -70,7 +70,7 @@ export default function DoctorRegisterForm() {
       </div>
       <div className="mt-4">
         <Field label="Bio">
-          <textarea rows={3} className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm" value={f.bio} onChange={set('bio')} placeholder="Tell patients about your experience and specialties" />
+          <textarea rows={3} className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" value={f.bio} onChange={set('bio')} placeholder="Tell patients about your experience and specialties" />
         </Field>
       </div>
 

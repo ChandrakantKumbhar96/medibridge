@@ -13,9 +13,9 @@ import { patientProfileService } from '../../services/profileService'
 import { recordService } from '../../services/recordService'
 
 const STAT_CARDS = [
-  { key: 'upcomingAppointments', icon: Calendar, label: 'Upcoming Appointments', grad: 'from-blue-500 to-blue-600' },
-  { key: 'medicalRecords', icon: FileText, label: 'Medical Records', grad: 'from-green-500 to-green-600' },
-  { key: 'completedConsultations', icon: Activity, label: 'Completed Consultations', grad: 'from-purple-500 to-purple-600' },
+  { key: 'upcomingAppointments', icon: Calendar, label: 'Upcoming Appointments', grad: 'from-primary-500 to-primary-600' },
+  { key: 'medicalRecords', icon: FileText, label: 'Medical Records', grad: 'from-success-500 to-success-600' },
+  { key: 'completedConsultations', icon: Activity, label: 'Completed Consultations', grad: 'from-accent-500 to-accent-600' },
 ]
 
 export default function PatientOverview() {
@@ -40,8 +40,8 @@ export default function PatientOverview() {
 
   return (
     <DashboardLayout navItems={patientNav}>
-      <h1 className="text-3xl font-extrabold text-slate-900">Welcome back, {firstName}!</h1>
-      <p className="mt-1 text-slate-500">Here's your health overview</p>
+      <h1 className="text-3xl font-extrabold text-sand-900">Welcome back, {firstName}!</h1>
+      <p className="mt-1 text-sand-500">Here's your health overview</p>
 
       <div className="mt-6 grid gap-5 md:grid-cols-3">
         {STAT_CARDS.map((s) => (
@@ -55,20 +55,20 @@ export default function PatientOverview() {
 
       <Card className="mt-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">Upcoming Appointments</h2>
+          <h2 className="text-lg font-bold text-sand-900">Upcoming Appointments</h2>
           <Link to="/patient/appointments" className="text-sm font-semibold text-primary-600">View All</Link>
         </div>
         <div className="mt-4 space-y-3">
           {upcoming.slice(0, 2).map((a) => (
-            <div key={a.appointment_id} className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
+            <div key={a.appointment_id} className="flex items-center justify-between rounded-xl border border-sand-100 p-4">
               <div className="flex items-center gap-3">
                 <Avatar />
                 <div>
-                  <div className="font-semibold text-slate-800">{a.doctor}</div>
-                  <div className="text-sm text-slate-500">{a.specialization}</div>
+                  <div className="font-semibold text-sand-800">{a.doctor}</div>
+                  <div className="text-sm text-sand-500">{a.specialization}</div>
                 </div>
               </div>
-              <div className="hidden text-sm text-slate-600 sm:block">
+              <div className="hidden text-sm text-sand-600 sm:block">
                 <div className="flex items-center gap-1.5"><Calendar size={14} /> {a.appointment_date}</div>
                 <div className="mt-1 flex items-center gap-1.5"><Clock size={14} /> {a.time}</div>
               </div>
@@ -80,17 +80,17 @@ export default function PatientOverview() {
 
       <Card className="mt-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">Recent Medical Records</h2>
+          <h2 className="text-lg font-bold text-sand-900">Recent Medical Records</h2>
           <Link to="/patient/records" className="text-sm font-semibold text-primary-600">View All</Link>
         </div>
         <div className="mt-4 space-y-3">
           {records.slice(0, 3).map((r) => (
-            <div key={r.report_id} className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
+            <div key={r.report_id} className="flex items-center justify-between rounded-xl border border-sand-100 p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600"><FileText size={18} /></div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success-100 text-success-600"><FileText size={18} /></div>
                 <div>
-                  <div className="font-semibold text-slate-800">{r.report_name}</div>
-                  <div className="text-sm text-slate-500">{r.upload_date} • {r.size}</div>
+                  <div className="font-semibold text-sand-800">{r.report_name}</div>
+                  <div className="text-sm text-sand-500">{r.upload_date} • {r.size}</div>
                 </div>
               </div>
               <button title="Download"

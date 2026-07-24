@@ -105,7 +105,7 @@ export default function GoogleSignInButton({ onError }) {
   if (failed === 'not-configured') {
     return (
       <button type="button" disabled title="Set VITE_GOOGLE_CLIENT_ID in .env to enable"
-        className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-slate-200 py-2.5 text-sm font-semibold text-slate-400">
+        className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-sand-200 py-2.5 text-sm font-semibold text-sand-400">
         <span className="font-bold">G</span> Google sign-in not configured
       </button>
     )
@@ -113,7 +113,7 @@ export default function GoogleSignInButton({ onError }) {
 
   if (failed === 'load-error') {
     return (
-      <div className="rounded-lg border border-slate-200 py-2.5 text-center text-sm text-slate-400">
+      <div className="rounded-lg border border-sand-200 py-2.5 text-center text-sm text-sand-400">
         Google Sign-In unavailable
       </div>
     )
