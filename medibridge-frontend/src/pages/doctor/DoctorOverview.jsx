@@ -24,19 +24,19 @@ export default function DoctorOverview() {
   // always agree with the lists underneath them.
   const stats = [
     { icon: Calendar, value: today.length, label: "Today's Appointments",
-      grad: 'from-blue-500 to-blue-600' },
+      grad: 'from-primary-500 to-primary-600' },
     { icon: Clock, value: pending.length, label: 'Awaiting Notes',
-      grad: 'from-amber-400 to-amber-500' },
+      grad: 'from-warning-400 to-warning-500' },
     { icon: CheckCircle2, value: completed.length, label: 'Completed',
-      grad: 'from-green-500 to-green-600' },
+      grad: 'from-success-500 to-success-600' },
     { icon: Users, value: upcoming.length, label: 'Upcoming',
-      grad: 'from-purple-500 to-purple-600' },
+      grad: 'from-accent-500 to-accent-600' },
   ]
 
   return (
     <DashboardLayout badge="Doctor" navItems={doctorNav}>
-      <h1 className="text-3xl font-extrabold text-slate-900">Welcome, Dr. {lastName}!</h1>
-      <p className="mt-1 text-slate-500">Here's your overview for today</p>
+      <h1 className="text-3xl font-extrabold text-sand-900">Welcome, Dr. {lastName}!</h1>
+      <p className="mt-1 text-sand-500">Here's your overview for today</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
@@ -49,22 +49,22 @@ export default function DoctorOverview() {
       </div>
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Today's Schedule</h2>
+        <h2 className="text-lg font-bold text-sand-900">Today's Schedule</h2>
         <div className="mt-4 space-y-3">
           {today.length === 0 && (
-            <div className="py-3 text-sm text-slate-500">Nothing scheduled today.</div>
+            <div className="py-3 text-sm text-sand-500">Nothing scheduled today.</div>
           )}
           {today.map((a) => (
             <div key={a.appointment_id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-4">
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand-100 p-4">
               <div className="flex items-center gap-4">
-                <div className="rounded-lg bg-blue-50 px-3 py-1.5 text-center">
-                  <div className="text-[10px] uppercase text-slate-400">Time</div>
+                <div className="rounded-lg bg-primary-50 px-3 py-1.5 text-center">
+                  <div className="text-[10px] uppercase text-sand-400">Time</div>
                   <div className="text-sm font-bold text-primary-600">{a.time}</div>
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-800">{a.patient}</div>
-                  <div className="text-sm text-slate-500">
+                  <div className="font-semibold text-sand-800">{a.patient}</div>
+                  <div className="text-sm text-sand-500">
                     {a.age != null ? `${a.age} years • ` : ''}{a.type}
                   </div>
                 </div>
@@ -75,7 +75,7 @@ export default function DoctorOverview() {
                     withholds the link outside it. */}
                 {a.meeting_link && (
                   <a href={a.meeting_link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-green-700">
+                    className="flex items-center gap-1.5 rounded-lg bg-success-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
                     <Video size={14} /> Start Consultation
                   </a>
                 )}
@@ -93,30 +93,30 @@ export default function DoctorOverview() {
       */}
       <Card className="mt-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">Awaiting Consultation Notes</h2>
+          <h2 className="text-lg font-bold text-sand-900">Awaiting Consultation Notes</h2>
           {pending.length > 0 && <Badge status="pending">{pending.length} pending</Badge>}
         </div>
         <div className="mt-4 space-y-4">
           {pending.length === 0 && (
-            <div className="py-3 text-sm text-slate-500">
+            <div className="py-3 text-sm text-sand-500">
               You are up to date - no consultations awaiting notes.
             </div>
           )}
           {pending.map((a) => (
-            <div key={a.appointment_id} className="rounded-xl border border-slate-100 p-4">
+            <div key={a.appointment_id} className="rounded-xl border border-sand-100 p-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-semibold text-slate-800">{a.patient}</div>
-                  <div className="text-sm text-slate-500">
+                  <div className="font-semibold text-sand-800">{a.patient}</div>
+                  <div className="text-sm text-sand-500">
                     {a.age != null ? `${a.age} years` : ''}
                   </div>
                 </div>
-                <div className="text-right text-sm text-slate-500">
+                <div className="text-right text-sm text-sand-500">
                   <div>{a.appointment_date}</div><div>{a.time}</div>
                 </div>
               </div>
               {a.reason && (
-                <div className="mt-2 text-sm text-slate-500">Reason: {a.reason}</div>
+                <div className="mt-2 text-sm text-sand-500">Reason: {a.reason}</div>
               )}
               <div className="mt-3">
                 <Button className="w-full py-2"

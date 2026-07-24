@@ -59,7 +59,7 @@ export default function Analytics() {
     note(ok ? 'Revenue report downloaded.' : 'No revenue data to export.')
   }
 
-  if (!analytics) return <DashboardLayout badge="Admin" navItems={adminNav}><div className="p-10 text-slate-400">Loading...</div></DashboardLayout>
+  if (!analytics) return <DashboardLayout badge="Admin" navItems={adminNav}><div className="p-10 text-sand-400">Loading...</div></DashboardLayout>
 
   // Defaulted rather than destructured bare: a field the API stops sending
   // would otherwise crash the page on .toLocaleString() of undefined, which is
@@ -73,31 +73,31 @@ export default function Analytics() {
 
   const row = (label, value, accent) => (
     <div className="flex items-center justify-between py-2.5">
-      <span className="text-slate-500">{label}</span>
-      <span className={`font-bold ${accent || 'text-slate-900'}`}>{value}</span>
+      <span className="text-sand-500">{label}</span>
+      <span className={`font-bold ${accent || 'text-sand-900'}`}>{value}</span>
     </div>
   )
 
   return (
     <DashboardLayout badge="Admin" navItems={adminNav}>
-      <h1 className="text-3xl font-extrabold text-slate-900">Analytics &amp; Reports</h1>
+      <h1 className="text-3xl font-extrabold text-sand-900">Analytics &amp; Reports</h1>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <Card>
-          <h2 className="text-lg font-bold text-slate-900">Monthly Statistics</h2>
-          <div className="mt-4 divide-y divide-slate-100">
+          <h2 className="text-lg font-bold text-sand-900">Monthly Statistics</h2>
+          <div className="mt-4 divide-y divide-sand-100">
             {row('Total Patients', num(monthly.newPatients))}
             {row('Total Doctors', num(monthly.newDoctors))}
             {row('Total Appointments', num(monthly.totalAppointments))}
-            {row('Cancelled', num(monthly.cancelledAppointments), 'text-red-600')}
-            {row('Completion Rate', monthly.completionRate ?? '0%', 'text-green-600')}
+            {row('Cancelled', num(monthly.cancelledAppointments), 'text-danger-600')}
+            {row('Completion Rate', monthly.completionRate ?? '0%', 'text-success-600')}
           </div>
         </Card>
         <Card>
-          <h2 className="text-lg font-bold text-slate-900">Revenue Breakdown</h2>
-          <div className="mt-4 divide-y divide-slate-100">
+          <h2 className="text-lg font-bold text-sand-900">Revenue Breakdown</h2>
+          <div className="mt-4 divide-y divide-sand-100">
             {row('Collected', money(revenue.total))}
-            {row('Refunded', `− ${money(revenue.refunded)}`, 'text-red-600')}
+            {row('Refunded', `− ${money(revenue.refunded)}`, 'text-danger-600')}
             {row('Net revenue', money(revenue.net), 'text-primary-600')}
             {row('This month', money(revenue.monthToDate))}
           </div>
@@ -105,48 +105,48 @@ export default function Analytics() {
       </div>
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Revenue — last 7 days</h2>
+        <h2 className="text-lg font-bold text-sand-900">Revenue — last 7 days</h2>
         <div className="mt-4 space-y-2">
           {Object.entries(daily).map(([day, amount]) => {
             const max = Math.max(...Object.values(daily).map(Number), 1)
             const pct = (Number(amount) / max) * 100
             return (
               <div key={day} className="flex items-center gap-3 text-sm">
-                <span className="w-24 shrink-0 text-slate-500">{day}</span>
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                <span className="w-24 shrink-0 text-sand-500">{day}</span>
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-sand-100">
                   <div className="h-full rounded-full bg-primary-600"
                     style={{ width: `${pct}%` }} />
                 </div>
-                <span className="w-24 shrink-0 text-right font-medium text-slate-700">
+                <span className="w-24 shrink-0 text-right font-medium text-sand-700">
                   {money(amount)}
                 </span>
               </div>
             )
           })}
           {Object.keys(daily).length === 0 && (
-            <div className="text-sm text-slate-500">No revenue data yet.</div>
+            <div className="text-sm text-sand-500">No revenue data yet.</div>
           )}
         </div>
       </Card>
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Generate Reports</h2>
+        <h2 className="text-lg font-bold text-sand-900">Generate Reports</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <button onClick={exportPatients}
             className="flex items-center justify-center gap-2 rounded-lg bg-primary-600 py-3 text-sm font-semibold text-white hover:bg-primary-700">
             <Download size={16} /> Patient Report
           </button>
           <button onClick={exportDoctors}
-            className="flex items-center justify-center gap-2 rounded-lg bg-green-600 py-3 text-sm font-semibold text-white hover:bg-green-700">
+            className="flex items-center justify-center gap-2 rounded-lg bg-success-600 py-3 text-sm font-semibold text-white hover:bg-success-700">
             <Download size={16} /> Doctor Performance
           </button>
           <button onClick={exportRevenue}
-            className="flex items-center justify-center gap-2 rounded-lg bg-purple-600 py-3 text-sm font-semibold text-white hover:bg-purple-700">
+            className="flex items-center justify-center gap-2 rounded-lg bg-accent-600 py-3 text-sm font-semibold text-white hover:bg-accent-700">
             <Download size={16} /> Revenue Report
           </button>
         </div>
         {exportMsg && (
-          <div className="mt-3 text-sm text-slate-500">{exportMsg}</div>
+          <div className="mt-3 text-sm text-sand-500">{exportMsg}</div>
         )}
       </Card>
     </DashboardLayout>

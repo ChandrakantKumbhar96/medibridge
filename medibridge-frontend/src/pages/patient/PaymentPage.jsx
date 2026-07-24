@@ -138,20 +138,20 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-sand-50">
       <DashboardTopbar />
       <div className="mx-auto max-w-5xl px-6 py-8">
-        <h1 className="text-3xl font-extrabold text-slate-900">Checkout</h1>
-        <p className="mt-1 text-slate-500">Complete payment to confirm your appointment</p>
+        <h1 className="text-3xl font-extrabold text-sand-900">Checkout</h1>
+        <p className="mt-1 text-sand-500">Complete payment to confirm your appointment</p>
 
         {error && (
-          <div className="mt-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
+          <div className="mt-5 rounded-lg bg-danger-50 px-4 py-3 text-sm text-danger-600">{error}</div>
         )}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-5">
           {/* Summary card */}
           <div className="lg:col-span-2">
-            <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white shadow-sm">
+            <div className="rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 p-6 text-white shadow-sm">
               <div className="text-sm font-medium text-white/80">MediBridge Booking</div>
               <div className="mt-4 text-lg font-bold">{doctor.full_name}</div>
               <div className="text-sm text-white/80">{doctor.specialization}</div>
@@ -163,8 +163,8 @@ export default function PaymentPage() {
             </div>
 
             <Card className="mt-4">
-              <div className="flex items-center gap-2 text-sm text-slate-600">
-                <ShieldCheck size={18} className="text-green-600" />
+              <div className="flex items-center gap-2 text-sm text-sand-600">
+                <ShieldCheck size={18} className="text-success-600" />
                 Payments are encrypted and processed securely.
               </div>
             </Card>
@@ -173,21 +173,21 @@ export default function PaymentPage() {
           {/* Payment form */}
           <div className="lg:col-span-3">
             <Card>
-              <h2 className="text-lg font-bold text-slate-900">Payment Method</h2>
+              <h2 className="text-lg font-bold text-sand-900">Payment Method</h2>
 
               {/* With a real gateway, card details are collected by Razorpay's
                   own hosted window - never by this form. That is deliberate:
                   card numbers must never touch our page or our server. */}
               {gatewayEnabled ? (
                 <form onSubmit={pay} className="mt-4 space-y-4">
-                  <div className="rounded-xl border border-slate-200 p-4">
+                  <div className="rounded-xl border border-sand-200 p-4">
                     <div className="flex items-center gap-3">
-                      <ShieldCheck size={20} className="text-green-600" />
+                      <ShieldCheck size={20} className="text-success-600" />
                       <div>
-                        <div className="text-sm font-semibold text-slate-800">
+                        <div className="text-sm font-semibold text-sand-800">
                           Secure checkout by Razorpay
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-sand-500">
                           Pay by UPI, card, net banking or wallet. Your card details
                           are entered on Razorpay&apos;s secure window, never here.
                         </div>
@@ -195,10 +195,10 @@ export default function PaymentPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4 text-sm">
-                    <div className="flex justify-between text-slate-600"><span>Consultation Fee</span><span>₹{fee}</span></div>
-                    <div className="mt-2 flex justify-between text-slate-600"><span>Platform Fee</span><span>₹{platformFee}</span></div>
-                    <div className="mt-3 flex justify-between border-t border-slate-200 pt-3 font-bold text-slate-900"><span>Total</span><span>₹{total}</span></div>
+                  <div className="rounded-xl bg-sand-50 p-4 text-sm">
+                    <div className="flex justify-between text-sand-600"><span>Consultation Fee</span><span>₹{fee}</span></div>
+                    <div className="mt-2 flex justify-between text-sand-600"><span>Platform Fee</span><span>₹{platformFee}</span></div>
+                    <div className="mt-3 flex justify-between border-t border-sand-200 pt-3 font-bold text-sand-900"><span>Total</span><span>₹{total}</span></div>
                   </div>
 
                   <Button type="submit" disabled={submitting}
@@ -212,7 +212,7 @@ export default function PaymentPage() {
                     {Object.keys(METHOD_LABELS).map((m) => (
                       <button key={m} type="button" onClick={() => setMethod(m)}
                         className={`rounded-lg border py-2.5 text-sm font-semibold transition ${
-                          method === m ? 'border-primary-600 bg-primary-50 text-primary-600' : 'border-slate-200 text-slate-600'}`}>
+                          method === m ? 'border-primary-600 bg-primary-50 text-primary-600' : 'border-sand-200 text-sand-600'}`}>
                         {METHOD_LABELS[m]}
                       </button>
                     ))}
@@ -232,21 +232,21 @@ export default function PaymentPage() {
                     {method === 'upi' && <Field label="UPI ID"><Input placeholder="name@bank" /></Field>}
                     {method === 'netbanking' && (
                       <Field label="Select Bank">
-                        <select className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm">
+                        <select className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm">
                           <option>State Bank</option><option>HDFC</option><option>ICICI</option><option>Axis</option>
                         </select>
                       </Field>
                     )}
 
-                    <div className="rounded-lg bg-amber-50 px-4 py-2.5 text-xs text-amber-700">
+                    <div className="rounded-lg bg-warning-50 px-4 py-2.5 text-xs text-warning-700">
                       Demo mode — no gateway keys configured, so no money is charged
                       and these fields are not sent anywhere.
                     </div>
 
-                    <div className="rounded-xl bg-slate-50 p-4 text-sm">
-                      <div className="flex justify-between text-slate-600"><span>Consultation Fee</span><span>₹{fee}</span></div>
-                      <div className="mt-2 flex justify-between text-slate-600"><span>Platform Fee</span><span>₹{platformFee}</span></div>
-                      <div className="mt-3 flex justify-between border-t border-slate-200 pt-3 font-bold text-slate-900"><span>Total</span><span>₹{total}</span></div>
+                    <div className="rounded-xl bg-sand-50 p-4 text-sm">
+                      <div className="flex justify-between text-sand-600"><span>Consultation Fee</span><span>₹{fee}</span></div>
+                      <div className="mt-2 flex justify-between text-sand-600"><span>Platform Fee</span><span>₹{platformFee}</span></div>
+                      <div className="mt-3 flex justify-between border-t border-sand-200 pt-3 font-bold text-sand-900"><span>Total</span><span>₹{total}</span></div>
                     </div>
 
                     <Button type="submit" disabled={submitting}

@@ -29,21 +29,21 @@ export default function DoctorEarnings() {
   const stats = summary ? [
     { icon: Clock, label: 'Awaiting payout', value: money(summary.pendingAmount),
       sub: `${summary.pendingConsultations} consultation(s)`,
-      grad: 'from-amber-400 to-amber-500' },
+      grad: 'from-warning-400 to-warning-500' },
     { icon: Wallet, label: 'Paid out', value: money(summary.paidAmount),
-      sub: 'settled to date', grad: 'from-green-500 to-green-600' },
+      sub: 'settled to date', grad: 'from-success-500 to-success-600' },
     { icon: TrendingUp, label: 'Lifetime earnings', value: money(summary.lifetimeEarnings),
-      sub: 'after commission', grad: 'from-blue-500 to-blue-600' },
+      sub: 'after commission', grad: 'from-primary-500 to-primary-600' },
     { icon: Percent, label: 'Platform commission', value: `${summary.commissionRate}%`,
-      sub: `paid every ${summary.payoutCycleDays} days`, grad: 'from-purple-500 to-purple-600' },
+      sub: `paid every ${summary.payoutCycleDays} days`, grad: 'from-accent-500 to-accent-600' },
   ] : []
 
   return (
     <DashboardLayout badge="Doctor" navItems={doctorNav}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900">Earnings</h1>
-          <p className="mt-1 text-slate-500">
+          <h1 className="text-3xl font-extrabold text-sand-900">Earnings</h1>
+          <p className="mt-1 text-sand-500">
             Your consultation income and settlement history
           </p>
         </div>
@@ -57,14 +57,14 @@ export default function DoctorEarnings() {
               { key: 'net_amount', label: 'You Earned' },
               { key: 'status', label: 'Status' },
             ])}
-            className="flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            className="flex items-center gap-2 rounded-lg border border-sand-300 px-4 py-2 text-sm font-semibold text-sand-700 hover:bg-sand-50">
             <Download size={15} /> Export
           </button>
         )}
       </div>
 
       {error && (
-        <div className="mt-5 rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600">{error}</div>
+        <div className="mt-5 rounded-lg bg-danger-50 px-4 py-2.5 text-sm text-danger-600">{error}</div>
       )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -82,9 +82,9 @@ export default function DoctorEarnings() {
       {/* How the split works - a doctor seeing a smaller number than the
           patient paid deserves an explanation, not a support ticket. */}
       {summary && (
-        <Card className="mt-6 bg-slate-50">
-          <div className="text-sm text-slate-600">
-            <span className="font-semibold text-slate-800">How your earnings are calculated: </span>
+        <Card className="mt-6 bg-sand-50">
+          <div className="text-sm text-sand-600">
+            <span className="font-semibold text-sand-800">How your earnings are calculated: </span>
             the patient pays your consultation fee plus a small platform fee.
             MediBridge retains {summary.commissionRate}% of the consultation fee as
             commission; the rest is yours. The platform fee is charged to the
@@ -93,12 +93,12 @@ export default function DoctorEarnings() {
         </Card>
       )}
 
-      <div className="mt-6 flex gap-6 border-b border-slate-200">
+      <div className="mt-6 flex gap-6 border-b border-sand-200">
         {[['earnings', 'Consultations'], ['payouts', 'Payouts']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             className={`-mb-px border-b-2 pb-2.5 text-sm font-semibold transition ${
               tab === key ? 'border-primary-600 text-primary-600'
-                          : 'border-transparent text-slate-400'}`}>
+                          : 'border-transparent text-sand-400'}`}>
             {label}
           </button>
         ))}
@@ -108,34 +108,34 @@ export default function DoctorEarnings() {
         <Card className="mt-5 overflow-x-auto p-0">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-slate-500">
+              <tr className="border-b border-sand-100 text-sand-500">
                 {['Date', 'Patient', 'Fee', 'Commission', 'You earned', 'Status']
                   .map((h) => <th key={h} className="px-6 py-4 font-semibold">{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {earnings.length === 0 && (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-sand-500">
                   No earnings yet. Complete a consultation to start earning.
                 </td></tr>
               )}
               {earnings.map((e) => (
-                <tr key={e.earning_id} className="border-b border-slate-50 last:border-0">
-                  <td className="px-6 py-4 text-slate-600">{e.consultation_date}</td>
-                  <td className="px-6 py-4 font-medium text-slate-800">{e.patient}</td>
-                  <td className="px-6 py-4 text-slate-600">{money(e.gross_amount)}</td>
-                  <td className="px-6 py-4 text-slate-500">
+                <tr key={e.earning_id} className="border-b border-sand-50 last:border-0">
+                  <td className="px-6 py-4 text-sand-600">{e.consultation_date}</td>
+                  <td className="px-6 py-4 font-medium text-sand-800">{e.patient}</td>
+                  <td className="px-6 py-4 text-sand-600">{money(e.gross_amount)}</td>
+                  <td className="px-6 py-4 text-sand-500">
                     −{money(e.commission_amount)}
-                    <span className="ml-1 text-xs text-slate-400">
+                    <span className="ml-1 text-xs text-sand-400">
                       ({e.commission_rate}%)
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-bold text-slate-900">{money(e.net_amount)}</td>
+                  <td className="px-6 py-4 font-bold text-sand-900">{money(e.net_amount)}</td>
                   <td className="px-6 py-4">
                     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      e.status === 'SETTLED' ? 'bg-green-100 text-green-700'
-                        : e.status === 'REVERSED' ? 'bg-red-100 text-red-600'
-                        : 'bg-yellow-100 text-yellow-700'}`}>
+                      e.status === 'SETTLED' ? 'bg-success-100 text-success-700'
+                        : e.status === 'REVERSED' ? 'bg-danger-100 text-danger-600'
+                        : 'bg-warning-100 text-warning-700'}`}>
                       {e.status === 'SETTLED' ? 'Paid'
                         : e.status === 'REVERSED' ? 'Reversed' : 'Pending'}
                     </span>
@@ -151,7 +151,7 @@ export default function DoctorEarnings() {
         <Card className="mt-5 overflow-x-auto p-0">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-slate-500">
+              <tr className="border-b border-sand-100 text-sand-500">
                 {['Period', 'Consultations', 'Gross', 'Commission', 'Net paid',
                   'Status', 'Reference']
                   .map((h) => <th key={h} className="px-6 py-4 font-semibold">{h}</th>)}
@@ -159,27 +159,27 @@ export default function DoctorEarnings() {
             </thead>
             <tbody>
               {payouts.length === 0 && (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-sand-500">
                   No payouts yet. Earnings are settled on a regular cycle.
                 </td></tr>
               )}
               {payouts.map((p) => (
-                <tr key={p.payout_id} className="border-b border-slate-50 last:border-0">
-                  <td className="px-6 py-4 text-slate-600">
+                <tr key={p.payout_id} className="border-b border-sand-50 last:border-0">
+                  <td className="px-6 py-4 text-sand-600">
                     {p.period_start} → {p.period_end}
                   </td>
-                  <td className="px-6 py-4 text-slate-600">{p.consultations}</td>
-                  <td className="px-6 py-4 text-slate-600">{money(p.gross_amount)}</td>
-                  <td className="px-6 py-4 text-slate-500">−{money(p.commission)}</td>
-                  <td className="px-6 py-4 font-bold text-slate-900">{money(p.net_amount)}</td>
+                  <td className="px-6 py-4 text-sand-600">{p.consultations}</td>
+                  <td className="px-6 py-4 text-sand-600">{money(p.gross_amount)}</td>
+                  <td className="px-6 py-4 text-sand-500">−{money(p.commission)}</td>
+                  <td className="px-6 py-4 font-bold text-sand-900">{money(p.net_amount)}</td>
                   <td className="px-6 py-4">
                     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      p.status === 'PAID' ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'}`}>
+                      p.status === 'PAID' ? 'bg-success-100 text-success-700'
+                        : 'bg-warning-100 text-warning-700'}`}>
                       {p.status === 'PAID' ? 'Paid' : 'Processing'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs text-slate-500">
+                  <td className="px-6 py-4 text-xs text-sand-500">
                     {p.payout_ref || '—'}
                   </td>
                 </tr>
