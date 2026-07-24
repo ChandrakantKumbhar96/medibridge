@@ -54,7 +54,7 @@ export default function SystemSettings() {
       <h1 className="text-3xl font-extrabold text-sand-900">System Settings</h1>
 
       {msg && (
-        <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
+        <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
@@ -110,7 +110,7 @@ export default function SystemSettings() {
                 setSettings(next)
                 save(next)
               }}
-              className="rounded-lg border border-sand-300 px-3 py-2 text-sm">
+              className="rounded-xl border border-sand-300 px-3 py-2 text-sm">
               <option value={15}>15 minutes</option>
               <option value={30}>30 minutes</option>
               <option value={60}>60 minutes</option>

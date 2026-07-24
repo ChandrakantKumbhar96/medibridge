@@ -56,13 +56,13 @@ export default function PatientAppointments() {
     <DashboardLayout navItems={patientNav}>
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-extrabold text-sand-900">My Appointments</h1>
-        <Link to="/patient/book" className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700">
+        <Link to="/patient/book" className="rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700">
           Book New Appointment
         </Link>
       </div>
 
       {msg && (
-        <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
+        <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
@@ -77,7 +77,7 @@ export default function PatientAppointments() {
           {upcoming.map((a) => (
             <div key={a.appointment_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand-100 p-4">
               <div className="flex items-center gap-3">
-                <Avatar />
+                <Avatar name={a.doctor} />
                 <div>
                   <div className="font-semibold text-sand-800">{a.doctor}</div>
                   <div className="text-sm text-sand-500">{a.specialization}</div>
@@ -102,7 +102,7 @@ export default function PatientAppointments() {
                 {/* Only rendered once the backend says the join window is open. */}
                 {a.meeting_link && (
                   <a href={a.meeting_link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-lg bg-success-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
+                    className="flex items-center gap-1.5 rounded-xl bg-success-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
                     <Video size={14} /> Join
                   </a>
                 )}
@@ -136,7 +136,7 @@ export default function PatientAppointments() {
           {past.map((a) => (
             <div key={a.appointment_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-sand-50 p-4">
               <div className="flex items-center gap-3">
-                <Avatar color="gray" />
+                <Avatar name={a.doctor} color="gray" />
                 <div>
                   <div className="font-semibold text-sand-800">{a.doctor}</div>
                   <div className="text-sm text-sand-500">{a.specialization}</div>

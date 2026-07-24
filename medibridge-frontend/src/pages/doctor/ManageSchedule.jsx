@@ -52,7 +52,7 @@ export default function ManageSchedule() {
       </div>
 
       {msg && (
-        <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
+        <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
@@ -67,13 +67,13 @@ export default function ManageSchedule() {
               </label>
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div className="flex items-center justify-between rounded-lg bg-sand-50 px-4 py-3">
+              <div className="flex items-center justify-between rounded-xl bg-sand-50 px-4 py-3">
                 <span className="flex items-center gap-2 text-sm text-sand-600">
                   <Clock size={16} className="text-sand-400" /> 09:00 AM - 12:00 PM
                 </span>
                 <Toggle on={!!d.morning} onClick={() => update(i, 'morning')} />
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-sand-50 px-4 py-3">
+              <div className="flex items-center justify-between rounded-xl bg-sand-50 px-4 py-3">
                 <span className="flex items-center gap-2 text-sm text-sand-600">
                   <Clock size={16} className="text-sand-400" /> 02:00 PM - 05:00 PM
                 </span>

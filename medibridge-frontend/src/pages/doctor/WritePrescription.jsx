@@ -98,7 +98,7 @@ export default function WritePrescription() {
               <Download size={16} /> Download PDF
             </Button>
             <button onClick={() => navigate('/doctor/appointments')}
-              className="rounded-lg border border-sand-300 px-5 text-sm font-semibold text-sand-700 hover:bg-sand-50">
+              className="rounded-xl border border-sand-300 px-5 text-sm font-semibold text-sand-700 hover:bg-sand-50">
               Back to appointments
             </button>
           </div>
@@ -118,12 +118,12 @@ export default function WritePrescription() {
       <p className="mt-1 text-sand-500">Record the consultation and issue medicines</p>
 
       {error && (
-        <div className="mt-5 rounded-lg bg-danger-50 px-4 py-3 text-sm text-danger-600">{error}</div>
+        <div className="mt-5 rounded-xl bg-danger-50 px-4 py-3 text-sm text-danger-600">{error}</div>
       )}
 
       {appointment && (
         <Card className="mt-6 flex items-center gap-4">
-          <Avatar color="solid" size={48} />
+          <Avatar name={appointment.patient} size={48} />
           <div>
             <div className="font-bold text-sand-900">{appointment.patient}</div>
             <div className="text-sm text-sand-500">
@@ -149,7 +149,7 @@ export default function WritePrescription() {
             <Field label="Clinical notes">
               <textarea rows={3} value={form.notes} onChange={set('notes')}
                 placeholder="Observations, vitals, examination findings"
-                className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" />
+                className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10" />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Follow-up date (optional)">
@@ -165,7 +165,7 @@ export default function WritePrescription() {
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-sand-900">Medicines</h2>
             <button type="button" onClick={addMedicine}
-              className="flex items-center gap-1.5 rounded-lg border border-sand-300 px-3 py-1.5 text-sm font-semibold text-sand-700 hover:bg-sand-50">
+              className="flex items-center gap-1.5 rounded-xl border border-sand-300 px-3 py-1.5 text-sm font-semibold text-sand-700 hover:bg-sand-50">
               <Plus size={15} /> Add medicine
             </button>
           </div>
@@ -199,7 +199,7 @@ export default function WritePrescription() {
                   <Field label="Frequency">
                     <select value={m.frequency}
                       onChange={(e) => updateMedicine(i, 'frequency', e.target.value)}
-                      className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm">
+                      className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10">
                       {FREQUENCIES.map((f) => <option key={f}>{f}</option>)}
                     </select>
                   </Field>
@@ -225,9 +225,9 @@ export default function WritePrescription() {
           <h2 className="text-lg font-bold text-sand-900">General advice</h2>
           <textarea rows={3} value={form.advice} onChange={set('advice')}
             placeholder="Diet, activity, warning signs to watch for"
-            className="mt-4 w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" />
+            className="mt-4 w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all placeholder:font-normal placeholder:text-sand-400 hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10" />
 
-          <div className="mt-5 rounded-lg bg-primary-50 px-4 py-2.5 text-xs text-primary-700">
+          <div className="mt-5 rounded-xl bg-primary-50 px-4 py-2.5 text-xs text-primary-700">
             Issuing this prescription marks the consultation complete and notifies
             the patient. It cannot be edited afterwards.
           </div>

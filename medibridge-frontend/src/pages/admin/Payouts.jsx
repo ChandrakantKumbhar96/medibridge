@@ -104,14 +104,14 @@ export default function Payouts() {
               { key: 'status', label: 'Status' },
               { key: 'payout_ref', label: 'Reference' },
             ])}
-            className="flex items-center gap-2 rounded-lg border border-sand-300 px-4 py-2 text-sm font-semibold text-sand-700 hover:bg-sand-50">
+            className="flex items-center gap-2 rounded-xl border border-sand-300 px-4 py-2 text-sm font-semibold text-sand-700 hover:bg-sand-50">
             <Download size={15} /> Export
           </button>
         )}
       </div>
 
       {msg && (
-        <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
+        <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
@@ -190,9 +190,9 @@ export default function Payouts() {
                     <div className="flex items-center gap-2">
                       <input value={reference} onChange={(e) => setReference(e.target.value)}
                         placeholder="NEFT / UPI ref"
-                        className="w-32 rounded-lg border border-sand-300 px-2 py-1.5 text-xs" />
+                        className="w-32 rounded-xl border border-sand-300 px-2 py-1.5 text-xs" />
                       <button onClick={() => confirmPaid(p)}
-                        className="rounded-lg bg-success-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-success-700">
+                        className="rounded-xl bg-success-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-success-700">
                         Save
                       </button>
                       <button onClick={() => { setPaying(null); setReference('') }}
@@ -202,7 +202,7 @@ export default function Payouts() {
                     </div>
                   ) : (
                     <button onClick={() => setPaying(p.payout_id)}
-                      className="flex items-center gap-1.5 rounded-lg border border-success-200 px-3 py-1.5 text-xs font-semibold text-success-700 hover:bg-success-50">
+                      className="flex items-center gap-1.5 rounded-xl border border-success-200 px-3 py-1.5 text-xs font-semibold text-success-700 hover:bg-success-50">
                       <CheckCircle2 size={14} /> Mark paid
                     </button>
                   )}

@@ -36,18 +36,18 @@ export default function AdminAppointments() {
             { key: 'type', label: 'Type' },
             { key: 'status', label: 'Status' },
           ])}
-          className="flex items-center gap-2 rounded-lg bg-success-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-success-700">
+          className="flex items-center gap-2 rounded-xl bg-success-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-success-700">
           <Download size={16} /> Export Report
         </button>
       </div>
 
       <Card className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <select className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
+        <select className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option>All Status</option><option>Confirmed</option><option>Pending</option><option>Cancelled</option>
         </select>
-        <input type="date" className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm" />
-        <input placeholder="Search patient..." className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm" value={patient} onChange={(e) => setPatient(e.target.value)} />
-        <input placeholder="Search doctor..." className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm" value={doctor} onChange={(e) => setDoctor(e.target.value)} />
+        <input type="date" className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm" />
+        <input placeholder="Search patient..." className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm" value={patient} onChange={(e) => setPatient(e.target.value)} />
+        <input placeholder="Search doctor..." className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm" value={doctor} onChange={(e) => setDoctor(e.target.value)} />
       </Card>
 
       <Card className="mt-5 overflow-x-auto p-0">

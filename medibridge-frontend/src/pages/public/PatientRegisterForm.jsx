@@ -31,12 +31,12 @@ export default function PatientRegisterForm() {
         <Field label="Alternate Number"><Input value={f.another_number} onChange={set('another_number')} placeholder="Optional" /></Field>
         <Field label="Date of Birth"><Input required type="date" value={f.date_of_birth} onChange={set('date_of_birth')} /></Field>
         <Field label="Gender">
-          <select className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" value={f.gender} onChange={set('gender')}>
+          <select className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10" value={f.gender} onChange={set('gender')}>
             <option>Male</option><option>Female</option><option>Other</option>
           </select>
         </Field>
         <Field label="Blood Group">
-          <select className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" value={f.blood_group} onChange={set('blood_group')}>
+          <select className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10" value={f.blood_group} onChange={set('blood_group')}>
             {['O+','O-','A+','A-','B+','B-','AB+','AB-'].map((b) => <option key={b}>{b}</option>)}
           </select>
         </Field>
@@ -45,11 +45,11 @@ export default function PatientRegisterForm() {
       <div className="mt-4 space-y-4">
         <Field label="Address"><Input value={f.address} onChange={set('address')} placeholder="Street, City, State" /></Field>
         <Field label="Reason for Consultation">
-          <textarea rows={2} className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" value={f.reason_of_consult} onChange={set('reason_of_consult')} placeholder="Briefly describe your concern" />
+          <textarea rows={2} className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10" value={f.reason_of_consult} onChange={set('reason_of_consult')} placeholder="Briefly describe your concern" />
         </Field>
       </div>
 
-      <button type="submit" className="mt-6 w-full rounded-lg bg-primary-600 py-3 text-sm font-semibold text-white hover:bg-primary-700">
+      <button type="submit" className="mt-6 w-full rounded-xl bg-primary-600 py-3 text-sm font-semibold text-white hover:bg-primary-700">
         Create Account
       </button>
     </form>
