@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    boolean existsByTypeAndEntityTypeAndEntityIdAndRecipientId(
-            String type, String entityType, String entityId, String recipientId);
+    boolean existsByTypeAndEntityTypeAndEntityIdAndRecipientIdAndChannel(
+            String type, String entityType, String entityId, String recipientId,
+            com.medibridge.notification.entity.Notification.Channel channel);
 }

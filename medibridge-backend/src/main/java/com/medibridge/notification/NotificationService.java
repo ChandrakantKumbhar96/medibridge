@@ -36,6 +36,7 @@ public class NotificationService {
 
     private final NotificationRepository repository;
     private final EmailService emailService;
+    private final SmsService smsService;
 
     // ------------------------------------------------------------ templates
 
@@ -81,6 +82,11 @@ public class NotificationService {
                         a.getDoctor().getFullName(),
                         a.getAppointmentDate().format(WHEN),
                         a.getTotalAmount()));
+
+        deliverSms(a, Notification.Type.BOOKING_CONFIRMED,
+                "MediBridge: your consultation with %s on %s is CONFIRMED. Open the app and press Join at your appointment time."
+                        .formatted(a.getDoctor().getFullName(),
+                                a.getAppointmentDate().format(WHEN)));
     }
 
     public void sendReminder(Appointment a) {
@@ -102,6 +108,11 @@ public class NotificationService {
                         a.getPatient().getFullName(),
                         a.getDoctor().getFullName(),
                         a.getAppointmentDate().format(WHEN)));
+
+        deliverSms(a, Notification.Type.REMINDER_24H,
+                "MediBridge reminder: consultation with %s on %s. Open the app and press Join at your slot time."
+                        .formatted(a.getDoctor().getFullName(),
+                                a.getAppointmentDate().format(WHEN)));
     }
 
     public void sendCancelled(Appointment a, BigDecimal refundAmount, String reason) {
@@ -127,6 +138,13 @@ public class NotificationService {
                         a.getAppointmentDate().format(WHEN),
                         reason == null ? "" : "Reason: " + reason,
                         refundLine));
+
+        String refundSms = refundAmount == null || refundAmount.signum() == 0
+                ? "" : " A refund of Rs. " + refundAmount + " has been issued.";
+        deliverSms(a, Notification.Type.APPOINTMENT_CANCELLED,
+                ("MediBridge: your appointment with %s on %s was cancelled." + refundSms)
+                        .formatted(a.getDoctor().getFullName(),
+                                a.getAppointmentDate().format(WHEN)));
     }
 
     /**
@@ -141,7 +159,8 @@ public class NotificationService {
 
         record(Notification.RecipientType.PATIENT,
                 String.valueOf(a.getPatient().getId()),
-                a.getPatient().getEmail(),
+                a.getPatient().getEmail(), a.getPatient().getPhone(),
+                Notification.Channel.EMAIL,
                 Notification.Type.APPOINTMENT_RESCHEDULED + "_" + a.getRescheduleCount(),
                 "Your MediBridge appointment has moved",
                 """
@@ -205,31 +224,51 @@ public class NotificationService {
     private void deliver(Appointment a, String type, String subject, String body) {
         record(Notification.RecipientType.PATIENT,
                 String.valueOf(a.getPatient().getId()),
-                a.getPatient().getEmail(),
+                a.getPatient().getEmail(), a.getPatient().getPhone(),
+                Notification.Channel.EMAIL,
                 type, subject, body,
                 "APPOINTMENT", String.valueOf(a.getId()));
     }
 
     /**
-     * @return false when this exact notification was already sent - the caller
-     *         does not need to care, but the reminder job relies on it.
+     * Also sends a short WhatsApp/SMS to the patient's phone.
+     *
+     * <p>The channel copy is a separate notification row (with its own
+     * {@code channel} in the de-dup key), so it neither duplicates nor blocks
+     * the email. The body is deliberately terse — SMS caps at 160 characters.
+     */
+    private void deliverSms(Appointment a, String type, String shortBody) {
+        Notification.Channel ch = smsService.isWhatsApp()
+                ? Notification.Channel.WHATSAPP : Notification.Channel.SMS;
+        record(Notification.RecipientType.PATIENT,
+                String.valueOf(a.getPatient().getId()),
+                a.getPatient().getEmail(), a.getPatient().getPhone(),
+                ch, type, "(mobile)", shortBody,
+                "APPOINTMENT", String.valueOf(a.getId()));
+    }
+
+    /**
+     * @return false when this exact notification (per channel) was already sent -
+     *         the caller does not need to care, but the reminder job relies on it.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean record(Notification.RecipientType recipientType, String recipientId,
-                          String email, String type, String subject, String body,
+                          String email, String phone, Notification.Channel channel,
+                          String type, String subject, String body,
                           String entityType, String entityId) {
 
-        if (repository.existsByTypeAndEntityTypeAndEntityIdAndRecipientId(
-                type, entityType, entityId, recipientId)) {
-            log.debug("Skipping duplicate notification {} for {} {}", type, entityType, entityId);
+        if (repository.existsByTypeAndEntityTypeAndEntityIdAndRecipientIdAndChannel(
+                type, entityType, entityId, recipientId, channel)) {
+            log.debug("Skipping duplicate {} notification {} for {} {}",
+                    channel, type, entityType, entityId);
             return false;
         }
 
         Notification notification = Notification.builder()
                 .recipientType(recipientType)
                 .recipientId(recipientId)
-                .recipientEmail(email)
-                .channel(Notification.Channel.EMAIL)
+                .recipientEmail(email)   // the email column is always populated
+                .channel(channel)
                 .type(type)
                 .subject(subject)
                 .body(body)
@@ -243,12 +282,16 @@ public class NotificationService {
         } catch (DataIntegrityViolationException e) {
             // Another thread inserted the same notification between the check
             // above and this insert. The unique key did its job.
-            log.debug("Duplicate notification blocked by constraint: {}", type);
+            log.debug("Duplicate notification blocked by constraint: {} {}", channel, type);
             return false;
         }
 
         try {
-            emailService.send(email, subject, body);
+            switch (channel) {
+                case EMAIL -> emailService.send(email, subject, body);
+                case SMS, WHATSAPP -> smsService.send(phone, body);
+                case PUSH -> { /* not implemented yet */ }
+            }
             notification.setStatus(Notification.Status.SENT);
             notification.setSentAt(LocalDateTime.now());
         } catch (Exception e) {
@@ -256,7 +299,7 @@ public class NotificationService {
             notification.setErrorMessage(
                     e.getMessage() == null ? "unknown error"
                             : e.getMessage().substring(0, Math.min(240, e.getMessage().length())));
-            log.error("Notification {} failed: {}", type, e.getMessage());
+            log.error("{} notification {} failed: {}", channel, type, e.getMessage());
         }
 
         repository.save(notification);

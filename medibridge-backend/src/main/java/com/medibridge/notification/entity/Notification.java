@@ -76,7 +76,7 @@ public class Notification {
 
     public enum RecipientType { PATIENT, DOCTOR, ADMIN }
 
-    public enum Channel { EMAIL, SMS, PUSH }
+    public enum Channel { EMAIL, SMS, WHATSAPP, PUSH }
 
     public enum Status { PENDING, SENT, FAILED }
 

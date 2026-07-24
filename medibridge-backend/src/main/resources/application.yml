@@ -98,6 +98,20 @@ medibridge:
     # false = log the email body to console instead of sending (dev default)
     enabled: ${MAIL_ENABLED:false}
 
+  sms:
+    # false = log the SMS/WhatsApp body to console instead of sending (dev default).
+    # Set true with Twilio credentials below to deliver real messages.
+    enabled: ${SMS_ENABLED:false}
+    # SMS or WHATSAPP — which Twilio channel outbound messages use.
+    channel: ${SMS_CHANNEL:WHATSAPP}
+    twilio:
+      account-sid: ${TWILIO_SID:}
+      auth-token: ${TWILIO_TOKEN:}
+      # Twilio SMS sender number, e.g. +12025550123 (only needed for SMS channel)
+      from-sms: ${TWILIO_FROM_SMS:}
+      # WhatsApp sender. The Twilio sandbox number is +14155238886.
+      whatsapp-from: ${TWILIO_WHATSAPP_FROM:+14155238886}
+
   google:
     # OAuth 2.0 Web client ID from Google Cloud Console.
     # Blank = Google Sign-In disabled and the button is hidden.

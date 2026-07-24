@@ -17,6 +17,19 @@ medibridge:
     # false logs emails to the console instead of sending them.
     enabled: false
 
+  sms:
+    # false logs SMS/WhatsApp to the console instead of sending.
+    # To send real WhatsApp messages via the free Twilio sandbox:
+    #   1. sign up at twilio.com, open Messaging > Try it out > WhatsApp sandbox
+    #   2. join the sandbox by sending the given code to +1 415 523 8886
+    #   3. set enabled: true and paste your SID + auth token below
+    enabled: false
+    channel: WHATSAPP
+    twilio:
+      account-sid: ""
+      auth-token: ""
+      whatsapp-from: "+14155238886"
+
   razorpay:
     # Test keys from dashboard.razorpay.com (Test Mode > Settings > API Keys).
     # Leave blank to fall back to simulated payments.
