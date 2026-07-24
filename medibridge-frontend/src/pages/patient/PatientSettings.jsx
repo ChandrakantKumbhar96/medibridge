@@ -72,7 +72,7 @@ export default function PatientSettings() {
   }
 
   const Banner = ({ msg }) => msg ? (
-    <div className={`mt-4 rounded-lg px-4 py-2.5 text-sm ${
+    <div className={`mt-4 rounded-xl px-4 py-2.5 text-sm ${
       msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
   ) : null
 
@@ -102,13 +102,13 @@ export default function PatientSettings() {
               <Input required type="date" value={form.date_of_birth || ''} onChange={set('date_of_birth')} />
             </Field>
             <Field label="Gender">
-              <select className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm"
+              <select className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10"
                 value={form.gender} onChange={set('gender')}>
                 <option>Male</option><option>Female</option><option>Other</option>
               </select>
             </Field>
             <Field label="Blood Group">
-              <select className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm"
+              <select className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10"
                 value={form.blood_group} onChange={set('blood_group')}>
                 {['O+','O-','A+','A-','B+','B-','AB+','AB-'].map((b) => <option key={b}>{b}</option>)}
               </select>

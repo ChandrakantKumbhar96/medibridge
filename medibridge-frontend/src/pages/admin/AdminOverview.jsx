@@ -49,7 +49,7 @@ export default function AdminOverview() {
               <div className="text-sm text-sand-500">{s.label}</div>
               <div className="mt-1 text-2xl font-extrabold text-sand-900">{s.value}</div>
             </div>
-            <div className={`flex h-11 w-11 items-center justify-center rounded-lg ${s.c}`}><s.icon size={20} /></div>
+            <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${s.c}`}><s.icon size={20} /></div>
           </Card>
         ))}
       </div>

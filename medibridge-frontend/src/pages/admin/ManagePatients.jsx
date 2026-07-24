@@ -56,13 +56,13 @@ export default function ManagePatients() {
 
       <Card className="mt-6 flex flex-col gap-3 sm:flex-row">
         <div className="flex-1"><Input icon={Search} placeholder="Search patients by name, email, or phone..." value={q} onChange={(e) => setQ(e.target.value)} /></div>
-        <select className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
+        <select className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option>All Status</option><option>Active</option><option>Inactive</option>
         </select>
       </Card>
 
       {msg && (
-        <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
+        <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
@@ -91,13 +91,13 @@ export default function ManagePatients() {
                       onClick={() => changeStatus(p,'inactive',
                         `Deactivate ${p.full_name}?\n\nThey will be unable to sign in `
                         + `or book. Their records are retained.`)}
-                      className="flex items-center gap-1.5 rounded-lg border border-danger-200 px-3 py-1.5 text-xs font-semibold text-danger-600 hover:bg-danger-50 disabled:opacity-50">
+                      className="flex items-center gap-1.5 rounded-xl border border-danger-200 px-3 py-1.5 text-xs font-semibold text-danger-600 hover:bg-danger-50 disabled:opacity-50">
                       <Ban size={14} /> Deactivate
                     </button>
                   ) : (
                     <button disabled={busy === p.patient_id}
                       onClick={() => changeStatus(p,'active', null)}
-                      className="flex items-center gap-1.5 rounded-lg border border-sand-300 px-3 py-1.5 text-xs font-semibold text-sand-700 hover:bg-sand-50 disabled:opacity-50">
+                      className="flex items-center gap-1.5 rounded-xl border border-sand-300 px-3 py-1.5 text-xs font-semibold text-sand-700 hover:bg-sand-50 disabled:opacity-50">
                       <RotateCcw size={14} /> Reactivate
                     </button>
                   )}

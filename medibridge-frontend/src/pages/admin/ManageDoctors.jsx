@@ -65,7 +65,7 @@ export default function ManageDoctors() {
       </div>
 
       {msg && (
-        <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
+        <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
@@ -111,7 +111,7 @@ export default function ManageDoctors() {
                           `Approve ${d.full_name}?\n\nConfirm their licence `
                           + `(${d.license_number}) has been verified. They will be `
                           + `able to sign in and accept bookings.`)}
-                        className="flex items-center gap-1.5 rounded-lg bg-success-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-success-700 disabled:opacity-50">
+                        className="flex items-center gap-1.5 rounded-xl bg-success-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-success-700 disabled:opacity-50">
                         <CheckCircle2 size={14} /> Approve
                       </button>
                     )}
@@ -121,14 +121,14 @@ export default function ManageDoctors() {
                           `Suspend ${d.full_name}?\n\nThey will be unable to sign in `
                           + `and will stop appearing in search. Existing appointments `
                           + `are not cancelled automatically.`)}
-                        className="flex items-center gap-1.5 rounded-lg border border-danger-200 px-3 py-1.5 text-xs font-semibold text-danger-600 hover:bg-danger-50 disabled:opacity-50">
+                        className="flex items-center gap-1.5 rounded-xl border border-danger-200 px-3 py-1.5 text-xs font-semibold text-danger-600 hover:bg-danger-50 disabled:opacity-50">
                         <Ban size={14} /> Suspend
                       </button>
                     )}
                     {(d.status === 'suspended' || d.status === 'inactive') && (
                       <button disabled={busy === d.doctor_id}
                         onClick={() => setStatus(d, 'active', null)}
-                        className="flex items-center gap-1.5 rounded-lg border border-sand-300 px-3 py-1.5 text-xs font-semibold text-sand-700 hover:bg-sand-50 disabled:opacity-50">
+                        className="flex items-center gap-1.5 rounded-xl border border-sand-300 px-3 py-1.5 text-xs font-semibold text-sand-700 hover:bg-sand-50 disabled:opacity-50">
                         <RotateCcw size={14} /> Reinstate
                       </button>
                     )}

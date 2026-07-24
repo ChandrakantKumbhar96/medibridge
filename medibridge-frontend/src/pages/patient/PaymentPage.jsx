@@ -145,7 +145,7 @@ export default function PaymentPage() {
         <p className="mt-1 text-sand-500">Complete payment to confirm your appointment</p>
 
         {error && (
-          <div className="mt-5 rounded-lg bg-danger-50 px-4 py-3 text-sm text-danger-600">{error}</div>
+          <div className="mt-5 rounded-xl bg-danger-50 px-4 py-3 text-sm text-danger-600">{error}</div>
         )}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-5">
@@ -211,7 +211,7 @@ export default function PaymentPage() {
                   <div className="mt-4 grid grid-cols-3 gap-3">
                     {Object.keys(METHOD_LABELS).map((m) => (
                       <button key={m} type="button" onClick={() => setMethod(m)}
-                        className={`rounded-lg border py-2.5 text-sm font-semibold transition ${
+                        className={`rounded-xl border py-2.5 text-sm font-semibold transition ${
                           method === m ? 'border-primary-600 bg-primary-50 text-primary-600' : 'border-sand-200 text-sand-600'}`}>
                         {METHOD_LABELS[m]}
                       </button>
@@ -232,13 +232,13 @@ export default function PaymentPage() {
                     {method === 'upi' && <Field label="UPI ID"><Input placeholder="name@bank" /></Field>}
                     {method === 'netbanking' && (
                       <Field label="Select Bank">
-                        <select className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm">
+                        <select className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10">
                           <option>State Bank</option><option>HDFC</option><option>ICICI</option><option>Axis</option>
                         </select>
                       </Field>
                     )}
 
-                    <div className="rounded-lg bg-warning-50 px-4 py-2.5 text-xs text-warning-700">
+                    <div className="rounded-xl bg-warning-50 px-4 py-2.5 text-xs text-warning-700">
                       Demo mode — no gateway keys configured, so no money is charged
                       and these fields are not sent anywhere.
                     </div>

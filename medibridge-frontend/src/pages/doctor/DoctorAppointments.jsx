@@ -66,7 +66,7 @@ export default function DoctorAppointments() {
   const Row = ({ a, actions }) => (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand-100 p-4">
       <div className="flex items-center gap-4">
-        <Avatar />
+        <Avatar name={a.patient} />
         <div>
           <div className="font-semibold text-sand-800">{a.patient}</div>
           <div className="text-sm text-sand-500">
@@ -92,7 +92,7 @@ export default function DoctorAppointments() {
       </p>
 
       {msg && (
-        <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
+        <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
@@ -106,7 +106,7 @@ export default function DoctorAppointments() {
             <Row key={a.appointment_id} a={a} actions={<>
               {a.meeting_link && (
                 <a href={a.meeting_link} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-lg bg-success-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
+                  className="flex items-center gap-1.5 rounded-xl bg-success-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
                   <Video size={14} /> Start Consultation
                 </a>
               )}

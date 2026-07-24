@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
           <p className="mt-1 text-sm text-sand-500">Restricted access — administrators only</p>
         </div>
 
-        {error && <div className="mt-6 rounded-lg bg-danger-50 px-4 py-2.5 text-sm text-danger-600">{error}</div>}
+        {error && <div className="mt-6 rounded-xl bg-danger-50 px-4 py-2.5 text-sm text-danger-600">{error}</div>}
 
         <form onSubmit={submit} className="mt-6 space-y-4">
           <Field label="Admin Email">
@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
               value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           </Field>
           <button type="submit" disabled={status === 'loading'}
-            className="w-full rounded-lg bg-danger-500 py-3 text-sm font-semibold text-white hover:bg-danger-600 disabled:opacity-60">
+            className="w-full rounded-xl bg-danger-500 py-3 text-sm font-semibold text-white hover:bg-danger-600 disabled:opacity-60">
             {status === 'loading' ? 'Signing in...' : 'Sign in to Admin Panel'}
           </button>
         </form>

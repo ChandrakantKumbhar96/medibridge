@@ -96,7 +96,7 @@ export default function RateExperience() {
       <div className="mx-auto max-w-2xl px-6 py-8">
         <Card>
           <div className="flex items-center gap-4 border-b border-sand-100 pb-5">
-            <Avatar color="solid" size={52} />
+            <Avatar name={appointment.doctor} size={52} />
             <div>
               <div className="font-bold text-sand-900">{appointment.doctor}</div>
               <div className="text-sm text-sand-500">
@@ -106,7 +106,7 @@ export default function RateExperience() {
           </div>
 
           {alreadyReviewed && (
-            <div className="mt-5 rounded-lg bg-warning-50 px-4 py-2.5 text-sm text-warning-700">
+            <div className="mt-5 rounded-xl bg-warning-50 px-4 py-2.5 text-sm text-warning-700">
               You have already reviewed this consultation.
             </div>
           )}
@@ -116,7 +116,7 @@ export default function RateExperience() {
           </h1>
 
           {error && (
-            <div className="mt-4 rounded-lg bg-danger-50 px-4 py-2.5 text-sm text-danger-600">
+            <div className="mt-4 rounded-xl bg-danger-50 px-4 py-2.5 text-sm text-danger-600">
               {error}
             </div>
           )}
@@ -140,7 +140,7 @@ export default function RateExperience() {
             <div className="mt-3 grid grid-cols-4 gap-3">
               {experiences.map((e) => (
                 <button key={e} type="button" onClick={() => setOverall(e)}
-                  className={`rounded-lg border py-3 text-sm font-medium transition ${
+                  className={`rounded-xl border py-3 text-sm font-medium transition ${
                     overall === e ? 'border-primary-600 bg-primary-50 text-primary-600'
                                   : 'border-sand-200 text-sand-600'}`}>
                   {e}
@@ -169,7 +169,7 @@ export default function RateExperience() {
             <div className="text-sm font-semibold text-sand-700">Write a review</div>
             <textarea rows={4} value={review} onChange={(e) => setReview(e.target.value)}
               placeholder="Share details of your experience with this doctor..."
-              className="mt-2 w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" />
+              className="mt-2 w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all placeholder:font-normal placeholder:text-sand-400 hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10" />
           </div>
 
           <Button onClick={submit} disabled={submitting || alreadyReviewed}
