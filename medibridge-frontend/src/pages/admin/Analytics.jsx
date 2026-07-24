@@ -133,15 +133,15 @@ export default function Analytics() {
         <h2 className="text-lg font-bold text-sand-900">Generate Reports</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <button onClick={exportPatients}
-            className="flex items-center justify-center gap-2 rounded-lg bg-primary-600 py-3 text-sm font-semibold text-white hover:bg-primary-700">
+            className="flex items-center justify-center gap-2 rounded-xl bg-primary-600 py-3 text-sm font-semibold text-white hover:bg-primary-700">
             <Download size={16} /> Patient Report
           </button>
           <button onClick={exportDoctors}
-            className="flex items-center justify-center gap-2 rounded-lg bg-success-600 py-3 text-sm font-semibold text-white hover:bg-success-700">
+            className="flex items-center justify-center gap-2 rounded-xl bg-success-600 py-3 text-sm font-semibold text-white hover:bg-success-700">
             <Download size={16} /> Doctor Performance
           </button>
           <button onClick={exportRevenue}
-            className="flex items-center justify-center gap-2 rounded-lg bg-accent-600 py-3 text-sm font-semibold text-white hover:bg-accent-700">
+            className="flex items-center justify-center gap-2 rounded-xl bg-accent-600 py-3 text-sm font-semibold text-white hover:bg-accent-700">
             <Download size={16} /> Revenue Report
           </button>
         </div>

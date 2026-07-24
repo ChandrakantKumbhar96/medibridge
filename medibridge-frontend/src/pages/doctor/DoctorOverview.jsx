@@ -58,7 +58,7 @@ export default function DoctorOverview() {
             <div key={a.appointment_id}
               className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand-100 p-4">
               <div className="flex items-center gap-4">
-                <div className="rounded-lg bg-primary-50 px-3 py-1.5 text-center">
+                <div className="rounded-xl bg-primary-50 px-3 py-1.5 text-center">
                   <div className="text-[10px] uppercase text-sand-400">Time</div>
                   <div className="text-sm font-bold text-primary-600">{a.time}</div>
                 </div>
@@ -75,7 +75,7 @@ export default function DoctorOverview() {
                     withholds the link outside it. */}
                 {a.meeting_link && (
                   <a href={a.meeting_link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-lg bg-success-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
+                    className="flex items-center gap-1.5 rounded-xl bg-success-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
                     <Video size={14} /> Start Consultation
                   </a>
                 )}

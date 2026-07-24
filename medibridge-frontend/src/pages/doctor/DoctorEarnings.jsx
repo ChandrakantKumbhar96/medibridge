@@ -57,14 +57,14 @@ export default function DoctorEarnings() {
               { key: 'net_amount', label: 'You Earned' },
               { key: 'status', label: 'Status' },
             ])}
-            className="flex items-center gap-2 rounded-lg border border-sand-300 px-4 py-2 text-sm font-semibold text-sand-700 hover:bg-sand-50">
+            className="flex items-center gap-2 rounded-xl border border-sand-300 px-4 py-2 text-sm font-semibold text-sand-700 hover:bg-sand-50">
             <Download size={15} /> Export
           </button>
         )}
       </div>
 
       {error && (
-        <div className="mt-5 rounded-lg bg-danger-50 px-4 py-2.5 text-sm text-danger-600">{error}</div>
+        <div className="mt-5 rounded-xl bg-danger-50 px-4 py-2.5 text-sm text-danger-600">{error}</div>
       )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

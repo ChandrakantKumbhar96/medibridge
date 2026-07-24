@@ -58,7 +58,7 @@ export default function DoctorSettings() {
       <h1 className="text-3xl font-extrabold text-sand-900">Profile Settings</h1>
 
       {msg && (
-        <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
+        <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
@@ -71,7 +71,7 @@ export default function DoctorSettings() {
             </Field>
             <Field label="Specialization">
               <select value={form.specialization} onChange={set('specialization')}
-                className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm">
+                className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10">
                 {specializations.map((s) => <option key={s}>{s}</option>)}
               </select>
             </Field>
@@ -94,7 +94,7 @@ export default function DoctorSettings() {
           <div className="mt-4">
             <Field label="Bio">
               <textarea rows={3} value={form.bio || ''} onChange={set('bio')}
-                className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" />
+                className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10" />
             </Field>
           </div>
         </Card>
@@ -107,14 +107,14 @@ export default function DoctorSettings() {
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400">₹</span>
                 <input required type="number" min="0" value={form.consultation_fee}
                   onChange={set('consultation_fee')}
-                  className="w-full rounded-lg border border-sand-300 py-2.5 pl-7 pr-3 text-sm" />
+                  className="w-full rounded-xl border border-sand-300 py-2.5 pl-7 pr-3 text-sm" />
               </div>
             </Field>
             <Field label="Average Consultation Duration">
               {/* Drives slot generation: changing this reshapes the bookable
                   slots produced from the weekly availability pattern. */}
               <select value={form.consultation_duration_min} onChange={set('consultation_duration_min')}
-                className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm">
+                className="w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10">
                 <option value={15}>15 minutes</option>
                 <option value={30}>30 minutes</option>
                 <option value={45}>45 minutes</option>

@@ -105,20 +105,20 @@ export default function MedicalRecords() {
         </div>
         <div className="flex items-center gap-3">
           <button onClick={downloadHistory} disabled={busy === 'history'}
-            className="flex items-center gap-2 rounded-lg border border-sand-300 px-4 py-2.5 text-sm font-semibold text-sand-700 hover:bg-sand-50 disabled:opacity-60">
+            className="flex items-center gap-2 rounded-xl border border-sand-300 px-4 py-2.5 text-sm font-semibold text-sand-700 hover:bg-sand-50 disabled:opacity-60">
             <FileDown size={16} /> {busy === 'history' ? 'Generating…' : 'Full History PDF'}
           </button>
           <input ref={fileInput} type="file" onChange={upload} className="hidden"
             accept="application/pdf,image/jpeg,image/png,image/webp" />
           <button onClick={() => fileInput.current?.click()} disabled={busy === 'upload'}
-            className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-60">
+            className="flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-60">
             <Upload size={16} /> {busy === 'upload' ? 'Uploading…' : 'Upload New'}
           </button>
         </div>
       </div>
 
       {msg && (
-        <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
+        <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
@@ -131,7 +131,7 @@ export default function MedicalRecords() {
         {records.map((r) => (
           <div key={r.report_id} className="flex items-center justify-between rounded-xl border border-sand-100 p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-100 text-primary-600"><FileText size={20} /></div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-100 text-primary-600"><FileText size={20} /></div>
               <div>
                 <div className="font-semibold text-sand-800">{r.report_name}</div>
                 <div className="text-sm text-sand-500">{r.report_type} • {r.upload_date} • {r.size}</div>
@@ -158,7 +158,7 @@ export default function MedicalRecords() {
             {prescriptions.map((p) => (
               <div key={p.prescription_id} className="flex items-center justify-between rounded-xl border border-sand-100 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent-100 text-accent-600"><Pill size={20} /></div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-100 text-accent-600"><Pill size={20} /></div>
                   <div>
                     <div className="font-semibold text-sand-800">{p.diagnosis}</div>
                     <div className="text-sm text-sand-500">
@@ -168,7 +168,7 @@ export default function MedicalRecords() {
                 </div>
                 <button onClick={() => downloadPrescription(p.prescription_id)}
                   disabled={busy === `p-${p.prescription_id}`}
-                  className="flex items-center gap-2 rounded-lg border border-sand-300 px-4 py-2 text-sm font-semibold text-sand-700 hover:bg-sand-50 disabled:opacity-60">
+                  className="flex items-center gap-2 rounded-xl border border-sand-300 px-4 py-2 text-sm font-semibold text-sand-700 hover:bg-sand-50 disabled:opacity-60">
                   <Download size={16} /> {busy === `p-${p.prescription_id}` ? 'Generating…' : 'PDF'}
                 </button>
               </div>

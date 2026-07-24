@@ -107,7 +107,7 @@ export default function BookAppointment() {
         <Stepper current={step} />
 
         {error && (
-          <div className="mb-4 rounded-lg bg-danger-50 px-4 py-3 text-sm text-danger-600">{error}</div>
+          <div className="mb-4 rounded-xl bg-danger-50 px-4 py-3 text-sm text-danger-600">{error}</div>
         )}
 
         {step === 0 && (
@@ -138,7 +138,7 @@ export default function BookAppointment() {
               {doctors.map((d) => (
                 <Card key={d.doctor_id} className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <Avatar color="solid" size={52} />
+                    <Avatar name={d.full_name} size={52} />
                     <div>
                       <div className="font-bold text-sand-900">{d.full_name}</div>
                       <div className="text-sm text-sand-500">{d.specialization}</div>
@@ -176,13 +176,13 @@ export default function BookAppointment() {
                 <input type="date" value={date}
                   min={new Date().toISOString().split('T')[0]}
                   onChange={(e) => chooseDate(e.target.value)}
-                  className="w-full rounded-lg border border-sand-300 py-2.5 pl-10 pr-3 text-sm" />
+                  className="w-full rounded-xl border border-sand-300 py-2.5 pl-10 pr-3 text-sm" />
               </div>
 
               {loading && <div className="mt-5 text-sm text-sand-500">Loading slots…</div>}
 
               {!loading && date && slots.length === 0 && (
-                <div className="mt-5 rounded-lg bg-warning-50 px-4 py-3 text-sm text-warning-700">
+                <div className="mt-5 rounded-xl bg-warning-50 px-4 py-3 text-sm text-warning-700">
                   No slots available on this date. The doctor may not consult on this day —
                   please try another.
                 </div>
@@ -191,7 +191,7 @@ export default function BookAppointment() {
               <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4">
                 {slots.map((s) => (
                   <button key={s.schedule_id} onClick={() => setSlot(s)}
-                    className={`flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-sm font-medium transition ${
+                    className={`flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition ${
                       slot?.schedule_id === s.schedule_id
                         ? 'border-primary-600 bg-primary-50 text-primary-600'
                         : 'border-sand-200 text-sand-600 hover:border-primary-300'}`}>
@@ -206,7 +206,7 @@ export default function BookAppointment() {
                 </label>
                 <textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)}
                   placeholder="Briefly describe your concern"
-                  className="mt-1.5 w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" />
+                  className="mt-1.5 w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium text-sand-900 outline-none transition-all placeholder:font-normal placeholder:text-sand-400 hover:border-sand-300 hover:bg-white focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10" />
               </div>
             </Card>
             <div className="mt-5 flex justify-between">
@@ -223,7 +223,7 @@ export default function BookAppointment() {
             <p className="mt-1 text-sand-500">Review your booking details</p>
             <Card className="mt-6 max-w-lg">
               <div className="flex items-center gap-4 border-b border-sand-100 pb-4">
-                <Avatar color="solid" size={52} />
+                <Avatar name={doctor?.full_name} size={52} />
                 <div>
                   <div className="font-bold text-sand-900">{doctor?.full_name}</div>
                   <div className="text-sm text-sand-500">{doctor?.specialization}</div>

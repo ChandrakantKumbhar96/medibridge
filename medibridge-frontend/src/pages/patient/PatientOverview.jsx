@@ -62,7 +62,7 @@ export default function PatientOverview() {
           {upcoming.slice(0, 2).map((a) => (
             <div key={a.appointment_id} className="flex items-center justify-between rounded-xl border border-sand-100 p-4">
               <div className="flex items-center gap-3">
-                <Avatar />
+                <Avatar name={a.doctor} />
                 <div>
                   <div className="font-semibold text-sand-800">{a.doctor}</div>
                   <div className="text-sm text-sand-500">{a.specialization}</div>
@@ -87,7 +87,7 @@ export default function PatientOverview() {
           {records.slice(0, 3).map((r) => (
             <div key={r.report_id} className="flex items-center justify-between rounded-xl border border-sand-100 p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success-100 text-success-600"><FileText size={18} /></div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success-100 text-success-600"><FileText size={18} /></div>
                 <div>
                   <div className="font-semibold text-sand-800">{r.report_name}</div>
                   <div className="text-sm text-sand-500">{r.upload_date} • {r.size}</div>

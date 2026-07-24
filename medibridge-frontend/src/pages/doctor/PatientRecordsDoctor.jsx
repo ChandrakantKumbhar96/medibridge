@@ -49,7 +49,7 @@ export default function PatientRecordsDoctor() {
         <div className="relative w-72">
           <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sand-400" size={18} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search patients..."
-            className="w-full rounded-lg border border-sand-300 py-2.5 pl-10 pr-3 text-sm" />
+            className="w-full rounded-xl border border-sand-300 py-2.5 pl-10 pr-3 text-sm" />
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export default function PatientRecordsDoctor() {
               <tr key={r.patient_id} className="border-b border-sand-50 last:border-0">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <Avatar size={34} />
+                    <Avatar name={r.name} size={34} />
                     <span className="font-semibold text-sand-800">{r.name}</span>
                   </div>
                 </td>
@@ -118,7 +118,7 @@ export default function PatientRecordsDoctor() {
               </button>
             </div>
 
-            <div className="mt-4 rounded-lg bg-sand-50 p-3 text-sm">
+            <div className="mt-4 rounded-xl bg-sand-50 p-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-sand-500">Last visit</span>
                 <span className="font-medium text-sand-800">{viewing.last_visit}</span>
@@ -139,7 +139,7 @@ export default function PatientRecordsDoctor() {
               )}
               {records.map((r) => (
                 <div key={r.report_id}
-                  className="flex items-center justify-between rounded-lg border border-sand-100 p-3">
+                  className="flex items-center justify-between rounded-xl border border-sand-100 p-3">
                   <div className="flex items-center gap-2.5">
                     <FileText size={16} className="text-primary-600" />
                     <div>

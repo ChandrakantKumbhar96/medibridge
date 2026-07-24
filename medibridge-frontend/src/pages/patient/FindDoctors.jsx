@@ -44,7 +44,7 @@ export default function FindDoctors() {
         <div className="flex-1">
           <Input icon={Search} placeholder="Search by doctor name or specialization..." value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <select className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm text-sand-700" value={spec} onChange={(e) => setSpec(e.target.value)}>
+        <select className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm text-sand-700" value={spec} onChange={(e) => setSpec(e.target.value)}>
           <option>All Specializations</option>
           {specializations.map((s) => <option key={s}>{s}</option>)}
         </select>
@@ -54,7 +54,7 @@ export default function FindDoctors() {
         {filtered.map((d) => (
           <Card key={d.doctor_id} className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Avatar color="solid" size={52} />
+              <Avatar name={d.full_name} size={52} />
               <div>
                 <div className="font-bold text-sand-900">{d.full_name}</div>
                 <div className="text-sm text-sand-500">{d.specialization}</div>
