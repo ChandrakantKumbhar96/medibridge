@@ -11,6 +11,7 @@ import { patientNav } from './patientNav'
 import { fetchPatientAppointments } from '../../features/appointments/appointmentsSlice'
 import { appointmentService } from '../../services/appointmentService'
 import RescheduleModal from '../../components/common/RescheduleModal'
+import JoinButton from '../../components/common/JoinButton'
 
 export default function PatientAppointments() {
   const dispatch = useDispatch()
@@ -99,13 +100,9 @@ export default function PatientAppointments() {
                   </Button>
                 )}
 
-                {/* Only rendered once the backend says the join window is open. */}
-                {a.meeting_link && (
-                  <a href={a.meeting_link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-xl bg-success-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
-                    <Video size={14} /> Join
-                  </a>
-                )}
+                {/* Fetches the room link on click, only inside the join window. */}
+                <JoinButton appointment={a} label="Join"
+                  onError={(m) => notify(m, true)} />
 
                 {/* Only a confirmed appointment can move - an unpaid hold has
                     nothing to carry over, so cancel/rebook is the right path. */}

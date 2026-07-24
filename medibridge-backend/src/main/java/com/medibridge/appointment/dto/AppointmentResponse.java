@@ -46,7 +46,21 @@ public record AppointmentResponse(
         @JsonProperty("consultation_fee")
         BigDecimal consultationFee,
 
+        /**
+         * The raw room URL is deliberately NOT sent in list responses — it is a
+         * bearer secret. The frontend shows a Join button based on {@code canJoin}
+         * and fetches the actual link from GET /appointments/{id}/join only when
+         * the user clicks, inside the allowed window.
+         */
         @JsonProperty("meeting_link")
-        String meetingLink
+        String meetingLink,
+
+        /** True only while the join window is open (≈15 min before → ~1h after). */
+        @JsonProperty("can_join")
+        Boolean canJoin,
+
+        /** When the room opens, so the UI can show "Available at 09:45 AM". */
+        @JsonProperty("join_from")
+        String joinFrom
 ) {
 }

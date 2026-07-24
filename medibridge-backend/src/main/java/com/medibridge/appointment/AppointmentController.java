@@ -94,6 +94,26 @@ public class AppointmentController {
     }
 
     /**
+     * Returns the video consultation room URL, minted on demand.
+     *
+     * <p>The link is never sent in list responses or emailed — it is a bearer
+     * secret. It is issued here only to the patient or treating doctor, for a
+     * paid and confirmed appointment, inside the join window. Outside the
+     * window this returns 400 with the opening time.
+     */
+    @GetMapping("/{appointmentId}/join")
+    @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
+    public Map<String, String> join(@CurrentUser SecurityUser me,
+                                    @PathVariable Integer appointmentId) {
+        String link = switch (me.getUserType()) {
+            case PATIENT -> appointmentService.getJoinLinkAsPatient(me.idAsInt(), appointmentId);
+            case DOCTOR -> appointmentService.getJoinLinkAsDoctor(me.getId(), appointmentId);
+            default -> throw new BadRequestException("Unsupported role for this action");
+        };
+        return Map.of("meeting_link", link);
+    }
+
+    /**
      * Moves an appointment to a different slot with the same doctor.
      *
      * <p>Body: {@code { "schedule_id": 123 }}

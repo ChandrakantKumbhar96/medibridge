@@ -487,6 +487,53 @@ public class AppointmentService {
         return AppointmentMapper.toDto(appointment, false);
     }
 
+    // ------------------------------------------------------- video join
+
+    private static final java.time.format.DateTimeFormatter JOIN_TIME =
+            java.time.format.DateTimeFormatter.ofPattern("EEE d MMM, hh:mm a", Locale.ENGLISH);
+
+    /**
+     * Returns the consultation room URL, minted on demand.
+     *
+     * <p>This is the industry-correct flow: the link is a bearer secret, so it is
+     * never emailed or embedded in list responses. The patient (or treating
+     * doctor) asks for it at join time, and the server hands it over only if the
+     * caller owns the appointment, it is paid and confirmed, and the current
+     * time is inside the join window.
+     */
+    @Transactional(readOnly = true)
+    public String getJoinLinkAsPatient(Integer patientId, Integer appointmentId) {
+        Appointment a = appointmentRepository.findByIdAndPatientId(appointmentId, patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+        return resolveJoinLink(a);
+    }
+
+    @Transactional(readOnly = true)
+    public String getJoinLinkAsDoctor(String doctorId, Integer appointmentId) {
+        Appointment a = appointmentRepository.findByIdAndDoctorId(appointmentId, doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+        return resolveJoinLink(a);
+    }
+
+    private String resolveJoinLink(Appointment a) {
+        if (a.getStatus() != AppointmentStatus.ACCEPTED) {
+            throw new BadRequestException(
+                    "This consultation is not open to join (status: "
+                            + a.getStatus().getDbValue() + ").");
+        }
+        if (a.getMeetingLink() == null) {
+            throw new BadRequestException("No consultation room is set for this appointment.");
+        }
+        if (!a.isMeetingJoinable()) {
+            LocalDateTime from = a.getMeetingJoinFrom();
+            throw new BadRequestException(from == null
+                    ? "The consultation room is not open yet."
+                    : "The consultation room opens on " + from.format(JOIN_TIME)
+                            + ". Please come back then.");
+        }
+        return a.getMeetingLink();
+    }
+
     // ------------------------------------------------------- scheduled work
 
     /**

@@ -25,12 +25,23 @@ public final class AppointmentMapper {
     }
 
     /**
-     * @param includeMeetingLink only the patient and the treating doctor may see
-     *                           the join URL - it is withheld from admin listings.
+     * @param forParticipant true for the patient's or treating doctor's own view
+     *                       (they get join status); false for admin listings.
+     *
+     * <p>The raw meeting URL is never placed in a list response — it would be a
+     * bearer secret sitting in every payload. Instead the participant gets a
+     * {@code canJoin} flag and the window opening time; the actual link is
+     * fetched on click from the dedicated join endpoint.
      */
-    public static AppointmentResponse toDto(Appointment a, boolean includeMeetingLink) {
+    public static AppointmentResponse toDto(Appointment a, boolean forParticipant) {
         LocalDateTime when = a.getAppointmentDate();
         Patient p = a.getPatient();
+
+        boolean hasRoom = forParticipant && a.getMeetingLink() != null;
+        Boolean canJoin = hasRoom ? a.isMeetingJoinable() : null;
+        String joinFrom = hasRoom && a.getMeetingJoinFrom() != null
+                ? a.getMeetingJoinFrom().format(TIME).toUpperCase(java.util.Locale.ENGLISH)
+                : null;
 
         return new AppointmentResponse(
                 a.getId(),
@@ -46,7 +57,9 @@ public final class AppointmentMapper {
                 a.getStatus().toFrontend(),
                 a.getReason(),
                 a.getDoctor().getConsultationFee(),
-                includeMeetingLink ? a.getMeetingLink() : null);
+                null,          // raw link never sent in lists — see join endpoint
+                canJoin,
+                joinFrom);
     }
 
     public static Integer ageOf(LocalDate dateOfBirth) {
