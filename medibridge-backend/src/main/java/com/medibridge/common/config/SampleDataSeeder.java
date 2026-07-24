@@ -106,10 +106,10 @@ public class SampleDataSeeder {
 
                 =====================================================================
                  SAMPLE DATA LOADED
-                 Patients : john.doe@email.com, priya.sharma@email.com,
+                 Patients : aarav.gupta@email.com, priya.sharma@email.com,
                             rahul.verma@email.com          password: {}
-                 Doctors  : sarah.johnson@medibridge.com, michael.chen@medibridge.com,
-                            emily.brown@medibridge.com     password: {}
+                 Doctors  : aditya.nair@medibridge.com, rohan.mehta@medibridge.com,
+                            meera.joshi@medibridge.com     password: {}
                  Admin    : admin@medibridge.com           password: Admin@123
                  Swagger  : http://localhost:8080/api/swagger-ui.html
                 =====================================================================""",
@@ -124,15 +124,15 @@ public class SampleDataSeeder {
         }
 
         List<Seed> seeds = List.of(
-                new Seed("Dr. Sarah Johnson", "sarah.johnson@medibridge.com", "Cardiology",
+                new Seed("Dr. Aditya Nair", "aditya.nair@medibridge.com", "Cardiology",
                         "MD-12345-2020", 15, 800, 30,
                         "Interventional cardiologist. Special interest in preventive "
                         + "cardiology, hypertension and post-MI rehabilitation.", true),
-                new Seed("Dr. Michael Chen", "michael.chen@medibridge.com", "Dermatology",
+                new Seed("Dr. Rohan Mehta", "rohan.mehta@medibridge.com", "Dermatology",
                         "MD-12346-2019", 12, 600, 20,
                         "Board-certified dermatologist treating acne, eczema, psoriasis "
                         + "and hair loss.", true),
-                new Seed("Dr. Emily Brown", "emily.brown@medibridge.com", "General Physician",
+                new Seed("Dr. Meera Joshi", "meera.joshi@medibridge.com", "General Physician",
                         "MD-12347-2021", 8, 500, 15,
                         "Family medicine. First point of contact for fever, infections, "
                         + "diabetes and routine health checks.", true),
@@ -247,7 +247,7 @@ public class SampleDataSeeder {
         }
 
         List<Seed> seeds = List.of(
-                new Seed("John Doe", "john.doe@email.com", "+91 90000 11111",
+                new Seed("Aarav Gupta", "aarav.gupta@email.com", "+91 90000 11111",
                         LocalDate.of(1990, 1, 15), Patient.Gender.Male, "O+",
                         "12 Baner Road, Pune, Maharashtra"),
                 new Seed("Priya Sharma", "priya.sharma@email.com", "+91 90000 22222",

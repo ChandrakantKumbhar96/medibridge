@@ -16,37 +16,37 @@ export const specialtyCards = [
 ]
 
 export const doctors = [
-  { doctor_id: 'd-1', full_name: 'Dr. Sarah Johnson', specialization: 'Cardiologist', rating: 4.8, experience_years: 15, status: 'active', available: true, consultation_fee: 150, consultation_duration_min: 60, email: 'sarah.j@medibridge.com', phone: '+1 234 567 8900', license_number: 'MD-12345-2020', patients: 156, bio: 'Experienced cardiologist with 15 years of practice. Specialized in preventive cardiology and heart disease management.' },
-  { doctor_id: 'd-2', full_name: 'Dr. Michael Chen', specialization: 'Dermatologist', rating: 4.9, experience_years: 12, status: 'active', available: true, consultation_fee: 120, consultation_duration_min: 30, email: 'michael.c@medibridge.com', phone: '+1 234 567 8901', license_number: 'MD-12346-2020', patients: 98, bio: 'Board-certified dermatologist focused on skin health and cosmetic dermatology.' },
-  { doctor_id: 'd-3', full_name: 'Dr. Emily Brown', specialization: 'General Physician', rating: 4.7, experience_years: 10, status: 'active', available: false, consultation_fee: 90, consultation_duration_min: 30, email: 'emily.b@medibridge.com', phone: '+1 234 567 8902', license_number: 'MD-12347-2020', patients: 134, bio: 'General physician providing comprehensive primary care for all ages.' },
-  { doctor_id: 'd-4', full_name: 'Dr. Robert Wilson', specialization: 'Orthopedic', rating: 4.6, experience_years: 18, status: 'suspended', available: true, consultation_fee: 180, consultation_duration_min: 45, email: 'robert.w@medibridge.com', phone: '+1 234 567 8903', license_number: 'MD-12348-2020', patients: 87, bio: 'Orthopedic surgeon specializing in joint replacement and sports injuries.' },
-  { doctor_id: 'd-5', full_name: 'Dr. Lisa Anderson', specialization: 'Pediatrician', rating: 4.9, experience_years: 14, status: 'active', available: true, consultation_fee: 110, consultation_duration_min: 30, email: 'lisa.a@medibridge.com', phone: '+1 234 567 8904', license_number: 'MD-12349-2020', patients: 142, bio: 'Compassionate pediatrician dedicated to children’s health and development.' },
+  { doctor_id: 'd-1', full_name: 'Dr. Aditya Nair', specialization: 'Cardiologist', rating: 4.8, experience_years: 15, status: 'active', available: true, consultation_fee: 800, consultation_duration_min: 60, email: 'aditya.n@medibridge.com', phone: '+91 98765 43210', license_number: 'MD-12345-2020', patients: 156, bio: 'Experienced cardiologist with 15 years of practice. Specialized in preventive cardiology and heart disease management.' },
+  { doctor_id: 'd-2', full_name: 'Dr. Rohan Mehta', specialization: 'Dermatologist', rating: 4.9, experience_years: 12, status: 'active', available: true, consultation_fee: 600, consultation_duration_min: 30, email: 'rohan.m@medibridge.com', phone: '+91 98765 43211', license_number: 'MD-12346-2020', patients: 98, bio: 'Board-certified dermatologist focused on skin health and cosmetic dermatology.' },
+  { doctor_id: 'd-3', full_name: 'Dr. Meera Joshi', specialization: 'General Physician', rating: 4.7, experience_years: 10, status: 'active', available: false, consultation_fee: 500, consultation_duration_min: 30, email: 'meera.j@medibridge.com', phone: '+91 98765 43212', license_number: 'MD-12347-2020', patients: 134, bio: 'General physician providing comprehensive primary care for all ages.' },
+  { doctor_id: 'd-4', full_name: 'Dr. Vikram Rao', specialization: 'Orthopedic', rating: 4.6, experience_years: 18, status: 'suspended', available: true, consultation_fee: 180, consultation_duration_min: 45, email: 'robert.w@medibridge.com', phone: '+91 98765 43213', license_number: 'MD-12348-2020', patients: 87, bio: 'Orthopedic surgeon specializing in joint replacement and sports injuries.' },
+  { doctor_id: 'd-5', full_name: 'Dr. Anita Desai', specialization: 'Pediatrician', rating: 4.9, experience_years: 14, status: 'active', available: true, consultation_fee: 110, consultation_duration_min: 30, email: 'lisa.a@medibridge.com', phone: '+91 98765 43214', license_number: 'MD-12349-2020', patients: 142, bio: 'Compassionate pediatrician dedicated to children’s health and development.' },
 ]
 
 export const patientAppointments = {
   upcoming: [
-    { appointment_id: 'a-1', doctor: 'Dr. Sarah Johnson', specialization: 'Cardiologist', appointment_date: '2026-05-05', time: '10:00 AM', status: 'confirmed' },
-    { appointment_id: 'a-2', doctor: 'Dr. Michael Chen', specialization: 'Dermatologist', appointment_date: '2026-05-08', time: '02:30 PM', status: 'pending' },
-    { appointment_id: 'a-3', doctor: 'Dr. Emily Brown', specialization: 'General Physician', appointment_date: '2026-05-12', time: '11:00 AM', status: 'confirmed' },
+    { appointment_id: 'a-1', doctor: 'Dr. Aditya Nair', specialization: 'Cardiologist', appointment_date: '2026-05-05', time: '10:00 AM', status: 'confirmed' },
+    { appointment_id: 'a-2', doctor: 'Dr. Rohan Mehta', specialization: 'Dermatologist', appointment_date: '2026-05-08', time: '02:30 PM', status: 'pending' },
+    { appointment_id: 'a-3', doctor: 'Dr. Meera Joshi', specialization: 'General Physician', appointment_date: '2026-05-12', time: '11:00 AM', status: 'confirmed' },
   ],
   past: [
-    { appointment_id: 'a-4', doctor: 'Dr. Robert Wilson', specialization: 'Orthopedic', appointment_date: '2026-04-20', time: '03:00 PM', reason: 'Routine checkup' },
-    { appointment_id: 'a-5', doctor: 'Dr. Sarah Johnson', specialization: 'Cardiologist', appointment_date: '2026-04-10', time: '10:00 AM', reason: 'Blood pressure monitoring' },
+    { appointment_id: 'a-4', doctor: 'Dr. Vikram Rao', specialization: 'Orthopedic', appointment_date: '2026-04-20', time: '03:00 PM', reason: 'Routine checkup' },
+    { appointment_id: 'a-5', doctor: 'Dr. Aditya Nair', specialization: 'Cardiologist', appointment_date: '2026-04-10', time: '10:00 AM', reason: 'Blood pressure monitoring' },
   ],
 }
 
 export const medicalRecords = [
   { report_id: 'r-1', report_name: 'Blood Test Report', report_type: 'Lab Report', upload_date: '2026-04-20', size: '2.4 MB' },
   { report_id: 'r-2', report_name: 'X-Ray Chest', report_type: 'Imaging', upload_date: '2026-03-15', size: '5.1 MB' },
-  { report_id: 'r-3', report_name: 'Prescription - Dr. Johnson', report_type: 'Prescription', upload_date: '2026-04-10', size: '0.8 MB' },
+  { report_id: 'r-3', report_name: 'Prescription - Dr. Nair', report_type: 'Prescription', upload_date: '2026-04-10', size: '0.8 MB' },
   { report_id: 'r-4', report_name: 'Medical History', report_type: 'Document', upload_date: '2026-01-05', size: '1.2 MB' },
 ]
 
 export const patientProfile = {
   patient_id: 101,
-  full_name: 'John Doe',
-  email: 'john.doe@email.com',
-  phone: '+1 234 567 8900',
+  full_name: 'Aarav Gupta',
+  email: 'aarav.gupta@email.com',
+  phone: '+91 98765 43210',
   date_of_birth: '1990-01-15',
   gender: 'Male',
   blood_group: 'O+',
@@ -54,27 +54,27 @@ export const patientProfile = {
 
 // ---- Doctor portal data ----
 export const doctorTodaySchedule = [
-  { id: 't-1', time: '10:00 AM', name: 'John Doe', age: 35, type: 'Consultation', status: 'confirmed' },
-  { id: 't-2', time: '11:30 AM', name: 'Sarah Miller', age: 28, type: 'Follow-up', status: 'confirmed' },
-  { id: 't-3', time: '02:00 PM', name: 'Robert Brown', age: 52, type: 'New Patient', status: 'pending' },
-  { id: 't-4', time: '03:30 PM', name: 'Emily Davis', age: 41, type: 'Consultation', status: 'pending' },
+  { id: 't-1', time: '10:00 AM', name: 'Aarav Gupta', age: 35, type: 'Consultation', status: 'confirmed' },
+  { id: 't-2', time: '11:30 AM', name: 'Kavya Reddy', age: 28, type: 'Follow-up', status: 'confirmed' },
+  { id: 't-3', time: '02:00 PM', name: 'Arjun Singh', age: 52, type: 'New Patient', status: 'pending' },
+  { id: 't-4', time: '03:30 PM', name: 'Neha Kapoor', age: 41, type: 'Consultation', status: 'pending' },
 ]
 
 export const doctorPendingRequests = [
-  { id: 'p-1', name: 'Michael Wilson', age: 45, date: '2026-05-06', time: '10:00 AM', reason: 'Chest pain consultation' },
-  { id: 'p-2', name: 'Lisa Anderson', age: 33, date: '2026-05-07', time: '02:30 PM', reason: 'Regular checkup' },
-  { id: 'p-3', name: 'David Martinez', age: 58, date: '2026-05-08', time: '11:00 AM', reason: 'Blood pressure monitoring' },
+  { id: 'p-1', name: 'Karthik Menon', age: 45, date: '2026-05-06', time: '10:00 AM', reason: 'Chest pain consultation' },
+  { id: 'p-2', name: 'Ananya Rao', age: 33, date: '2026-05-07', time: '02:30 PM', reason: 'Regular checkup' },
+  { id: 'p-3', name: 'Rohit Kulkarni', age: 58, date: '2026-05-08', time: '11:00 AM', reason: 'Blood pressure monitoring' },
 ]
 
 export const doctorCompletedConsults = [
-  { id: 'c-1', name: 'James Taylor', age: 39, time: '09:00 AM', diagnosis: 'Viral infection', prescription: true },
-  { id: 'c-2', name: 'Patricia Lee', age: 47, time: '08:00 AM', diagnosis: 'Routine checkup', prescription: false },
+  { id: 'c-1', name: 'Vivaan Shah', age: 39, time: '09:00 AM', diagnosis: 'Viral infection', prescription: true },
+  { id: 'c-2', name: 'Divya Pillai', age: 47, time: '08:00 AM', diagnosis: 'Routine checkup', prescription: false },
 ]
 
 export const doctorPatientRecords = [
-  { id: 'pr-1', name: 'John Doe', age: 35, last_visit: '2026-04-20', condition: 'Hypertension', next: '2026-05-05' },
-  { id: 'pr-2', name: 'Sarah Miller', age: 28, last_visit: '2026-04-15', condition: 'Skin allergy', next: '2026-05-05' },
-  { id: 'pr-3', name: 'Robert Brown', age: 52, last_visit: 'New Patient', condition: 'N/A', next: '2026-05-05' },
+  { id: 'pr-1', name: 'Aarav Gupta', age: 35, last_visit: '2026-04-20', condition: 'Hypertension', next: '2026-05-05' },
+  { id: 'pr-2', name: 'Kavya Reddy', age: 28, last_visit: '2026-04-15', condition: 'Skin allergy', next: '2026-05-05' },
+  { id: 'pr-3', name: 'Arjun Singh', age: 52, last_visit: 'New Patient', condition: 'N/A', next: '2026-05-05' },
 ]
 
 export const doctorSchedule = [
@@ -86,14 +86,14 @@ export const doctorSchedule = [
 ]
 
 export const doctorProfile = {
-  full_name: 'Dr. Sarah Johnson',
+  full_name: 'Dr. Aditya Nair',
   specialization: 'Cardiology',
   license_number: 'MD-12345-2020',
   experience_years: 15,
   email: 'sarah.johnson@medibridge.com',
-  phone: '+1 234 567 8900',
+  phone: '+91 98765 43210',
   bio: 'Experienced cardiologist with 15 years of practice. Specialized in preventive cardiology and heart disease management.',
-  consultation_fee: 150,
+  consultation_fee: 800,
   consultation_duration_min: 60,
 }
 
@@ -108,31 +108,31 @@ export const adminStats = {
 }
 
 export const adminRecentActivity = [
-  { id: 'ac-1', name: 'Emily Davis', text: 'New patient registered', time: '2 hours ago', type: 'patient' },
-  { id: 'ac-2', name: 'Dr. Sarah Johnson', text: 'Completed consultation with John Doe', time: '3 hours ago', type: 'consult' },
-  { id: 'ac-3', name: 'Dr. Robert Wilson', text: 'Doctor account approved', time: '5 hours ago', type: 'doctor' },
-  { id: 'ac-4', name: 'Sarah Miller', text: 'Cancelled appointment', time: '6 hours ago', type: 'cancel' },
+  { id: 'ac-1', name: 'Neha Kapoor', text: 'New patient registered', time: '2 hours ago', type: 'patient' },
+  { id: 'ac-2', name: 'Dr. Aditya Nair', text: 'Completed consultation with Aarav Gupta', time: '3 hours ago', type: 'consult' },
+  { id: 'ac-3', name: 'Dr. Vikram Rao', text: 'Doctor account approved', time: '5 hours ago', type: 'doctor' },
+  { id: 'ac-4', name: 'Kavya Reddy', text: 'Cancelled appointment', time: '6 hours ago', type: 'cancel' },
 ]
 
 export const adminPatients = [
-  { patient_id: 1, full_name: 'John Doe', email: 'john.doe@email.com', phone: '+1 234 567 8900', join_date: '2026-01-15', appointments: 8, status: 'active' },
-  { patient_id: 2, full_name: 'Sarah Miller', email: 'sarah.m@email.com', phone: '+1 234 567 8901', join_date: '2026-02-20', appointments: 5, status: 'active' },
-  { patient_id: 3, full_name: 'Robert Brown', email: 'robert.b@email.com', phone: '+1 234 567 8902', join_date: '2026-03-10', appointments: 2, status: 'active' },
-  { patient_id: 4, full_name: 'Emily Davis', email: 'emily.d@email.com', phone: '+1 234 567 8903', join_date: '2026-04-05', appointments: 0, status: 'inactive' },
+  { patient_id: 1, full_name: 'Aarav Gupta', email: 'aarav.gupta@email.com', phone: '+91 98765 43210', join_date: '2026-01-15', appointments: 8, status: 'active' },
+  { patient_id: 2, full_name: 'Kavya Reddy', email: 'kavya.r@email.com', phone: '+91 98765 43211', join_date: '2026-02-20', appointments: 5, status: 'active' },
+  { patient_id: 3, full_name: 'Arjun Singh', email: 'arjun.s@email.com', phone: '+91 98765 43212', join_date: '2026-03-10', appointments: 2, status: 'active' },
+  { patient_id: 4, full_name: 'Neha Kapoor', email: 'neha.k@email.com', phone: '+91 98765 43213', join_date: '2026-04-05', appointments: 0, status: 'inactive' },
 ]
 
 export const adminDoctors = [
-  { doctor_id: 'd-1', full_name: 'Dr. Sarah Johnson', email: 'sarah.j@medibridge.com', specialization: 'Cardiologist', license_number: 'MD-12345-2020', patients: 156, status: 'active' },
-  { doctor_id: 'd-2', full_name: 'Dr. Michael Chen', email: 'michael.c@medibridge.com', specialization: 'Dermatologist', license_number: 'MD-12346-2020', patients: 98, status: 'active' },
-  { doctor_id: 'd-3', full_name: 'Dr. Emily Brown', email: 'emily.b@medibridge.com', specialization: 'General Physician', license_number: 'MD-12347-2020', patients: 134, status: 'active' },
-  { doctor_id: 'd-4', full_name: 'Dr. Robert Wilson', email: 'robert.w@medibridge.com', specialization: 'Orthopedic', license_number: 'MD-12348-2020', patients: 87, status: 'suspended' },
+  { doctor_id: 'd-1', full_name: 'Dr. Aditya Nair', email: 'aditya.n@medibridge.com', specialization: 'Cardiologist', license_number: 'MD-12345-2020', patients: 156, status: 'active' },
+  { doctor_id: 'd-2', full_name: 'Dr. Rohan Mehta', email: 'rohan.m@medibridge.com', specialization: 'Dermatologist', license_number: 'MD-12346-2020', patients: 98, status: 'active' },
+  { doctor_id: 'd-3', full_name: 'Dr. Meera Joshi', email: 'meera.j@medibridge.com', specialization: 'General Physician', license_number: 'MD-12347-2020', patients: 134, status: 'active' },
+  { doctor_id: 'd-4', full_name: 'Dr. Vikram Rao', email: 'robert.w@medibridge.com', specialization: 'Orthopedic', license_number: 'MD-12348-2020', patients: 87, status: 'suspended' },
 ]
 
 export const adminAppointments = [
-  { appointment_id: 1, patient: 'John Doe', doctor: 'Dr. Sarah Johnson', date: '2026-05-05', time: '10:00 AM', type: 'Consultation', status: 'confirmed' },
-  { appointment_id: 2, patient: 'Sarah Miller', doctor: 'Dr. Michael Chen', date: '2026-05-05', time: '11:30 AM', type: 'Follow-up', status: 'confirmed' },
-  { appointment_id: 3, patient: 'Robert Brown', doctor: 'Dr. Emily Brown', date: '2026-05-06', time: '02:00 PM', type: 'New Patient', status: 'pending' },
-  { appointment_id: 4, patient: 'Emily Davis', doctor: 'Dr. Robert Wilson', date: '2026-05-07', time: '03:30 PM', type: 'Consultation', status: 'cancelled' },
+  { appointment_id: 1, patient: 'Aarav Gupta', doctor: 'Dr. Aditya Nair', date: '2026-05-05', time: '10:00 AM', type: 'Consultation', status: 'confirmed' },
+  { appointment_id: 2, patient: 'Kavya Reddy', doctor: 'Dr. Rohan Mehta', date: '2026-05-05', time: '11:30 AM', type: 'Follow-up', status: 'confirmed' },
+  { appointment_id: 3, patient: 'Arjun Singh', doctor: 'Dr. Meera Joshi', date: '2026-05-06', time: '02:00 PM', type: 'New Patient', status: 'pending' },
+  { appointment_id: 4, patient: 'Neha Kapoor', doctor: 'Dr. Vikram Rao', date: '2026-05-07', time: '03:30 PM', type: 'Consultation', status: 'cancelled' },
 ]
 
 export const adminAnalytics = {
