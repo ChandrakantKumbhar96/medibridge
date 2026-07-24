@@ -52,13 +52,13 @@ export default function ManageDoctors() {
     <DashboardLayout badge="Admin" navItems={adminNav}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900">Manage Doctors</h1>
-          <p className="mt-1 text-slate-500">
+          <h1 className="text-3xl font-extrabold text-sand-900">Manage Doctors</h1>
+          <p className="mt-1 text-sand-500">
             Verify medical registration before approving an account
           </p>
         </div>
         {pendingCount > 0 && (
-          <span className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-semibold text-yellow-800">
+          <span className="rounded-full bg-warning-100 px-4 py-2 text-sm font-semibold text-warning-800">
             {pendingCount} awaiting approval
           </span>
         )}
@@ -66,7 +66,7 @@ export default function ManageDoctors() {
 
       {msg && (
         <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
-          msg.error ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>{msg.text}</div>
+          msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
       <Card className="mt-6">
@@ -77,31 +77,31 @@ export default function ManageDoctors() {
       <Card className="mt-5 overflow-x-auto p-0">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-100 text-slate-500">
+            <tr className="border-b border-sand-100 text-sand-500">
               {['Name', 'Email', 'Specialty', 'License', 'Rating', 'Patients', 'Status', 'Actions']
                 .map((h) => <th key={h} className="px-6 py-4 font-semibold">{h}</th>)}
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
-              <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">
+              <tr><td colSpan={8} className="px-6 py-8 text-center text-sand-500">
                 No doctors found.
               </td></tr>
             )}
             {rows.map((d) => (
-              <tr key={d.doctor_id} className="border-b border-slate-50 last:border-0">
-                <td className="px-6 py-4 font-semibold text-slate-800">{d.full_name}</td>
-                <td className="px-6 py-4 text-slate-600">{d.email}</td>
-                <td className="px-6 py-4 text-slate-600">{d.specialization}</td>
-                <td className="px-6 py-4 text-slate-600">{d.license_number}</td>
-                <td className="px-6 py-4 text-slate-600">
+              <tr key={d.doctor_id} className="border-b border-sand-50 last:border-0">
+                <td className="px-6 py-4 font-semibold text-sand-800">{d.full_name}</td>
+                <td className="px-6 py-4 text-sand-600">{d.email}</td>
+                <td className="px-6 py-4 text-sand-600">{d.specialization}</td>
+                <td className="px-6 py-4 text-sand-600">{d.license_number}</td>
+                <td className="px-6 py-4 text-sand-600">
                   {Number(d.rating) > 0
-                    ? <span className="flex items-center gap-1 text-amber-500">
+                    ? <span className="flex items-center gap-1 text-warning-500">
                         <Star size={13} fill="currentColor" /> {d.rating}
                       </span>
-                    : <span className="text-slate-400">—</span>}
+                    : <span className="text-sand-400">—</span>}
                 </td>
-                <td className="px-6 py-4 text-slate-600">{d.patients}</td>
+                <td className="px-6 py-4 text-sand-600">{d.patients}</td>
                 <td className="px-6 py-4"><Badge status={d.status} /></td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function ManageDoctors() {
                           `Approve ${d.full_name}?\n\nConfirm their licence `
                           + `(${d.license_number}) has been verified. They will be `
                           + `able to sign in and accept bookings.`)}
-                        className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50">
+                        className="flex items-center gap-1.5 rounded-lg bg-success-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-success-700 disabled:opacity-50">
                         <CheckCircle2 size={14} /> Approve
                       </button>
                     )}
@@ -121,14 +121,14 @@ export default function ManageDoctors() {
                           `Suspend ${d.full_name}?\n\nThey will be unable to sign in `
                           + `and will stop appearing in search. Existing appointments `
                           + `are not cancelled automatically.`)}
-                        className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50">
+                        className="flex items-center gap-1.5 rounded-lg border border-danger-200 px-3 py-1.5 text-xs font-semibold text-danger-600 hover:bg-danger-50 disabled:opacity-50">
                         <Ban size={14} /> Suspend
                       </button>
                     )}
                     {(d.status === 'suspended' || d.status === 'inactive') && (
                       <button disabled={busy === d.doctor_id}
                         onClick={() => setStatus(d, 'active', null)}
-                        className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+                        className="flex items-center gap-1.5 rounded-lg border border-sand-300 px-3 py-1.5 text-xs font-semibold text-sand-700 hover:bg-sand-50 disabled:opacity-50">
                         <RotateCcw size={14} /> Reinstate
                       </button>
                     )}

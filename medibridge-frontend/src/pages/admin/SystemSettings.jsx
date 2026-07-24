@@ -51,15 +51,15 @@ export default function SystemSettings() {
 
   return (
     <DashboardLayout badge="Admin" navItems={adminNav}>
-      <h1 className="text-3xl font-extrabold text-slate-900">System Settings</h1>
+      <h1 className="text-3xl font-extrabold text-sand-900">System Settings</h1>
 
       {msg && (
         <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
-          msg.error ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>{msg.text}</div>
+          msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">General Settings</h2>
+        <h2 className="text-lg font-bold text-sand-900">General Settings</h2>
         <div className="mt-5 max-w-2xl space-y-4">
           <Field label="Platform Name">
             <Input value={settings.platform_name}
@@ -81,12 +81,12 @@ export default function SystemSettings() {
       </Card>
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Security Settings</h2>
+        <h2 className="text-lg font-bold text-sand-900">Security Settings</h2>
         <div className="mt-5 space-y-3">
-          <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4">
+          <div className="flex items-center justify-between rounded-xl bg-sand-50 p-4">
             <div>
-              <div className="font-semibold text-slate-800">Two-Factor Authentication</div>
-              <div className="text-sm text-slate-500">Require 2FA for admin accounts</div>
+              <div className="font-semibold text-sand-800">Two-Factor Authentication</div>
+              <div className="text-sm text-sand-500">Require 2FA for admin accounts</div>
             </div>
             {/* Security toggles save immediately - leaving one visibly "on"
                 but unsaved would misrepresent the system's actual state. */}
@@ -99,10 +99,10 @@ export default function SystemSettings() {
               <span />
             </button>
           </div>
-          <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4">
+          <div className="flex items-center justify-between rounded-xl bg-sand-50 p-4">
             <div>
-              <div className="font-semibold text-slate-800">Session Timeout</div>
-              <div className="text-sm text-slate-500">Auto logout after inactivity</div>
+              <div className="font-semibold text-sand-800">Session Timeout</div>
+              <div className="text-sm text-sand-500">Auto logout after inactivity</div>
             </div>
             <select value={settings.session_timeout_minutes}
               onChange={(e) => {
@@ -110,7 +110,7 @@ export default function SystemSettings() {
                 setSettings(next)
                 save(next)
               }}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              className="rounded-lg border border-sand-300 px-3 py-2 text-sm">
               <option value={15}>15 minutes</option>
               <option value={30}>30 minutes</option>
               <option value={60}>60 minutes</option>

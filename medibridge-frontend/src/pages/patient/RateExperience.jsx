@@ -70,15 +70,15 @@ export default function RateExperience() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-sand-50">
         <DashboardTopbar />
         <div className="mx-auto max-w-lg px-6 py-16">
           <Card className="text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success-100 text-success-600">
               <CheckCircle2 size={28} />
             </div>
-            <h1 className="mt-4 text-2xl font-extrabold text-slate-900">Thank you</h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <h1 className="mt-4 text-2xl font-extrabold text-sand-900">Thank you</h1>
+            <p className="mt-2 text-sm text-sand-500">
               Your feedback helps other patients choose the right doctor.
             </p>
             <Button onClick={() => navigate('/patient/appointments')} className="mt-6 px-6">
@@ -91,32 +91,32 @@ export default function RateExperience() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-sand-50">
       <DashboardTopbar />
       <div className="mx-auto max-w-2xl px-6 py-8">
         <Card>
-          <div className="flex items-center gap-4 border-b border-slate-100 pb-5">
+          <div className="flex items-center gap-4 border-b border-sand-100 pb-5">
             <Avatar color="solid" size={52} />
             <div>
-              <div className="font-bold text-slate-900">{appointment.doctor}</div>
-              <div className="text-sm text-slate-500">
+              <div className="font-bold text-sand-900">{appointment.doctor}</div>
+              <div className="text-sm text-sand-500">
                 {appointment.specialization} • Consultation on {appointment.appointment_date}
               </div>
             </div>
           </div>
 
           {alreadyReviewed && (
-            <div className="mt-5 rounded-lg bg-amber-50 px-4 py-2.5 text-sm text-amber-700">
+            <div className="mt-5 rounded-lg bg-warning-50 px-4 py-2.5 text-sm text-warning-700">
               You have already reviewed this consultation.
             </div>
           )}
 
-          <h1 className="mt-6 text-center text-2xl font-extrabold text-slate-900">
+          <h1 className="mt-6 text-center text-2xl font-extrabold text-sand-900">
             Rate Your Experience
           </h1>
 
           {error && (
-            <div className="mt-4 rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600">
+            <div className="mt-4 rounded-lg bg-danger-50 px-4 py-2.5 text-sm text-danger-600">
               {error}
             </div>
           )}
@@ -127,14 +127,14 @@ export default function RateExperience() {
                 onMouseEnter={() => setHover(n)} onMouseLeave={() => setHover(0)}
                 onClick={() => setStars(n)} aria-label={`${n} star${n > 1 ? 's' : ''}`}>
                 <Star size={40}
-                  className={(hover || stars) >= n ? 'text-amber-400' : 'text-slate-300'}
+                  className={(hover || stars) >= n ? 'text-warning-400' : 'text-sand-300'}
                   fill={(hover || stars) >= n ? 'currentColor' : 'none'} />
               </button>
             ))}
           </div>
 
           <div className="mt-8">
-            <div className="text-sm font-semibold text-slate-700">
+            <div className="text-sm font-semibold text-sand-700">
               How was your overall experience?
             </div>
             <div className="mt-3 grid grid-cols-4 gap-3">
@@ -142,7 +142,7 @@ export default function RateExperience() {
                 <button key={e} type="button" onClick={() => setOverall(e)}
                   className={`rounded-lg border py-3 text-sm font-medium transition ${
                     overall === e ? 'border-primary-600 bg-primary-50 text-primary-600'
-                                  : 'border-slate-200 text-slate-600'}`}>
+                                  : 'border-sand-200 text-sand-600'}`}>
                   {e}
                 </button>
               ))}
@@ -150,15 +150,15 @@ export default function RateExperience() {
           </div>
 
           <div className="mt-6">
-            <div className="text-sm font-semibold text-slate-700">
-              What stood out? <span className="font-normal text-slate-400">(select any)</span>
+            <div className="text-sm font-semibold text-sand-700">
+              What stood out? <span className="font-normal text-sand-400">(select any)</span>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {highlights.map((h) => (
                 <button key={h} type="button" onClick={() => toggleTag(h)}
                   className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                     tags.includes(h) ? 'border-primary-600 bg-primary-50 text-primary-600'
-                                     : 'border-slate-200 text-slate-600'}`}>
+                                     : 'border-sand-200 text-sand-600'}`}>
                   {h}
                 </button>
               ))}
@@ -166,10 +166,10 @@ export default function RateExperience() {
           </div>
 
           <div className="mt-6">
-            <div className="text-sm font-semibold text-slate-700">Write a review</div>
+            <div className="text-sm font-semibold text-sand-700">Write a review</div>
             <textarea rows={4} value={review} onChange={(e) => setReview(e.target.value)}
               placeholder="Share details of your experience with this doctor..."
-              className="mt-2 w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm" />
+              className="mt-2 w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" />
           </div>
 
           <Button onClick={submit} disabled={submitting || alreadyReviewed}

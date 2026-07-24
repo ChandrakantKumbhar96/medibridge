@@ -18,17 +18,17 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-6">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sand-900 to-sand-800 p-6">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-white">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-danger-500 text-white">
             <Shield size={26} />
           </div>
-          <h1 className="mt-4 text-2xl font-extrabold text-slate-900">Admin Portal</h1>
-          <p className="mt-1 text-sm text-slate-500">Restricted access — administrators only</p>
+          <h1 className="mt-4 text-2xl font-extrabold text-sand-900">Admin Portal</h1>
+          <p className="mt-1 text-sm text-sand-500">Restricted access — administrators only</p>
         </div>
 
-        {error && <div className="mt-6 rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600">{error}</div>}
+        {error && <div className="mt-6 rounded-lg bg-danger-50 px-4 py-2.5 text-sm text-danger-600">{error}</div>}
 
         <form onSubmit={submit} className="mt-6 space-y-4">
           <Field label="Admin Email">
@@ -40,13 +40,13 @@ export default function AdminLoginPage() {
               value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           </Field>
           <button type="submit" disabled={status === 'loading'}
-            className="w-full rounded-lg bg-red-500 py-3 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-60">
+            className="w-full rounded-lg bg-danger-500 py-3 text-sm font-semibold text-white hover:bg-danger-600 disabled:opacity-60">
             {status === 'loading' ? 'Signing in...' : 'Sign in to Admin Panel'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <Link to="/login" className="text-sm font-medium text-slate-500 hover:text-primary-600">← Back to user login</Link>
+          <Link to="/login" className="text-sm font-medium text-sand-500 hover:text-primary-600">← Back to user login</Link>
         </div>
       </div>
     </div>

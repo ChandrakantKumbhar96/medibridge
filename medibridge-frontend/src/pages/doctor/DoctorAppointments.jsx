@@ -64,19 +64,19 @@ export default function DoctorAppointments() {
   }
 
   const Row = ({ a, actions }) => (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand-100 p-4">
       <div className="flex items-center gap-4">
         <Avatar />
         <div>
-          <div className="font-semibold text-slate-800">{a.patient}</div>
-          <div className="text-sm text-slate-500">
+          <div className="font-semibold text-sand-800">{a.patient}</div>
+          <div className="text-sm text-sand-500">
             {a.age != null ? `${a.age} years • ` : ''}{a.type}
           </div>
-          <div className="mt-1 flex items-center gap-3 text-xs text-slate-400">
+          <div className="mt-1 flex items-center gap-3 text-xs text-sand-400">
             <span className="flex items-center gap-1">
               <Clock size={12} /> {a.appointment_date} at {a.time}
             </span>
-            {a.reason && <span className="text-slate-500">{a.reason}</span>}
+            {a.reason && <span className="text-sand-500">{a.reason}</span>}
           </div>
         </div>
       </div>
@@ -86,27 +86,27 @@ export default function DoctorAppointments() {
 
   return (
     <DashboardLayout badge="Doctor" navItems={doctorNav}>
-      <h1 className="text-3xl font-extrabold text-slate-900">Appointment Management</h1>
-      <p className="mt-1 text-slate-500">
+      <h1 className="text-3xl font-extrabold text-sand-900">Appointment Management</h1>
+      <p className="mt-1 text-sand-500">
         Booked slots are confirmed automatically once the patient pays.
       </p>
 
       {msg && (
         <div className={`mt-5 rounded-lg px-4 py-2.5 text-sm ${
-          msg.error ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>{msg.text}</div>
+          msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Today</h2>
+        <h2 className="text-lg font-bold text-sand-900">Today</h2>
         <div className="mt-4 space-y-3">
           {today.length === 0 && (
-            <div className="py-3 text-sm text-slate-500">Nothing scheduled today.</div>
+            <div className="py-3 text-sm text-sand-500">Nothing scheduled today.</div>
           )}
           {today.map((a) => (
             <Row key={a.appointment_id} a={a} actions={<>
               {a.meeting_link && (
                 <a href={a.meeting_link} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-green-700">
+                  className="flex items-center gap-1.5 rounded-lg bg-success-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-success-700">
                   <Video size={14} /> Start Consultation
                 </a>
               )}
@@ -121,10 +121,10 @@ export default function DoctorAppointments() {
 
       {/* Past their scheduled time but not yet written up - the real to-do list. */}
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Awaiting consultation notes</h2>
+        <h2 className="text-lg font-bold text-sand-900">Awaiting consultation notes</h2>
         <div className="mt-4 space-y-3">
           {pending.length === 0 && (
-            <div className="py-3 text-sm text-slate-500">Nothing awaiting notes.</div>
+            <div className="py-3 text-sm text-sand-500">Nothing awaiting notes.</div>
           )}
           {pending.map((a) => (
             <Row key={a.appointment_id} a={a} actions={<>
@@ -143,10 +143,10 @@ export default function DoctorAppointments() {
       </Card>
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Upcoming</h2>
+        <h2 className="text-lg font-bold text-sand-900">Upcoming</h2>
         <div className="mt-4 space-y-3">
           {upcoming.length === 0 && (
-            <div className="py-3 text-sm text-slate-500">No upcoming appointments.</div>
+            <div className="py-3 text-sm text-sand-500">No upcoming appointments.</div>
           )}
           {upcoming.map((a) => (
             <Row key={a.appointment_id} a={a} actions={<>
@@ -162,14 +162,14 @@ export default function DoctorAppointments() {
       </Card>
 
       <Card className="mt-6">
-        <h2 className="text-lg font-bold text-slate-900">Completed</h2>
+        <h2 className="text-lg font-bold text-sand-900">Completed</h2>
         <div className="mt-4 space-y-3">
           {completed.length === 0 && (
-            <div className="py-3 text-sm text-slate-500">No completed consultations yet.</div>
+            <div className="py-3 text-sm text-sand-500">No completed consultations yet.</div>
           )}
           {completed.map((a) => (
             <Row key={a.appointment_id} a={a} actions={
-              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+              <span className="rounded-full bg-success-100 px-3 py-1 text-xs font-medium text-success-700">
                 Completed
               </span>
             } />

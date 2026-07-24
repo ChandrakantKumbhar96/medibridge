@@ -37,14 +37,14 @@ export default function FindDoctors() {
 
   return (
     <DashboardLayout navItems={patientNav}>
-      <h1 className="text-3xl font-extrabold text-slate-900">Find Doctors</h1>
-      <p className="mt-1 text-slate-500">Search for doctors by specialization</p>
+      <h1 className="text-3xl font-extrabold text-sand-900">Find Doctors</h1>
+      <p className="mt-1 text-sand-500">Search for doctors by specialization</p>
 
       <Card className="mt-6 flex flex-col gap-3 sm:flex-row">
         <div className="flex-1">
           <Input icon={Search} placeholder="Search by doctor name or specialization..." value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <select className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-700" value={spec} onChange={(e) => setSpec(e.target.value)}>
+        <select className="rounded-lg border border-sand-300 px-4 py-2.5 text-sm text-sand-700" value={spec} onChange={(e) => setSpec(e.target.value)}>
           <option>All Specializations</option>
           {specializations.map((s) => <option key={s}>{s}</option>)}
         </select>
@@ -56,11 +56,11 @@ export default function FindDoctors() {
             <div className="flex items-center gap-4">
               <Avatar color="solid" size={52} />
               <div>
-                <div className="font-bold text-slate-900">{d.full_name}</div>
-                <div className="text-sm text-slate-500">{d.specialization}</div>
+                <div className="font-bold text-sand-900">{d.full_name}</div>
+                <div className="text-sm text-sand-500">{d.specialization}</div>
                 <div className="mt-1 flex items-center gap-2 text-sm">
-                  <span className="flex items-center gap-1 text-amber-500"><Star size={14} fill="currentColor" /> {d.rating}</span>
-                  <span className="text-slate-400">• {d.experience_years} years experience</span>
+                  <span className="flex items-center gap-1 text-warning-500"><Star size={14} fill="currentColor" /> {d.rating}</span>
+                  <span className="text-sand-400">• {d.experience_years} years experience</span>
                   <Badge status={d.available ? 'Available' : 'Unavailable'} className="text-[11px]" />
                 </div>
               </div>

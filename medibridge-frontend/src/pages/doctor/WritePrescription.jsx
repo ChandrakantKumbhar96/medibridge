@@ -84,11 +84,11 @@ export default function WritePrescription() {
     return (
       <DashboardLayout badge="Doctor" navItems={doctorNav}>
         <Card className="mx-auto mt-10 max-w-lg text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success-100 text-success-600">
             <FileText size={26} />
           </div>
-          <h1 className="mt-4 text-2xl font-extrabold text-slate-900">Prescription issued</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <h1 className="mt-4 text-2xl font-extrabold text-sand-900">Prescription issued</h1>
+          <p className="mt-2 text-sm text-sand-500">
             {issued.patient_name} has been notified and can download it from their
             Medical Records.
           </p>
@@ -98,7 +98,7 @@ export default function WritePrescription() {
               <Download size={16} /> Download PDF
             </Button>
             <button onClick={() => navigate('/doctor/appointments')}
-              className="rounded-lg border border-slate-300 px-5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              className="rounded-lg border border-sand-300 px-5 text-sm font-semibold text-sand-700 hover:bg-sand-50">
               Back to appointments
             </button>
           </div>
@@ -110,27 +110,27 @@ export default function WritePrescription() {
   return (
     <DashboardLayout badge="Doctor" navItems={doctorNav}>
       <button onClick={() => navigate('/doctor/appointments')}
-        className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-primary-600">
+        className="flex items-center gap-1.5 text-sm font-medium text-sand-500 hover:text-primary-600">
         <ArrowLeft size={16} /> Back to appointments
       </button>
 
-      <h1 className="mt-3 text-3xl font-extrabold text-slate-900">Write Prescription</h1>
-      <p className="mt-1 text-slate-500">Record the consultation and issue medicines</p>
+      <h1 className="mt-3 text-3xl font-extrabold text-sand-900">Write Prescription</h1>
+      <p className="mt-1 text-sand-500">Record the consultation and issue medicines</p>
 
       {error && (
-        <div className="mt-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
+        <div className="mt-5 rounded-lg bg-danger-50 px-4 py-3 text-sm text-danger-600">{error}</div>
       )}
 
       {appointment && (
         <Card className="mt-6 flex items-center gap-4">
           <Avatar color="solid" size={48} />
           <div>
-            <div className="font-bold text-slate-900">{appointment.patient}</div>
-            <div className="text-sm text-slate-500">
+            <div className="font-bold text-sand-900">{appointment.patient}</div>
+            <div className="text-sm text-sand-500">
               {appointment.age} yrs • {appointment.appointment_date} at {appointment.time}
             </div>
             {appointment.reason && (
-              <div className="mt-1 text-sm text-slate-600">
+              <div className="mt-1 text-sm text-sand-600">
                 Reported: {appointment.reason}
               </div>
             )}
@@ -140,7 +140,7 @@ export default function WritePrescription() {
 
       <form onSubmit={submit}>
         <Card className="mt-6">
-          <h2 className="text-lg font-bold text-slate-900">Consultation</h2>
+          <h2 className="text-lg font-bold text-sand-900">Consultation</h2>
           <div className="mt-5 space-y-4">
             <Field label="Diagnosis">
               <Input required value={form.diagnosis} onChange={set('diagnosis')}
@@ -149,7 +149,7 @@ export default function WritePrescription() {
             <Field label="Clinical notes">
               <textarea rows={3} value={form.notes} onChange={set('notes')}
                 placeholder="Observations, vitals, examination findings"
-                className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm" />
+                className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Follow-up date (optional)">
@@ -163,23 +163,23 @@ export default function WritePrescription() {
 
         <Card className="mt-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900">Medicines</h2>
+            <h2 className="text-lg font-bold text-sand-900">Medicines</h2>
             <button type="button" onClick={addMedicine}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              className="flex items-center gap-1.5 rounded-lg border border-sand-300 px-3 py-1.5 text-sm font-semibold text-sand-700 hover:bg-sand-50">
               <Plus size={15} /> Add medicine
             </button>
           </div>
 
           <div className="mt-5 space-y-5">
             {medicines.map((m, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 p-4">
+              <div key={i} className="rounded-xl border border-sand-200 p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-sand-400">
                     Medicine {i + 1}
                   </span>
                   {medicines.length > 1 && (
                     <button type="button" onClick={() => removeMedicine(i)}
-                      className="text-slate-400 hover:text-red-600">
+                      className="text-sand-400 hover:text-danger-600">
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -199,7 +199,7 @@ export default function WritePrescription() {
                   <Field label="Frequency">
                     <select value={m.frequency}
                       onChange={(e) => updateMedicine(i, 'frequency', e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm">
+                      className="w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm">
                       {FREQUENCIES.map((f) => <option key={f}>{f}</option>)}
                     </select>
                   </Field>
@@ -222,12 +222,12 @@ export default function WritePrescription() {
         </Card>
 
         <Card className="mt-6">
-          <h2 className="text-lg font-bold text-slate-900">General advice</h2>
+          <h2 className="text-lg font-bold text-sand-900">General advice</h2>
           <textarea rows={3} value={form.advice} onChange={set('advice')}
             placeholder="Diet, activity, warning signs to watch for"
-            className="mt-4 w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm" />
+            className="mt-4 w-full rounded-lg border border-sand-300 px-3.5 py-2.5 text-sm" />
 
-          <div className="mt-5 rounded-lg bg-blue-50 px-4 py-2.5 text-xs text-primary-700">
+          <div className="mt-5 rounded-lg bg-primary-50 px-4 py-2.5 text-xs text-primary-700">
             Issuing this prescription marks the consultation complete and notifies
             the patient. It cannot be edited afterwards.
           </div>
