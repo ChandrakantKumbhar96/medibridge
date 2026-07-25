@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
+import { UserCog, Lock } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
-import Card from '../../components/common/Card'
 import Input, { Field } from '../../components/common/Input'
 import Button from '../../components/common/Button'
 import { patientNav } from './patientNav'
@@ -78,10 +78,13 @@ export default function PatientSettings() {
 
   return (
     <DashboardLayout navItems={patientNav}>
-      <h1 className="text-3xl font-extrabold text-sand-900">Settings</h1>
+      <span className="eyebrow">Account</span>
+      <h1 className="mt-1 text-display-sm text-sand-900">Settings</h1>
 
-      <Card className="mt-6">
-        <h2 className="text-lg font-bold text-sand-900">Profile Information</h2>
+      <div className="surface mt-6 p-6">
+        <h2 className="flex items-center gap-2 text-lg font-extrabold text-sand-900">
+          <UserCog size={18} className="text-primary-600" /> Profile information
+        </h2>
         <Banner msg={profileMsg} />
         <form onSubmit={saveProfile}>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -123,10 +126,12 @@ export default function PatientSettings() {
             {saving ? 'Saving…' : 'Save Changes'}
           </Button>
         </form>
-      </Card>
+      </div>
 
-      <Card className="mt-6">
-        <h2 className="text-lg font-bold text-sand-900">Change Password</h2>
+      <div className="surface mt-6 p-6">
+        <h2 className="flex items-center gap-2 text-lg font-extrabold text-sand-900">
+          <Lock size={18} className="text-primary-600" /> Change password
+        </h2>
         <Banner msg={pwMsg} />
         <form onSubmit={savePassword}>
           <div className="mt-5 max-w-md space-y-4">
@@ -145,7 +150,7 @@ export default function PatientSettings() {
           </div>
           <Button type="submit" className="mt-5">Update Password</Button>
         </form>
-      </Card>
+      </div>
     </DashboardLayout>
   )
 }
