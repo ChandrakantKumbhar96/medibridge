@@ -51,7 +51,8 @@ export default function SystemSettings() {
 
   return (
     <DashboardLayout badge="Admin" navItems={adminNav}>
-      <h1 className="text-3xl font-extrabold text-sand-900">System Settings</h1>
+      <span className="eyebrow">Configuration</span>
+      <h1 className="mt-1 text-display-sm text-sand-900">System settings</h1>
 
       {msg && (
         <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${

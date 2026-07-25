@@ -50,7 +50,8 @@ export default function ManagePatients() {
       {/* No "Add Patient": patients self-register, and an admin creating an
           account would mean setting someone else's password. */}
       <div>
-        <h1 className="text-3xl font-extrabold text-sand-900">Manage Patients</h1>
+        <span className="eyebrow">Members</span>
+        <h1 className="mt-1 text-display-sm text-sand-900">Manage patients</h1>
         <p className="mt-1 text-sand-500">{patients.length} registered patients</p>
       </div>
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Clock } from 'lucide-react'
+import { Clock, Sun, Sunset, CalendarCheck } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
-import Card from '../../components/common/Card'
 import Button from '../../components/common/Button'
 import { doctorNav } from './doctorNav'
 import { doctorProfileService } from '../../services/profileService'
@@ -39,15 +38,20 @@ export default function ManageSchedule() {
     }
   }
 
+  const activeDays = days.filter((d) => d.available).length
+
   return (
     <DashboardLayout badge="Doctor" navItems={doctorNav}>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-sand-900">Manage Schedule</h1>
-          <p className="mt-1 text-sand-500">Set your availability for appointments</p>
+          <span className="eyebrow">Availability</span>
+          <h1 className="mt-1 text-display-sm text-sand-900">Manage schedule</h1>
+          <p className="mt-1 text-sand-500">
+            Toggle the windows you consult in. Saving publishes bookable slots for the next 30 days.
+          </p>
         </div>
         <Button onClick={save} disabled={saving} variant={saving ? 'disabled' : 'primary'} className="px-5">
-          {saving ? 'Saving…' : 'Save Changes'}
+          {saving ? 'Saving…' : 'Save changes'}
         </Button>
       </div>
 
@@ -56,34 +60,51 @@ export default function ManageSchedule() {
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
-      <div className="mt-6 space-y-4">
+      {days.length > 0 && (
+        <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700">
+          <CalendarCheck size={16} /> Consulting {activeDays} day{activeDays === 1 ? '' : 's'} a week
+        </div>
+      )}
+
+      <div className="mt-5 space-y-3">
         {days.map((d, i) => (
-          <Card key={d.day}>
+          <div key={d.day}
+            className={`surface p-5 transition ${d.available ? '' : 'opacity-70'}`}>
             <div className="flex items-center justify-between">
-              <div className="font-bold text-sand-900">{d.day}</div>
-              <label className="flex items-center gap-2 text-sm font-medium text-sand-600">
+              <div className="flex items-center gap-3">
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold ${
+                  d.available ? 'bg-primary-600 text-white' : 'bg-sand-200 text-sand-500'}`}>
+                  {d.day.slice(0, 2)}
+                </span>
+                <div className="font-extrabold text-sand-900">{d.day}</div>
+              </div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-sand-600">
                 <input type="checkbox" checked={!!d.available} onChange={() => update(i, 'available')}
-                  className="h-4 w-4 rounded accent-accent-600" /> Available
+                  className="h-4 w-4 rounded accent-primary-600" /> Available
               </label>
             </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div className="flex items-center justify-between rounded-xl bg-sand-50 px-4 py-3">
-                <span className="flex items-center gap-2 text-sm text-sand-600">
-                  <Clock size={16} className="text-sand-400" /> 09:00 AM - 12:00 PM
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
+                d.morning && d.available ? 'border-primary-200 bg-primary-50/50' : 'border-sand-100 bg-sand-25'}`}>
+                <span className="flex items-center gap-2 text-sm font-medium text-sand-600">
+                  <Sun size={16} className="text-warning-500" /> 09:00 AM – 12:00 PM
                 </span>
                 <Toggle on={!!d.morning} onClick={() => update(i, 'morning')} />
               </div>
-              <div className="flex items-center justify-between rounded-xl bg-sand-50 px-4 py-3">
-                <span className="flex items-center gap-2 text-sm text-sand-600">
-                  <Clock size={16} className="text-sand-400" /> 02:00 PM - 05:00 PM
+              <div className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
+                d.afternoon && d.available ? 'border-primary-200 bg-primary-50/50' : 'border-sand-100 bg-sand-25'}`}>
+                <span className="flex items-center gap-2 text-sm font-medium text-sand-600">
+                  <Sunset size={16} className="text-accent-500" /> 02:00 PM – 05:00 PM
                 </span>
                 <Toggle on={!!d.afternoon} onClick={() => update(i, 'afternoon')} />
               </div>
             </div>
-          </Card>
+          </div>
         ))}
         {days.length === 0 && !msg && (
-          <div className="text-sm text-sand-500">Loading schedule…</div>
+          <div className="flex items-center gap-2 text-sm text-sand-500">
+            <Clock size={16} className="text-sand-300" /> Loading schedule…
+          </div>
         )}
       </div>
     </DashboardLayout>

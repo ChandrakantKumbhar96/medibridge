@@ -45,7 +45,10 @@ export default function PatientRecordsDoctor() {
   return (
     <DashboardLayout badge="Doctor" navItems={doctorNav}>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-extrabold text-sand-900">Patient Records</h1>
+        <div>
+          <span className="eyebrow">Your patients</span>
+          <h1 className="mt-1 text-display-sm text-sand-900">Patient records</h1>
+        </div>
         <div className="relative w-72">
           <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sand-400" size={18} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search patients..."

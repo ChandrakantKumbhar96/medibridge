@@ -80,7 +80,8 @@ export default function Analytics() {
 
   return (
     <DashboardLayout badge="Admin" navItems={adminNav}>
-      <h1 className="text-3xl font-extrabold text-sand-900">Analytics &amp; Reports</h1>
+      <span className="eyebrow">Insights</span>
+      <h1 className="mt-1 text-display-sm text-sand-900">Analytics &amp; reports</h1>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <Card>

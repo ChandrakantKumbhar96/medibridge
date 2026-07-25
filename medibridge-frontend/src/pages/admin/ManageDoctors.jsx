@@ -52,9 +52,10 @@ export default function ManageDoctors() {
     <DashboardLayout badge="Admin" navItems={adminNav}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold text-sand-900">Manage Doctors</h1>
+          <span className="eyebrow">Provider network</span>
+          <h1 className="mt-1 text-display-sm text-sand-900">Manage doctors</h1>
           <p className="mt-1 text-sand-500">
-            Verify medical registration before approving an account
+            Verify medical registration before approving an account.
           </p>
         </div>
         {pendingCount > 0 && (

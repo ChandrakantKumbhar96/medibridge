@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { FileText, Download, Upload, Trash2, FileDown, Pill, FolderOpen } from 'lucide-react'
+import { FileText, Download, Upload, Trash2, FileDown, Pill, FolderOpen, Activity } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import { patientNav } from './patientNav'
 import { fetchRecords } from '../../features/records/recordsSlice'
@@ -105,6 +106,10 @@ export default function MedicalRecords() {
           <p className="mt-1 text-sand-500">Reports and prescriptions only you and your doctor can open.</p>
         </div>
         <div className="flex items-center gap-3">
+          <Link to="/patient/timeline"
+            className="inline-flex items-center gap-2 rounded-full border border-sand-300 px-4 py-2.5 text-sm font-bold text-sand-700 transition hover:bg-sand-50">
+            <Activity size={16} /> Timeline
+          </Link>
           <button onClick={downloadHistory} disabled={busy === 'history'}
             className="inline-flex items-center gap-2 rounded-full border border-sand-300 px-4 py-2.5 text-sm font-bold text-sand-700 transition hover:bg-sand-50 disabled:opacity-60">
             <FileDown size={16} /> {busy === 'history' ? 'Generating…' : 'Full history PDF'}

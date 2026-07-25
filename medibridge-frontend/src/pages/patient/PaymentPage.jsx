@@ -37,7 +37,7 @@ export default function PaymentPage() {
     return <Navigate to="/patient/book" replace />
   }
 
-  const { doctor, date, slot, reason } = state
+  const { doctor, date, slot, reason, consultType } = state
   const fee = Number(doctor.consultation_fee) || 0
   const platformFee = 5
   const total = fee + platformFee
@@ -69,7 +69,7 @@ export default function PaymentPage() {
       appointment = await appointmentService.bookAppointment({
         doctor_id: doctor.doctor_id,
         schedule_id: slot.schedule_id,
-        consult_type: 'Consultation',
+        consult_type: consultType || 'Consultation',
         reason: reason || null,
       })
     } catch (err) {

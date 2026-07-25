@@ -55,7 +55,8 @@ export default function DoctorSettings() {
 
   return (
     <DashboardLayout badge="Doctor" navItems={doctorNav}>
-      <h1 className="text-3xl font-extrabold text-sand-900">Profile Settings</h1>
+      <span className="eyebrow">Your profile</span>
+      <h1 className="mt-1 text-display-sm text-sand-900">Profile settings</h1>
 
       {msg && (
         <div className={`mt-5 rounded-xl px-4 py-2.5 text-sm ${
