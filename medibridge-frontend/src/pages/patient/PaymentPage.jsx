@@ -5,10 +5,12 @@ import DashboardTopbar from '../../components/layout/DashboardTopbar'
 import Card from '../../components/common/Card'
 import Input, { Field } from '../../components/common/Input'
 import Button from '../../components/common/Button'
+import Avatar from '../../components/common/Avatar'
 import { appointmentService } from '../../services/appointmentService'
 import { paymentService } from '../../services/paymentService'
 import { openCheckout } from '../../services/razorpay'
 
+const money = (n) => `₹${Number(n ?? 0).toLocaleString('en-IN')}`
 const METHOD_LABELS = { card: 'Card', upi: 'UPI', netbanking: 'Net Banking' }
 const METHOD_API = { card: 'CARD', upi: 'UPI', netbanking: 'NETBANKING' }
 
@@ -151,23 +153,33 @@ export default function PaymentPage() {
         <div className="mt-6 grid gap-6 lg:grid-cols-5">
           {/* Summary card */}
           <div className="lg:col-span-2">
-            <div className="rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 p-6 text-white shadow-sm">
-              <div className="text-sm font-medium text-white/80">MediBridge Booking</div>
-              <div className="mt-4 text-lg font-bold">{doctor.full_name}</div>
-              <div className="text-sm text-white/80">{doctor.specialization}</div>
+            <div className="overflow-hidden rounded-4xl bg-gradient-to-br from-primary-700 to-primary-900 bg-mesh-teal p-6 text-white shadow-lift">
+              <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/70">
+                MediBridge booking
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <Avatar name={doctor.full_name} size={48} />
+                <div className="min-w-0">
+                  <div className="truncate text-lg font-bold">{doctor.full_name}</div>
+                  <div className="text-sm text-white/80">{doctor.specialization}</div>
+                </div>
+              </div>
               <div className="mt-5 space-y-2 text-sm text-white/90">
                 <div className="flex items-center gap-2"><Calendar size={15} /> {date}</div>
                 <div className="flex items-center gap-2"><Clock size={15} /> {slot.label}</div>
               </div>
-              <div className="mt-6 border-t border-white/20 pt-4 text-3xl font-extrabold">₹{total}</div>
+              <div className="mt-6 border-t border-white/20 pt-4">
+                <div className="text-[11px] uppercase tracking-wide text-white/60">Total payable</div>
+                <div className="text-3xl font-extrabold">{money(total)}</div>
+              </div>
             </div>
 
-            <Card className="mt-4">
+            <div className="surface mt-4 p-4">
               <div className="flex items-center gap-2 text-sm text-sand-600">
                 <ShieldCheck size={18} className="text-success-600" />
                 Payments are encrypted and processed securely.
               </div>
-            </Card>
+            </div>
           </div>
 
           {/* Payment form */}
@@ -196,14 +208,14 @@ export default function PaymentPage() {
                   </div>
 
                   <div className="rounded-xl bg-sand-50 p-4 text-sm">
-                    <div className="flex justify-between text-sand-600"><span>Consultation Fee</span><span>₹{fee}</span></div>
-                    <div className="mt-2 flex justify-between text-sand-600"><span>Platform Fee</span><span>₹{platformFee}</span></div>
-                    <div className="mt-3 flex justify-between border-t border-sand-200 pt-3 font-bold text-sand-900"><span>Total</span><span>₹{total}</span></div>
+                    <div className="flex justify-between text-sand-600"><span>Consultation Fee</span><span>{money(fee)}</span></div>
+                    <div className="mt-2 flex justify-between text-sand-600"><span>Platform Fee</span><span>{money(platformFee)}</span></div>
+                    <div className="mt-3 flex justify-between border-t border-sand-200 pt-3 font-bold text-sand-900"><span>Total</span><span>{money(total)}</span></div>
                   </div>
 
                   <Button type="submit" disabled={submitting}
                     variant={submitting ? 'disabled' : 'primary'} className="w-full py-3">
-                    <Lock size={16} /> {submitting ? 'Opening secure checkout…' : `Pay ₹${total} Securely`}
+                    <Lock size={16} /> {submitting ? 'Opening secure checkout…' : `Pay ${money(total)} Securely`}
                   </Button>
                 </form>
               ) : (
@@ -244,9 +256,9 @@ export default function PaymentPage() {
                     </div>
 
                     <div className="rounded-xl bg-sand-50 p-4 text-sm">
-                      <div className="flex justify-between text-sand-600"><span>Consultation Fee</span><span>₹{fee}</span></div>
-                      <div className="mt-2 flex justify-between text-sand-600"><span>Platform Fee</span><span>₹{platformFee}</span></div>
-                      <div className="mt-3 flex justify-between border-t border-sand-200 pt-3 font-bold text-sand-900"><span>Total</span><span>₹{total}</span></div>
+                      <div className="flex justify-between text-sand-600"><span>Consultation Fee</span><span>{money(fee)}</span></div>
+                      <div className="mt-2 flex justify-between text-sand-600"><span>Platform Fee</span><span>{money(platformFee)}</span></div>
+                      <div className="mt-3 flex justify-between border-t border-sand-200 pt-3 font-bold text-sand-900"><span>Total</span><span>{money(total)}</span></div>
                     </div>
 
                     <Button type="submit" disabled={submitting}
