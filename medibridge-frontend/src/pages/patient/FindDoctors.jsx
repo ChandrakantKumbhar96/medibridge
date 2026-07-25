@@ -181,7 +181,10 @@ export default function FindDoctors() {
                   onClick={() => navigate('/patient/book', { state: { doctorId: d.doctor_id } })}>
                   Book Appointment <ChevronRight size={16} />
                 </Button>
-                <Button variant="outline">View Profile</Button>
+                <Button variant="outline"
+                  onClick={() => navigate(`/patient/doctors/${d.doctor_id}`)}>
+                  View Profile
+                </Button>
               </div>
             </div>
           </div>
