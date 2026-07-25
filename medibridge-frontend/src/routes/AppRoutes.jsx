@@ -10,6 +10,7 @@ import AdminLoginPage from '../pages/public/AdminLoginPage'
 import PatientOverview from '../pages/patient/PatientOverview'
 import PatientAppointments from '../pages/patient/PatientAppointments'
 import FindDoctors from '../pages/patient/FindDoctors'
+import DoctorProfile from '../pages/patient/DoctorProfile'
 import BookAppointment from '../pages/patient/BookAppointment'
 import MedicalRecords from '../pages/patient/MedicalRecords'
 import PatientSettings from '../pages/patient/PatientSettings'
@@ -50,6 +51,7 @@ export default function AppRoutes() {
       <Route path="/patient" element={patient(<PatientOverview />)} />
       <Route path="/patient/appointments" element={patient(<PatientAppointments />)} />
       <Route path="/patient/find-doctors" element={patient(<FindDoctors />)} />
+      <Route path="/patient/doctors/:doctorId" element={patient(<DoctorProfile />)} />
       <Route path="/patient/book" element={patient(<BookAppointment />)} />
       <Route path="/patient/payment" element={patient(<PaymentPage />)} />
       <Route path="/patient/rate" element={patient(<RateExperience />)} />

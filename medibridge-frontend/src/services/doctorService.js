@@ -18,6 +18,15 @@ export const doctorService = {
     const { data } = await axiosClient.get('/doctors', { params })
     return data
   },
+  /** Single doctor for the profile page. Mock looks the row up by id. */
+  async getDoctor(doctorId) {
+    if (USE_MOCK) {
+      const found = doctors.find((d) => String(d.doctor_id) === String(doctorId))
+      return mockResolve(found ?? null)
+    }
+    const { data } = await axiosClient.get(`/doctors/${doctorId}`)
+    return data
+  },
   async getSpecialties() {
     if (USE_MOCK) return mockResolve(specialtyCards)
     const { data } = await axiosClient.get('/specialties')
