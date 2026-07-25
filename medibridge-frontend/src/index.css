@@ -1,6 +1,5 @@
-/* Plus Jakarta Sans — chosen over Inter, which is the default of every
-   scaffolded project. Loaded before Tailwind so @apply can reference it. */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+/* Plus Jakarta Sans is loaded via a <link> in index.html (faster + no FOUT),
+   chosen over Inter, the default of every scaffolded project. */
 
 @tailwind base;
 @tailwind components;
@@ -16,19 +15,52 @@ body,
   height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  /* Warm sand rather than cold slate-50 */
-  background-color: #F8F6F3;
   color: #1A1815;
+  /* Warm sand base, with two whisper-faint brand-tinted washes in the top
+     corners so pages have depth instead of reading as flat white. Fixed so the
+     wash stays put while content scrolls. */
+  background-color: #F8F6F3;
+  background-image:
+    radial-gradient(1100px 560px at 100% -8%, rgba(31, 163, 150, 0.06), transparent 60%),
+    radial-gradient(820px 480px at -8% 2%, rgba(246, 95, 62, 0.045), transparent 58%);
+  background-attachment: fixed;
 }
 
 /* Headings get tighter tracking — a small detail that reads as "designed". */
 h1, h2, h3 {
   letter-spacing: -0.02em;
+}
+
+/* Branded text selection instead of the browser default blue. */
+::selection {
+  background: rgba(31, 163, 150, 0.20);
+  color: #0A4441;
+}
+
+/* Figures line up in tables and money columns — a small "designed" detail. */
+table,
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Data-table rows pick up a faint on-brand tint on hover, the way real
+   dashboards do — makes long tables scannable. */
+tbody tr {
+  transition: background-color 0.15s ease;
+}
+tbody tr:hover {
+  background-color: rgba(15, 133, 123, 0.045);
 }
 
 @layer components {
