@@ -13,6 +13,9 @@ import FindDoctors from '../pages/patient/FindDoctors'
 import DoctorProfile from '../pages/patient/DoctorProfile'
 import BookAppointment from '../pages/patient/BookAppointment'
 import MedicalRecords from '../pages/patient/MedicalRecords'
+import HealthTimeline from '../pages/patient/HealthTimeline'
+import SecondOpinion from '../pages/patient/SecondOpinion'
+import SymptomChecker from '../pages/patient/SymptomChecker'
 import PatientSettings from '../pages/patient/PatientSettings'
 import PaymentPage from '../pages/patient/PaymentPage'
 import RateExperience from '../pages/patient/RateExperience'
@@ -56,6 +59,9 @@ export default function AppRoutes() {
       <Route path="/patient/payment" element={patient(<PaymentPage />)} />
       <Route path="/patient/rate" element={patient(<RateExperience />)} />
       <Route path="/patient/records" element={patient(<MedicalRecords />)} />
+      <Route path="/patient/timeline" element={patient(<HealthTimeline />)} />
+      <Route path="/patient/symptom-checker" element={patient(<SymptomChecker />)} />
+      <Route path="/patient/second-opinion" element={patient(<SecondOpinion />)} />
       <Route path="/patient/settings" element={patient(<PatientSettings />)} />
 
       {/* Doctor */}

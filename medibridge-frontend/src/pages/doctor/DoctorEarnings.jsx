@@ -42,7 +42,8 @@ export default function DoctorEarnings() {
     <DashboardLayout badge="Doctor" navItems={doctorNav}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold text-sand-900">Earnings</h1>
+          <span className="eyebrow">Income</span>
+          <h1 className="mt-1 text-display-sm text-sand-900">Earnings</h1>
           <p className="mt-1 text-sand-500">
             Your consultation income and settlement history
           </p>

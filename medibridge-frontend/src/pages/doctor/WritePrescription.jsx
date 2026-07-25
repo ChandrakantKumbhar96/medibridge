@@ -114,7 +114,8 @@ export default function WritePrescription() {
         <ArrowLeft size={16} /> Back to appointments
       </button>
 
-      <h1 className="mt-3 text-3xl font-extrabold text-sand-900">Write Prescription</h1>
+      <span className="eyebrow mt-3 block">Consultation</span>
+      <h1 className="mt-1 text-display-sm text-sand-900">Write prescription</h1>
       <p className="mt-1 text-sand-500">Record the consultation and issue medicines</p>
 
       {error && (

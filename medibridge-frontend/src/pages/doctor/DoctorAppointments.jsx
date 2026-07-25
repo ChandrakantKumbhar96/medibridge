@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Clock, Video, FileText, CheckCircle2, XCircle } from 'lucide-react'
+import { Clock, FileText, CheckCircle2, XCircle, CalendarDays } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
-import Card from '../../components/common/Card'
 import Avatar from '../../components/common/Avatar'
 import Button from '../../components/common/Button'
 import JoinButton from '../../components/common/JoinButton'
@@ -64,12 +63,13 @@ export default function DoctorAppointments() {
     }
   }
 
-  const Row = ({ a, actions }) => (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand-100 p-4">
+  const Row = ({ a, actions, muted }) => (
+    <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sand-100 p-4 transition ${
+      muted ? '' : 'bg-sand-25 hover:border-primary-200 hover:bg-white'}`}>
       <div className="flex items-center gap-4">
-        <Avatar name={a.patient} />
+        <Avatar name={a.patient} size={46} color={muted ? 'gray' : 'solid'} />
         <div>
-          <div className="font-semibold text-sand-800">{a.patient}</div>
+          <div className="font-bold text-sand-900">{a.patient}</div>
           <div className="text-sm text-sand-500">
             {a.age != null ? `${a.age} years • ` : ''}{a.type}
           </div>
@@ -85,11 +85,29 @@ export default function DoctorAppointments() {
     </div>
   )
 
+  const Section = ({ title, count, chipClass, children }) => (
+    <div className="surface mt-6 p-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-extrabold text-sand-900">{title}</h2>
+        {count > 0 && <span className={`chip ${chipClass || ''}`}>{count}</span>}
+      </div>
+      <div className="mt-4 space-y-3">{children}</div>
+    </div>
+  )
+
+  const empty = (text) => (
+    <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-sand-200 py-8 text-center">
+      <CalendarDays size={22} className="text-sand-300" />
+      <p className="text-sm text-sand-500">{text}</p>
+    </div>
+  )
+
   return (
     <DashboardLayout badge="Doctor" navItems={doctorNav}>
-      <h1 className="text-3xl font-extrabold text-sand-900">Appointment Management</h1>
+      <span className="eyebrow">Your consultations</span>
+      <h1 className="mt-1 text-display-sm text-sand-900">Appointments</h1>
       <p className="mt-1 text-sand-500">
-        Booked slots are confirmed automatically once the patient pays.
+        Booked slots confirm automatically once the patient pays — no accept/reject step.
       </p>
 
       {msg && (
@@ -97,81 +115,63 @@ export default function DoctorAppointments() {
           msg.error ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-700'}`}>{msg.text}</div>
       )}
 
-      <Card className="mt-6">
-        <h2 className="text-lg font-bold text-sand-900">Today</h2>
-        <div className="mt-4 space-y-3">
-          {today.length === 0 && (
-            <div className="py-3 text-sm text-sand-500">Nothing scheduled today.</div>
-          )}
-          {today.map((a) => (
-            <Row key={a.appointment_id} a={a} actions={<>
-              <JoinButton appointment={a} label="Start Consultation" onError={(m) => notify(m, true)} />
-              <Button variant="outline" className="px-4 py-1.5"
-                onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
-                <FileText size={14} /> Prescribe
-              </Button>
-            </>} />
-          ))}
-        </div>
-      </Card>
+      <Section title="Today" count={today.length} chipClass="border-primary-100 bg-primary-50 text-primary-700">
+        {today.length === 0 && empty('Nothing scheduled today.')}
+        {today.map((a) => (
+          <Row key={a.appointment_id} a={a} actions={<>
+            <JoinButton appointment={a} label="Start consultation" onError={(m) => notify(m, true)} />
+            <Button variant="outline" className="px-4 py-1.5"
+              onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
+              <FileText size={14} /> Prescribe
+            </Button>
+          </>} />
+        ))}
+      </Section>
 
       {/* Past their scheduled time but not yet written up - the real to-do list. */}
-      <Card className="mt-6">
-        <h2 className="text-lg font-bold text-sand-900">Awaiting consultation notes</h2>
-        <div className="mt-4 space-y-3">
-          {pending.length === 0 && (
-            <div className="py-3 text-sm text-sand-500">Nothing awaiting notes.</div>
-          )}
-          {pending.map((a) => (
-            <Row key={a.appointment_id} a={a} actions={<>
-              <Button className="px-4 py-1.5"
-                onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
-                <FileText size={14} /> Write Prescription
-              </Button>
-              <Button variant="outline" className="px-4 py-1.5"
-                disabled={busy === `k-${a.appointment_id}`}
-                onClick={() => complete(a)}>
-                <CheckCircle2 size={14} /> Mark Complete
-              </Button>
-            </>} />
-          ))}
-        </div>
-      </Card>
+      <Section title="Awaiting consultation notes" count={pending.length}
+        chipClass="border-warning-100 bg-warning-50 text-warning-700">
+        {pending.length === 0 && empty('Nothing awaiting notes.')}
+        {pending.map((a) => (
+          <Row key={a.appointment_id} a={a} actions={<>
+            <Button className="px-4 py-1.5"
+              onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
+              <FileText size={14} /> Write prescription
+            </Button>
+            <Button variant="outline" className="px-4 py-1.5"
+              disabled={busy === `k-${a.appointment_id}`}
+              onClick={() => complete(a)}>
+              <CheckCircle2 size={14} /> Mark complete
+            </Button>
+          </>} />
+        ))}
+      </Section>
 
-      <Card className="mt-6">
-        <h2 className="text-lg font-bold text-sand-900">Upcoming</h2>
-        <div className="mt-4 space-y-3">
-          {upcoming.length === 0 && (
-            <div className="py-3 text-sm text-sand-500">No upcoming appointments.</div>
-          )}
-          {upcoming.map((a) => (
-            <Row key={a.appointment_id} a={a} actions={<>
-              <Badge status={a.status} />
-              <Button variant="danger" className="px-4 py-1.5"
-                disabled={busy === `c-${a.appointment_id}`}
-                onClick={() => cancel(a)}>
-                <XCircle size={14} /> Cancel
-              </Button>
-            </>} />
-          ))}
-        </div>
-      </Card>
+      <Section title="Upcoming" count={upcoming.length}>
+        {upcoming.length === 0 && empty('No upcoming appointments.')}
+        {upcoming.map((a) => (
+          <Row key={a.appointment_id} a={a} actions={<>
+            <Badge status={a.status} />
+            <Button variant="danger" className="px-4 py-1.5"
+              disabled={busy === `c-${a.appointment_id}`}
+              onClick={() => cancel(a)}>
+              <XCircle size={14} /> Cancel
+            </Button>
+          </>} />
+        ))}
+      </Section>
 
-      <Card className="mt-6">
-        <h2 className="text-lg font-bold text-sand-900">Completed</h2>
-        <div className="mt-4 space-y-3">
-          {completed.length === 0 && (
-            <div className="py-3 text-sm text-sand-500">No completed consultations yet.</div>
-          )}
-          {completed.map((a) => (
-            <Row key={a.appointment_id} a={a} actions={
-              <span className="rounded-full bg-success-100 px-3 py-1 text-xs font-medium text-success-700">
-                Completed
-              </span>
-            } />
-          ))}
-        </div>
-      </Card>
+      <Section title="Completed" count={completed.length}
+        chipClass="border-success-100 bg-success-50 text-success-700">
+        {completed.length === 0 && empty('No completed consultations yet.')}
+        {completed.map((a) => (
+          <Row key={a.appointment_id} a={a} muted actions={
+            <span className="chip border-success-100 bg-success-50 text-success-700">
+              <CheckCircle2 size={13} /> Completed
+            </span>
+          } />
+        ))}
+      </Section>
     </DashboardLayout>
   )
 }
