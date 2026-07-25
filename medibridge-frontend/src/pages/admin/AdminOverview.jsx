@@ -32,10 +32,18 @@ export default function AdminOverview() {
 
   return (
     <DashboardLayout badge="Admin" navItems={adminNav}>
+      <div className="mb-6">
+        <span className="eyebrow">Control centre</span>
+        <h1 className="mt-1 text-display-sm text-sand-900">Dashboard overview</h1>
+        <p className="mt-1 text-sand-500">Platform activity at a glance.</p>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-3">
         {bigStats.map((s) => (
-          <div key={s.label} className={`rounded-2xl bg-gradient-to-br ${s.grad} p-6 text-white shadow-sm`}>
-            <s.icon size={26} className="opacity-90" />
+          <div key={s.label} className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${s.grad} p-6 text-white shadow-card`}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+              <s.icon size={20} />
+            </div>
             <div className="mt-6 text-4xl font-extrabold">{s.value}</div>
             <div className="mt-1 text-sm text-white/90">{s.label}</div>
           </div>

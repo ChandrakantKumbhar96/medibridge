@@ -87,7 +87,7 @@ export default function BookAppointment() {
   const [doctor, setDoctor] = useState(null)
   const [date, setDate] = useState(warm && state?.date ? state.date : '')
   const [slot, setSlot] = useState(null)          // { schedule_id, label }
-  const [reason, setReason] = useState('')
+  const [reason, setReason] = useState(state?.reason || '')
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -166,7 +166,9 @@ export default function BookAppointment() {
   // The appointment is created on the payment screen (one transaction), so an
   // abandoned checkout never leaves an orphaned booking holding a slot.
   const proceedToPayment = () => {
-    navigate('/patient/payment', { state: { doctor, specialty, date, slot, reason } })
+    navigate('/patient/payment', {
+      state: { doctor, specialty, date, slot, reason, consultType: state?.consultType || 'Consultation' },
+    })
   }
 
   const backFromTime = () => (warm ? navigate(-1) : setStep('doctor'))

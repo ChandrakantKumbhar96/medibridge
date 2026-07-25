@@ -85,9 +85,10 @@ export default function Payouts() {
     <DashboardLayout badge="Admin" navItems={adminNav}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold text-sand-900">Doctor Payouts</h1>
+          <span className="eyebrow">Settlements</span>
+          <h1 className="mt-1 text-display-sm text-sand-900">Doctor payouts</h1>
           <p className="mt-1 text-sand-500">
-            Settle consultation earnings and record transfers
+            Settle consultation earnings and record transfers.
           </p>
         </div>
         {payouts.length > 0 && (

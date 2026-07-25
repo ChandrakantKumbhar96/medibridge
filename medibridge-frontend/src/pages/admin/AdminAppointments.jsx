@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Download, Edit } from 'lucide-react'
+import { Download } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Card from '../../components/common/Card'
 import Badge from '../../components/common/Badge'
@@ -14,18 +14,23 @@ export default function AdminAppointments() {
   const [status, setStatus] = useState('All Status')
   const [patient, setPatient] = useState('')
   const [doctor, setDoctor] = useState('')
+  const [date, setDate] = useState('')
   useEffect(() => { dispatch(fetchAdminAppointments()) }, [dispatch])
 
   const rows = appts.filter((a) =>
     (status === 'All Status' || a.status === status.toLowerCase()) &&
+    (!date || a.date === date) &&
     a.patient.toLowerCase().includes(patient.toLowerCase()) &&
     a.doctor.toLowerCase().includes(doctor.toLowerCase())
   )
 
   return (
     <DashboardLayout badge="Admin" navItems={adminNav}>
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold text-sand-900">All Appointments</h1>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <span className="eyebrow">Oversight</span>
+          <h1 className="mt-1 text-display-sm text-sand-900">All appointments</h1>
+        </div>
         <button
           onClick={() => exportCsv(datedFilename('appointments'), rows, [
             { key: 'appointment_id', label: 'ID' },
@@ -45,7 +50,8 @@ export default function AdminAppointments() {
         <select className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option>All Status</option><option>Confirmed</option><option>Pending</option><option>Cancelled</option>
         </select>
-        <input type="date" className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm" />
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
+          className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm" />
         <input placeholder="Search patient..." className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm" value={patient} onChange={(e) => setPatient(e.target.value)} />
         <input placeholder="Search doctor..." className="rounded-xl border border-sand-300 px-4 py-2.5 text-sm" value={doctor} onChange={(e) => setDoctor(e.target.value)} />
       </Card>
@@ -54,7 +60,7 @@ export default function AdminAppointments() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-sand-100 text-sand-500">
-              {['Patient', 'Doctor', 'Date', 'Time', 'Type', 'Status', 'Actions'].map((h) => <th key={h} className="px-6 py-4 font-semibold">{h}</th>)}
+              {['Patient', 'Doctor', 'Date', 'Time', 'Type', 'Status'].map((h) => <th key={h} className="px-6 py-4 font-semibold">{h}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -66,7 +72,6 @@ export default function AdminAppointments() {
                 <td className="px-6 py-4 text-sand-600">{a.time}</td>
                 <td className="px-6 py-4 text-sand-600">{a.type}</td>
                 <td className="px-6 py-4"><Badge status={a.status} /></td>
-                <td className="px-6 py-4"><button className="text-primary-600 hover:text-primary-700"><Edit size={17} /></button></td>
               </tr>
             ))}
           </tbody>
