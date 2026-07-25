@@ -194,13 +194,6 @@ export default function LoginPage() {
                   )}
                 </>
               )}
-
-              <div className="mt-7 border-t border-sand-100 pt-5 text-center">
-                <Link to="/admin/login"
-                  className="text-[13px] font-bold text-sand-500 transition-colors hover:text-primary-600">
-                  Administrator sign-in →
-                </Link>
-              </div>
             </form>
           ) : role === 'patient' ? (
             <PatientRegisterForm />
