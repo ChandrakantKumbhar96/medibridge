@@ -7,6 +7,7 @@ import DashboardTopbar from '../../components/layout/DashboardTopbar'
 import Avatar from '../../components/common/Avatar'
 import Button from '../../components/common/Button'
 import { doctorService } from '../../services/doctorService'
+import { paymentService } from '../../services/paymentService'
 
 const money = (n) => `₹${Number(n ?? 0).toLocaleString('en-IN')}`
 const todayStr = () => new Date().toISOString().split('T')[0]
@@ -91,6 +92,13 @@ export default function BookAppointment() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [platformFee, setPlatformFee] = useState(5)   // real value from server config
+
+  useEffect(() => {
+    paymentService.getConfig()
+      .then((c) => { if (c.platformFee != null) setPlatformFee(Number(c.platformFee)) })
+      .catch(() => {})
+  }, [])
 
   async function loadSlots(doctorId, value, preselectScheduleId) {
     setError(null)
@@ -341,9 +349,21 @@ export default function BookAppointment() {
                   {reason && (
                     <div className="flex justify-between gap-6"><dt className="text-sand-500">Reason</dt><dd className="text-right font-semibold text-sand-800">{reason}</dd></div>
                   )}
-                  <div className="flex justify-between border-t border-sand-100 pt-3">
-                    <dt className="text-sand-500">Consultation fee</dt>
-                    <dd className="text-lg font-extrabold text-sand-900">{money(doctor.consultation_fee)}</dd>
+                  <div className="space-y-1.5 border-t border-sand-100 pt-3">
+                    <div className="flex justify-between">
+                      <dt className="text-sand-500">Consultation fee</dt>
+                      <dd className="font-semibold text-sand-800">{money(doctor.consultation_fee)}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-sand-500">Platform fee</dt>
+                      <dd className="font-semibold text-sand-800">{money(platformFee)}</dd>
+                    </div>
+                    <div className="flex justify-between border-t border-sand-100 pt-1.5">
+                      <dt className="font-bold text-sand-700">Total payable</dt>
+                      <dd className="text-lg font-extrabold text-sand-900">
+                        {money(Number(doctor.consultation_fee || 0) + Number(platformFee))}
+                      </dd>
+                    </div>
                   </div>
                 </dl>
               </div>

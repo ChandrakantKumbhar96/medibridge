@@ -4,7 +4,7 @@ import { mockResolve } from './_mock'
 export const paymentService = {
   /** Whether the server has real gateway keys, or we fall back to the simulated form. */
   async getConfig() {
-    if (USE_MOCK) return mockResolve({ gatewayEnabled: false })
+    if (USE_MOCK) return mockResolve({ gatewayEnabled: false, platformFee: 5 })
     const { data } = await axiosClient.get('/payments/config')
     return data
   },
