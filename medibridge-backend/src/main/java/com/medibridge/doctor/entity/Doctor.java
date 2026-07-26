@@ -60,6 +60,14 @@ public class Doctor {
     @Column(columnDefinition = "TEXT")
     private String bio;
 
+    /** e.g. "MBBS, MD (Medicine), DM (Cardiology)". */
+    @Column(length = 255)
+    private String qualifications;
+
+    /** Comma-separated languages the doctor consults in, e.g. "English, Hindi". */
+    @Column(length = 150)
+    private String languages;
+
     @Column(name = "rating_avg", precision = 3, scale = 2)
     private BigDecimal ratingAvg;
 

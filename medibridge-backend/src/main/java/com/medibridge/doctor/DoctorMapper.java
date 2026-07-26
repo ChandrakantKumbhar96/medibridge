@@ -27,6 +27,8 @@ public final class DoctorMapper {
                 d.getConsultationFee(),
                 d.getConsultationDurationMin(),
                 d.getBio(),
+                d.getQualifications(),
+                d.getLanguages(),
                 d.getRatingAvg() == null ? 0.0 : d.getRatingAvg().doubleValue(),
                 d.getRatingCount() == null ? 0 : d.getRatingCount(),
                 d.getStatus() == AccountStatus.ACTIVE && hasUpcomingSlots,
