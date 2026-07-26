@@ -28,7 +28,7 @@ export default function PublicNavbar() {
           <Link
             to="/login"
             className="ml-2 rounded-full bg-gradient-to-b from-primary-500 to-primary-600 px-6 py-2.5
-                       text-[13.5px] font-bold text-white shadow-[0_6px_18px_-6px_rgba(15,133,123,.6)]
+                       text-[13.5px] font-bold text-white shadow-[0_6px_18px_-6px_rgba(37,99,235,.6)]
                        transition-all hover:from-primary-600 hover:to-primary-700"
           >
             Sign in

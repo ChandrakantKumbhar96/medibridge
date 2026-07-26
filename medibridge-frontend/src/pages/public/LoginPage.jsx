@@ -171,7 +171,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={status === 'loading'}
                 className="mt-6 w-full rounded-full bg-gradient-to-b from-primary-500 to-primary-600 py-3.5
-                           text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(15,133,123,.6)]
+                           text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(37,99,235,.6)]
                            transition-all hover:from-primary-600 hover:to-primary-700
                            disabled:cursor-not-allowed disabled:opacity-60"
               >

@@ -128,7 +128,7 @@ export default function DoctorProfile() {
             <Avatar name={doctor.full_name} size={92} color="solid" />
             {doctor.status === 'active' && (
               <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-white">
-                <BadgeCheck size={22} className="text-primary-600" fill="#D6F5EF" />
+                <BadgeCheck size={22} className="text-primary-600" fill="#DBEAFE" />
               </span>
             )}
           </div>

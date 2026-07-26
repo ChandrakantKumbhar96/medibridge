@@ -67,7 +67,7 @@ export default function LandingPage() {
               <Link
                 to="/login"
                 className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-primary-500 to-primary-600
-                           px-7 py-3.5 text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(15,133,123,.6)]
+                           px-7 py-3.5 text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(37,99,235,.6)]
                            transition-all hover:from-primary-600 hover:to-primary-700 hover:shadow-lift"
               >
                 Book an appointment <ArrowRight size={17} />
