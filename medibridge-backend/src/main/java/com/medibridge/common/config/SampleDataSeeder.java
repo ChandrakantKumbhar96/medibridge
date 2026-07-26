@@ -41,6 +41,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Realistic demo data.
@@ -84,11 +85,6 @@ public class SampleDataSeeder {
             if (!enabled) {
                 return;
             }
-            if (doctorRepository.count() > 0) {
-                log.info("Sample data skipped - {} doctors already present",
-                        doctorRepository.count());
-                return;
-            }
             seed();
         };
     }
@@ -98,9 +94,15 @@ public class SampleDataSeeder {
         Map<String, Specialization> specs = new HashMap<>();
         specializationRepository.findAll().forEach(s -> specs.put(s.getName(), s));
 
-        List<Doctor> doctors = seedDoctors(specs);
-        List<Patient> patients = seedPatients();
-        seedAppointments(doctors, patients);
+        // Idempotent per row: new doctors/patients are added on restart, and
+        // existing rows are left untouched. Sample appointments seed only on a
+        // first, empty run, so a restart never duplicates them.
+        List<Doctor> newDoctors = seedDoctors(specs);
+        List<Patient> newPatients = seedPatients();
+
+        if (appointmentRepository.count() == 0 && !newDoctors.isEmpty() && !newPatients.isEmpty()) {
+            seedAppointments(newDoctors, newPatients);
+        }
 
         log.warn("""
 
@@ -119,41 +121,91 @@ public class SampleDataSeeder {
     // --------------------------------------------------------------- doctors
 
     private List<Doctor> seedDoctors(Map<String, Specialization> specs) {
-        record Seed(String name, String email, String spec, String licence, int years,
-                    int fee, int duration, String bio, boolean active) {
+        record Seed(String name, String email, String phone, String spec, String licence,
+                    int years, int fee, int duration, String bio, boolean active) {
         }
 
         List<Seed> seeds = List.of(
-                new Seed("Dr. Aditya Nair", "aditya.nair@medibridge.com", "Cardiology",
-                        "MD-12345-2020", 15, 800, 30,
+                new Seed("Dr. Aditya Nair", "aditya.nair@medibridge.com", "+91 98765 43210",
+                        "Cardiology", "MD-12345-2020", 15, 800, 30,
                         "Interventional cardiologist. Special interest in preventive "
                         + "cardiology, hypertension and post-MI rehabilitation.", true),
-                new Seed("Dr. Rohan Mehta", "rohan.mehta@medibridge.com", "Dermatology",
-                        "MD-12346-2019", 12, 600, 20,
+                new Seed("Dr. Kavya Reddy", "kavya.reddy@medibridge.com", "+91 98765 43216",
+                        "Cardiology", "MD-12351-2016", 12, 750, 30,
+                        "Cardiologist focused on heart-failure management, echocardiography "
+                        + "and women's cardiac health.", true),
+                new Seed("Dr. Sameer Khan", "sameer.khan@medibridge.com", "+91 98765 43217",
+                        "Cardiology", "MD-12352-2008", 20, 1100, 30,
+                        "Senior interventional cardiologist with two decades in angioplasty "
+                        + "and complex coronary care.", true),
+
+                new Seed("Dr. Rohan Mehta", "rohan.mehta@medibridge.com", "+91 98765 43211",
+                        "Dermatology", "MD-12346-2019", 12, 600, 20,
                         "Board-certified dermatologist treating acne, eczema, psoriasis "
                         + "and hair loss.", true),
-                new Seed("Dr. Meera Joshi", "meera.joshi@medibridge.com", "General Physician",
-                        "MD-12347-2021", 8, 500, 15,
+                new Seed("Dr. Neha Kulkarni", "neha.kulkarni@medibridge.com", "+91 98765 43218",
+                        "Dermatology", "MD-12353-2017", 9, 650, 20,
+                        "Cosmetic and clinical dermatology - pigmentation, anti-ageing and "
+                        + "laser treatments.", true),
+                new Seed("Dr. Arjun Malhotra", "arjun.malhotra@medibridge.com", "+91 98765 43219",
+                        "Dermatology", "MD-12354-2013", 14, 700, 20,
+                        "Dermatologist and trichologist specialising in hair restoration "
+                        + "and chronic skin conditions.", true),
+
+                new Seed("Dr. Meera Joshi", "meera.joshi@medibridge.com", "+91 98765 43212",
+                        "General Physician", "MD-12347-2021", 8, 500, 15,
                         "Family medicine. First point of contact for fever, infections, "
                         + "diabetes and routine health checks.", true),
-                new Seed("Dr. Rajesh Patel", "rajesh.patel@medibridge.com", "Orthopedics",
-                        "MD-12348-2015", 18, 900, 30,
+                new Seed("Dr. Pooja Nair", "pooja.nair@medibridge.com", "+91 98765 43220",
+                        "General Physician", "MD-12355-2019", 7, 450, 15,
+                        "General physician with a focus on preventive care, thyroid and "
+                        + "lifestyle disorders.", true),
+                new Seed("Dr. Sanjay Gupta", "sanjay.gupta@medibridge.com", "+91 98765 43221",
+                        "General Physician", "MD-12356-2010", 16, 550, 15,
+                        "Internal medicine consultant managing diabetes, hypertension and "
+                        + "seasonal illness.", true),
+
+                new Seed("Dr. Rajesh Patel", "rajesh.patel@medibridge.com", "+91 98765 43213",
+                        "Orthopedics", "MD-12348-2015", 18, 900, 30,
                         "Orthopaedic surgeon specialising in joint replacement, sports "
                         + "injuries and spine care.", true),
-                new Seed("Dr. Anita Desai", "anita.desai@medibridge.com", "Pediatrics",
-                        "MD-12349-2018", 11, 550, 20,
+                new Seed("Dr. Deepak Sharma", "deepak.sharma@medibridge.com", "+91 98765 43222",
+                        "Orthopedics", "MD-12357-2014", 13, 850, 30,
+                        "Sports-medicine orthopaedist treating ligament injuries, arthroscopy "
+                        + "and rehabilitation.", true),
+
+                new Seed("Dr. Anita Desai", "anita.desai@medibridge.com", "+91 98765 43214",
+                        "Pediatrics", "MD-12349-2018", 11, 550, 20,
                         "Paediatrician covering newborn care, vaccination schedules and "
                         + "childhood nutrition.", true),
+                new Seed("Dr. Ritu Agarwal", "ritu.agarwal@medibridge.com", "+91 98765 43223",
+                        "Pediatrics", "MD-12358-2017", 10, 500, 20,
+                        "Paediatrician with interest in childhood asthma, allergies and "
+                        + "developmental care.", true),
+
+                new Seed("Dr. Nikhil Menon", "nikhil.menon@medibridge.com", "+91 98765 43224",
+                        "Neurology", "MD-12359-2015", 11, 950, 30,
+                        "Neurologist treating migraine, epilepsy, movement disorders and "
+                        + "post-stroke care.", true),
                 // Deliberately left pending so the admin approval screen has
                 // something real to act on during a demo.
-                new Seed("Dr. Vikram Rao", "vikram.rao@medibridge.com", "Neurology",
-                        "MD-12350-2022", 6, 1000, 30,
+                new Seed("Dr. Vikram Rao", "vikram.rao@medibridge.com", "+91 98765 43215",
+                        "Neurology", "MD-12350-2022", 6, 1000, 30,
                         "Neurologist with interest in migraine, epilepsy and stroke "
                         + "rehabilitation.", false));
+
+        // Per-doctor idempotency: skip any email already in the database so a
+        // restart adds only the doctors that are new.
+        Set<String> existing = doctorRepository.findAll().stream()
+                .map(d -> d.getEmail().toLowerCase())
+                .collect(Collectors.toSet());
 
         List<Doctor> saved = new ArrayList<>();
 
         for (Seed s : seeds) {
+            if (existing.contains(s.email().toLowerCase())) {
+                continue;
+            }
             Specialization specialization = specs.get(s.spec());
             if (specialization == null) {
                 log.warn("Skipping {} - specialization '{}' not found", s.name(), s.spec());
@@ -164,7 +216,7 @@ public class SampleDataSeeder {
                     .fullName(s.name())
                     .email(s.email())
                     .passwordHash(passwordEncoder.encode(DEMO_PASSWORD))
-                    .phone("+91 98765 4" + (43210 + saved.size()))
+                    .phone(s.phone())
                     .specialization(specialization)
                     .licenseNumber(s.licence())
                     .experienceYears(s.years())
@@ -183,7 +235,7 @@ public class SampleDataSeeder {
             saved.add(doctor);
         }
 
-        log.info("Seeded {} doctors", saved.size());
+        log.info("Seeded {} new doctors ({} total)", saved.size(), doctorRepository.count());
         return saved;
     }
 
@@ -260,20 +312,30 @@ public class SampleDataSeeder {
                         LocalDate.of(2001, 3, 28), Patient.Gender.Female, "AB+",
                         "88 Indiranagar, Bengaluru, Karnataka"));
 
-        List<Patient> saved = seeds.stream().map(s -> patientRepository.save(Patient.builder()
-                .fullName(s.name())
-                .email(s.email())
-                .passwordHash(passwordEncoder.encode(DEMO_PASSWORD))
-                .authProvider(Patient.AuthProvider.LOCAL)
-                .phone(s.phone())
-                .dateOfBirth(s.dob())
-                .gender(s.gender())
-                .bloodGroup(s.blood())
-                .address(s.address())
-                .status(AccountStatus.ACTIVE)
-                .build())).toList();
+        Set<String> existing = patientRepository.findAll().stream()
+                .map(p -> p.getEmail().toLowerCase())
+                .collect(Collectors.toSet());
 
-        log.info("Seeded {} patients", saved.size());
+        List<Patient> saved = new ArrayList<>();
+        for (Seed s : seeds) {
+            if (existing.contains(s.email().toLowerCase())) {
+                continue;
+            }
+            saved.add(patientRepository.save(Patient.builder()
+                    .fullName(s.name())
+                    .email(s.email())
+                    .passwordHash(passwordEncoder.encode(DEMO_PASSWORD))
+                    .authProvider(Patient.AuthProvider.LOCAL)
+                    .phone(s.phone())
+                    .dateOfBirth(s.dob())
+                    .gender(s.gender())
+                    .bloodGroup(s.blood())
+                    .address(s.address())
+                    .status(AccountStatus.ACTIVE)
+                    .build()));
+        }
+
+        log.info("Seeded {} new patients", saved.size());
         return saved;
     }
 
@@ -289,9 +351,15 @@ public class SampleDataSeeder {
             return;
         }
 
-        Doctor cardiologist = doctors.get(0);
-        Doctor dermatologist = doctors.get(1);
-        Doctor physician = doctors.get(2);
+        // Pick by specialty, not list position - the doctor seed order must be
+        // free to change without silently pairing an acne diagnosis with a
+        // cardiologist.
+        Doctor cardiologist = firstActiveBySpec(doctors, "Cardiology");
+        Doctor dermatologist = firstActiveBySpec(doctors, "Dermatology");
+        Doctor physician = firstActiveBySpec(doctors, "General Physician");
+        if (cardiologist == null || dermatologist == null || physician == null) {
+            return;
+        }
 
         Patient john = patients.get(0);
         Patient priya = patients.get(1);
@@ -309,7 +377,7 @@ public class SampleDataSeeder {
         review(a1, (short) 5, Rating.OverallExperience.Excellent,
                 Set.of(Rating.Highlight.CLEAR_EXPLANATIONS, Rating.Highlight.BEDSIDE_MANNER,
                         Rating.Highlight.ACCURATE_DIAGNOSIS),
-                "Dr. Johnson explained my reports clearly and did not rush the consultation.");
+                "The doctor explained my reports clearly and did not rush the consultation.");
 
         Appointment a2 = completed(priya, dermatologist, LocalDateTime.now().minusDays(6)
                 .withHour(11).withMinute(0), "Persistent facial acne");
@@ -477,6 +545,14 @@ public class SampleDataSeeder {
                 : BigDecimal.valueOf(avg).setScale(2, java.math.RoundingMode.HALF_UP));
         doctor.setRatingCount((int) ratingRepository.countByDoctorId(doctor.getId()));
         doctorRepository.save(doctor);
+    }
+
+    private Doctor firstActiveBySpec(List<Doctor> doctors, String specName) {
+        return doctors.stream()
+                .filter(d -> d.getStatus() == AccountStatus.ACTIVE
+                        && specName.equals(d.getSpecialization().getName()))
+                .findFirst()
+                .orElse(null);
     }
 
     private LocalDate nextWeekday(int daysAhead) {
