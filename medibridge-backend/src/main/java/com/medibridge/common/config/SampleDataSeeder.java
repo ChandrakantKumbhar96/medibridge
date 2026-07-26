@@ -105,6 +105,10 @@ public class SampleDataSeeder {
             seedAppointments(newDoctors, newPatients);
         }
 
+        // Every active doctor should show real stars, not "New" - give any that
+        // have no reviews yet a few completed consultations and ratings.
+        seedRatingsForNewDoctors();
+
         log.warn("""
 
                 =====================================================================
@@ -344,7 +348,25 @@ public class SampleDataSeeder {
                         "7 Andheri West, Mumbai, Maharashtra"),
                 new Seed("Sneha Iyer", "sneha.iyer@email.com", "+91 90000 44444",
                         LocalDate.of(2001, 3, 28), Patient.Gender.Female, "AB+",
-                        "88 Indiranagar, Bengaluru, Karnataka"));
+                        "88 Indiranagar, Bengaluru, Karnataka"),
+                new Seed("Karan Malhotra", "karan.malhotra@email.com", "+91 90000 55555",
+                        LocalDate.of(1988, 7, 19), Patient.Gender.Male, "O-",
+                        "23 Connaught Place, New Delhi"),
+                new Seed("Ananya Rao", "ananya.rao@email.com", "+91 90000 66666",
+                        LocalDate.of(1993, 2, 11), Patient.Gender.Female, "B-",
+                        "56 Banjara Hills, Hyderabad, Telangana"),
+                new Seed("Vivek Nair", "vivek.nair@email.com", "+91 90000 77777",
+                        LocalDate.of(1979, 9, 5), Patient.Gender.Male, "A+",
+                        "9 Marine Drive, Kochi, Kerala"),
+                new Seed("Isha Kapoor", "isha.kapoor@email.com", "+91 90000 88888",
+                        LocalDate.of(1998, 12, 30), Patient.Gender.Female, "AB-",
+                        "34 Sector 17, Chandigarh"),
+                new Seed("Rohit Deshmukh", "rohit.deshmukh@email.com", "+91 90000 99999",
+                        LocalDate.of(1985, 4, 17), Patient.Gender.Male, "O+",
+                        "78 Dharampeth, Nagpur, Maharashtra"),
+                new Seed("Meghna Pillai", "meghna.pillai@email.com", "+91 90001 00000",
+                        LocalDate.of(2000, 8, 8), Patient.Gender.Female, "A-",
+                        "12 T. Nagar, Chennai, Tamil Nadu"));
 
         Set<String> existing = patientRepository.findAll().stream()
                 .map(p -> p.getEmail().toLowerCase())
@@ -579,6 +601,56 @@ public class SampleDataSeeder {
                 : BigDecimal.valueOf(avg).setScale(2, java.math.RoundingMode.HALF_UP));
         doctor.setRatingCount((int) ratingRepository.countByDoctorId(doctor.getId()));
         doctorRepository.save(doctor);
+    }
+
+    /**
+     * Give every active doctor without reviews a few completed consultations and
+     * ratings, so listing and profile pages show real stars rather than "New".
+     * Idempotent: a doctor that already has ratings is skipped.
+     */
+    private void seedRatingsForNewDoctors() {
+        List<Patient> patients = patientRepository.findAll();
+        if (patients.isEmpty()) {
+            return;
+        }
+
+        List<Doctor> unrated = doctorRepository.findAll().stream()
+                .filter(d -> d.getStatus() == AccountStatus.ACTIVE)
+                .filter(d -> d.getRatingCount() == null || d.getRatingCount() == 0)
+                .toList();
+
+        record R(short stars, Rating.OverallExperience exp,
+                 Set<Rating.Highlight> tags, String text) {
+        }
+        List<R> samples = List.of(
+                new R((short) 5, Rating.OverallExperience.Excellent,
+                        Set.of(Rating.Highlight.CLEAR_EXPLANATIONS, Rating.Highlight.BEDSIDE_MANNER),
+                        "Very patient and thorough - explained my condition in simple terms."),
+                new R((short) 5, Rating.OverallExperience.Excellent,
+                        Set.of(Rating.Highlight.ACCURATE_DIAGNOSIS, Rating.Highlight.FOLLOW_UP_CARE),
+                        "Spot-on diagnosis and a clear follow-up plan. Highly recommend."),
+                new R((short) 4, Rating.OverallExperience.Good,
+                        Set.of(Rating.Highlight.FRIENDLY_STAFF),
+                        "Good consultation, the prescription is working well so far."));
+
+        int p = 0;
+        int seeded = 0;
+        for (Doctor doctor : unrated) {
+            int count = 2 + (seeded % 2);   // 2 or 3 reviews per doctor
+            for (int i = 0; i < count; i++) {
+                Patient patient = patients.get(p++ % patients.size());
+                Appointment appointment = completed(patient, doctor,
+                        LocalDateTime.now().minusDays(4L + i).withHour(10 + i).withMinute(0),
+                        "Consultation");
+                R r = samples.get(i % samples.size());
+                review(appointment, r.stars(), r.exp(), r.tags(), r.text());
+            }
+            seeded++;
+        }
+
+        if (seeded > 0) {
+            log.info("Seeded reviews for {} previously-unrated doctors", seeded);
+        }
     }
 
     private Doctor firstActiveBySpec(List<Doctor> doctors, String specName) {
