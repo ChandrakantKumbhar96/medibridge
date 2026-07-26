@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import {
   Calendar, FileText, ShieldCheck, Video, Star, ArrowRight,
-  Stethoscope, CheckCircle2, Clock,
+  Stethoscope, CheckCircle2, Clock, Mail, Phone, MapPin,
 } from 'lucide-react'
 import PublicNavbar from '../../components/layout/PublicNavbar'
 import Avatar from '../../components/common/Avatar'
@@ -106,9 +106,9 @@ export default function LandingPage() {
             {/* floating appointment card */}
             <div className="glass absolute -bottom-6 -left-4 w-[268px] p-4 md:-left-8">
               <div className="flex items-center gap-3">
-                <Avatar name="Dr. Sarah Johnson" size={44} ring={false} />
+                <Avatar name="Dr. Aditya Nair" size={44} ring={false} />
                 <div className="min-w-0">
-                  <div className="truncate text-[13px] font-bold text-sand-900">Dr. Sarah Johnson</div>
+                  <div className="truncate text-[13px] font-bold text-sand-900">Dr. Aditya Nair</div>
                   <div className="text-[11px] font-medium text-sand-500">Cardiology</div>
                 </div>
                 <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-warning-50 px-2 py-1 text-[11px] font-bold text-warning-700">
@@ -133,7 +133,7 @@ export default function LandingPage() {
       </section>
 
       {/* ================= SPECIALTIES ================= */}
-      <section className="mx-auto max-w-[1200px] px-6 py-16">
+      <section id="services" className="mx-auto max-w-[1200px] scroll-mt-24 px-6 py-16">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <span className="eyebrow">Departments</span>
@@ -163,8 +163,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ================= FEATURES ================= */}
-      <section className="border-y border-sand-200/70 bg-sand-50">
+      {/* ================= FEATURES / ABOUT ================= */}
+      <section id="about" className="scroll-mt-24 border-y border-sand-200/70 bg-sand-50">
         <div className="mx-auto max-w-[1200px] px-6 py-16">
           <div className="max-w-xl">
             <span className="eyebrow">Why MediBridge</span>
@@ -253,9 +253,60 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-sand-200/70 bg-sand-50 py-8">
-        <div className="mx-auto max-w-[1200px] px-6 text-center text-[13px] text-sand-500">
-          © {new Date().getFullYear()} MediBridge · Digital Healthcare Platform
+      {/* ================= CONTACT / FOOTER ================= */}
+      <footer id="contact" className="scroll-mt-24 border-t border-sand-200/70 bg-white">
+        <div className="mx-auto max-w-[1200px] px-6 py-14">
+          <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+            {/* brand + contact */}
+            <div>
+              <div className="text-xl font-extrabold tracking-tight text-sand-900">MediBridge</div>
+              <p className="mt-2 max-w-xs text-sm leading-relaxed text-sand-500">
+                Consult verified doctors by video, book real slots, and keep every
+                record in one secure place.
+              </p>
+              <div className="mt-5 space-y-2.5 text-sm">
+                <a href="mailto:support@medibridge.com"
+                  className="flex items-center gap-2.5 text-sand-600 transition-colors hover:text-primary-700">
+                  <Mail size={16} className="text-primary-600" /> support@medibridge.com
+                </a>
+                <a href="tel:+911800123456"
+                  className="flex items-center gap-2.5 text-sand-600 transition-colors hover:text-primary-700">
+                  <Phone size={16} className="text-primary-600" /> 1800-123-456 (toll free)
+                </a>
+                <div className="flex items-center gap-2.5 text-sand-600">
+                  <MapPin size={16} className="text-primary-600" /> Pune, Maharashtra, India
+                </div>
+              </div>
+            </div>
+
+            {/* for patients */}
+            <div>
+              <div className="text-[13px] font-bold uppercase tracking-wider text-sand-400">For patients</div>
+              <ul className="mt-4 space-y-2.5 text-sm">
+                <li><Link to="/login" className="text-sand-600 hover:text-primary-700">Find a doctor</Link></li>
+                <li><Link to="/login" className="text-sand-600 hover:text-primary-700">Book a consultation</Link></li>
+                <li><a href="#services" className="text-sand-600 hover:text-primary-700">Departments</a></li>
+                <li><a href="#about" className="text-sand-600 hover:text-primary-700">How it works</a></li>
+              </ul>
+            </div>
+
+            {/* for doctors */}
+            <div>
+              <div className="text-[13px] font-bold uppercase tracking-wider text-sand-400">For doctors</div>
+              <ul className="mt-4 space-y-2.5 text-sm">
+                <li><Link to="/login" className="text-sand-600 hover:text-primary-700">Join as a doctor</Link></li>
+                <li><Link to="/login" className="text-sand-600 hover:text-primary-700">Doctor sign in</Link></li>
+                <li><Link to="/admin/login" className="text-sand-600 hover:text-primary-700">Administrator</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-sand-200/70 pt-6 text-[13px] text-sand-500 sm:flex-row">
+            <span>© {new Date().getFullYear()} MediBridge · Digital Healthcare Platform</span>
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck size={14} className="text-success-500" /> Encrypted &amp; secure
+            </span>
+          </div>
         </div>
       </footer>
     </div>
