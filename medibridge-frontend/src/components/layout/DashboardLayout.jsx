@@ -1,5 +1,6 @@
 import DashboardTopbar from './DashboardTopbar'
 import Sidebar from './Sidebar'
+import MobileBottomNav from './MobileBottomNav'
 
 /**
  * Dashboard shell.
@@ -20,9 +21,12 @@ export default function DashboardLayout({ badge, navItems, children }) {
         <DashboardTopbar badge={badge} />
         <div className="mx-auto flex max-w-[1400px] gap-7 px-6 py-7">
           <Sidebar items={navItems} />
-          <main className="min-w-0 flex-1 animate-fade-up">{children}</main>
+          {/* extra bottom padding on mobile so content clears the bottom-nav */}
+          <main className="min-w-0 flex-1 animate-fade-up pb-24 lg:pb-0">{children}</main>
         </div>
       </div>
+
+      <MobileBottomNav items={navItems} />
     </div>
   )
 }
