@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   Search, Star, BadgeCheck, Clock, Award, Stethoscope, ChevronRight,
@@ -17,9 +17,12 @@ export default function FindDoctors() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const doctors = useSelector((s) => s.doctors.list)
+  const [searchParams] = useSearchParams()
   const [specializations, setSpecializations] = useState([])
-  const [q, setQ] = useState('')
-  const [spec, setSpec] = useState('All')
+  // Seed the search + specialty filter from the URL so the home page's search
+  // bar and specialty tiles land here already filtered.
+  const [q, setQ] = useState(searchParams.get('q') || '')
+  const [spec, setSpec] = useState(searchParams.get('spec') || 'All')
   const [sort, setSort] = useState('rating')
 
   useEffect(() => { dispatch(fetchDoctors()) }, [dispatch])
