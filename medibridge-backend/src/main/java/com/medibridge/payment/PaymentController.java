@@ -1,5 +1,6 @@
 package com.medibridge.payment;
 
+import com.medibridge.admin.SettingsProvider;
 import com.medibridge.common.security.CurrentUser;
 import com.medibridge.common.security.SecurityUser;
 import com.medibridge.payment.dto.*;
@@ -19,12 +20,19 @@ import java.util.Map;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final SettingsProvider settings;
 
-    /** Tells the checkout screen whether to show the real gateway or the simulated form. */
+    /**
+     * Tells the checkout screen whether to show the real gateway or the simulated
+     * form, and the platform fee so the UI never hardcodes it — the total shown
+     * must match what the server actually charges.
+     */
     @GetMapping("/config")
     @PreAuthorize("hasRole('PATIENT')")
     public Map<String, Object> config() {
-        return Map.of("gatewayEnabled", paymentService.isGatewayEnabled());
+        return Map.of(
+                "gatewayEnabled", paymentService.isGatewayEnabled(),
+                "platformFee", settings.platformFee());
     }
 
     /** Step 1 of a gateway payment: server creates the order and fixes the amount. */

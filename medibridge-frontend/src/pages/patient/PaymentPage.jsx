@@ -24,10 +24,19 @@ export default function PaymentPage() {
   // Decided by the server: real gateway when keys are present, simulated form
   // otherwise. The UI adapts rather than the developer flipping a flag.
   const [gatewayEnabled, setGatewayEnabled] = useState(null)
+  // Platform fee comes from the server (system_settings), never hardcoded, so
+  // the total shown always matches what the gateway is asked to charge.
+  const [platformFee, setPlatformFee] = useState(5)
+  // The appointment is booked once and reused on retry — re-booking would
+  // collide with the slot hold this checkout already holds.
+  const [appointmentId, setAppointmentId] = useState(null)
 
   useEffect(() => {
     paymentService.getConfig()
-      .then((c) => setGatewayEnabled(!!c.gatewayEnabled))
+      .then((c) => {
+        setGatewayEnabled(!!c.gatewayEnabled)
+        if (c.platformFee != null) setPlatformFee(Number(c.platformFee))
+      })
       .catch(() => setGatewayEnabled(false))
   }, [])
 
@@ -39,8 +48,7 @@ export default function PaymentPage() {
 
   const { doctor, date, slot, reason, consultType } = state
   const fee = Number(doctor.consultation_fee) || 0
-  const platformFee = 5
-  const total = fee + platformFee
+  const total = fee + Number(platformFee)
 
   /**
    * Creates the appointment, then pays for it.
@@ -64,24 +72,31 @@ export default function PaymentPage() {
     setError(null)
     setSubmitting(true)
 
-    let appointment
-    try {
-      appointment = await appointmentService.bookAppointment({
-        doctor_id: doctor.doctor_id,
-        schedule_id: slot.schedule_id,
-        consult_type: consultType || 'Consultation',
-        reason: reason || null,
-      })
-    } catch (err) {
-      setError(describeError(err, 'Could not create the appointment.'))
-      setSubmitting(false)
-      return
+    // Book once, then reuse. A retry (patient reopened checkout after closing
+    // it) must not re-book — the slot is already held by the first attempt, so
+    // re-booking would fail with a misleading "slot taken" against their own hold.
+    let apptId = appointmentId
+    if (!apptId) {
+      try {
+        const appointment = await appointmentService.bookAppointment({
+          doctor_id: doctor.doctor_id,
+          schedule_id: slot.schedule_id,
+          consult_type: consultType || 'Consultation',
+          reason: reason || null,
+        })
+        apptId = appointment.appointment_id
+        setAppointmentId(apptId)
+      } catch (err) {
+        setError(describeError(err, 'Could not create the appointment.'))
+        setSubmitting(false)
+        return
+      }
     }
 
     if (gatewayEnabled) {
-      await payViaGateway(appointment.appointment_id)
+      await payViaGateway(apptId)
     } else {
-      await paySimulated(appointment.appointment_id)
+      await paySimulated(apptId)
     }
   }
 
