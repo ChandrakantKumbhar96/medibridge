@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Star, BadgeCheck, Award, Clock, ArrowLeft, Stethoscope, ShieldCheck,
-  CalendarDays, MessageSquareQuote, Video,
+  CalendarDays, MessageSquareQuote, Video, Languages,
 } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Avatar from '../../components/common/Avatar'
@@ -141,6 +141,9 @@ export default function DoctorProfile() {
               </span>
             </div>
             <p className="mt-0.5 text-sm font-semibold text-primary-700">{doctor.specialization}</p>
+            {doctor.qualifications && (
+              <p className="mt-0.5 text-xs font-medium text-sand-500">{doctor.qualifications}</p>
+            )}
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="chip">
@@ -207,6 +210,17 @@ export default function DoctorProfile() {
                   <div className="font-bold text-sand-800">{doctor.specialization}</div>
                 </div>
               </div>
+              {doctor.languages && (
+                <div className="flex items-center gap-3 rounded-2xl border border-sand-100 bg-sand-25 p-3.5">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-warning-50 text-warning-600">
+                    <Languages size={18} />
+                  </span>
+                  <div>
+                    <div className="text-xs text-sand-500">Speaks</div>
+                    <div className="font-bold text-sand-800">{doctor.languages}</div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
