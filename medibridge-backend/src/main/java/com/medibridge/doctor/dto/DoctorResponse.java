@@ -37,6 +37,10 @@ public record DoctorResponse(
 
         String bio,
 
+        String qualifications,
+
+        String languages,
+
         Double rating,
 
         @JsonProperty("rating_count")

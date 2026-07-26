@@ -61,6 +61,7 @@ public class SampleDataSeeder {
     private static final Logger log = LoggerFactory.getLogger(SampleDataSeeder.class);
 
     private static final String DEMO_PASSWORD = "Test@1234";
+    private static final String DEFAULT_LANGUAGES = "English, Hindi, Marathi";
 
     private final SpecializationRepository specializationRepository;
     private final DoctorRepository doctorRepository;
@@ -194,16 +195,18 @@ public class SampleDataSeeder {
                         "Neurologist with interest in migraine, epilepsy and stroke "
                         + "rehabilitation.", false));
 
-        // Per-doctor idempotency: skip any email already in the database so a
-        // restart adds only the doctors that are new.
-        Set<String> existing = doctorRepository.findAll().stream()
-                .map(d -> d.getEmail().toLowerCase())
-                .collect(Collectors.toSet());
+        // Per-doctor idempotency: an email already in the DB is not recreated,
+        // but its qualifications/languages are backfilled if missing (those
+        // columns were added later, in migration V7).
+        Map<String, Doctor> existing = doctorRepository.findAll().stream()
+                .collect(Collectors.toMap(d -> d.getEmail().toLowerCase(), d -> d));
 
         List<Doctor> saved = new ArrayList<>();
 
         for (Seed s : seeds) {
-            if (existing.contains(s.email().toLowerCase())) {
+            Doctor already = existing.get(s.email().toLowerCase());
+            if (already != null) {
+                backfillProfile(already);
                 continue;
             }
             Specialization specialization = specs.get(s.spec());
@@ -223,6 +226,8 @@ public class SampleDataSeeder {
                     .consultationFee(BigDecimal.valueOf(s.fee()))
                     .consultationDurationMin(s.duration())
                     .bio(s.bio())
+                    .qualifications(qualificationsFor(s.spec()))
+                    .languages(DEFAULT_LANGUAGES)
                     .status(s.active() ? AccountStatus.ACTIVE : AccountStatus.PENDING)
                     .ratingAvg(BigDecimal.ZERO)
                     .ratingCount(0)
@@ -237,6 +242,35 @@ public class SampleDataSeeder {
 
         log.info("Seeded {} new doctors ({} total)", saved.size(), doctorRepository.count());
         return saved;
+    }
+
+    /** Specialty-appropriate degrees, the way a real doctor profile reads. */
+    private String qualificationsFor(String spec) {
+        return switch (spec) {
+            case "Cardiology" -> "MBBS, MD (Medicine), DM (Cardiology)";
+            case "Dermatology" -> "MBBS, MD (Dermatology)";
+            case "General Physician" -> "MBBS, MD (General Medicine)";
+            case "Orthopedics" -> "MBBS, MS (Orthopaedics)";
+            case "Pediatrics" -> "MBBS, MD (Paediatrics)";
+            case "Neurology" -> "MBBS, MD, DM (Neurology)";
+            default -> "MBBS";
+        };
+    }
+
+    /** Fill qualifications/languages on a pre-existing doctor row (added by V7). */
+    private void backfillProfile(Doctor doctor) {
+        boolean changed = false;
+        if (doctor.getQualifications() == null || doctor.getQualifications().isBlank()) {
+            doctor.setQualifications(qualificationsFor(doctor.getSpecialization().getName()));
+            changed = true;
+        }
+        if (doctor.getLanguages() == null || doctor.getLanguages().isBlank()) {
+            doctor.setLanguages(DEFAULT_LANGUAGES);
+            changed = true;
+        }
+        if (changed) {
+            doctorRepository.save(doctor);
+        }
     }
 
     /** Mon-Fri mornings, with afternoons on alternating days. */
