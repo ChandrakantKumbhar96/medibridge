@@ -8,8 +8,8 @@
  */
 const variants = {
   primary:
-    'bg-gradient-to-b from-primary-500 to-primary-600 text-white shadow-[0_1px_2px_rgba(26,24,21,.08),0_8px_20px_-8px_rgba(15,133,123,.55)] ' +
-    'hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_2px_4px_rgba(26,24,21,.1),0_12px_28px_-10px_rgba(15,133,123,.65)] ' +
+    'bg-gradient-to-b from-primary-500 to-primary-600 text-white shadow-[0_1px_2px_rgba(26,24,21,.08),0_8px_20px_-8px_rgba(37,99,235,.55)] ' +
+    'hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_2px_4px_rgba(26,24,21,.1),0_12px_28px_-10px_rgba(37,99,235,.65)] ' +
     'active:translate-y-px',
   accent:
     'bg-gradient-to-b from-accent-400 to-accent-500 text-white shadow-[0_1px_2px_rgba(26,24,21,.08),0_8px_20px_-8px_rgba(246,95,62,.5)] ' +

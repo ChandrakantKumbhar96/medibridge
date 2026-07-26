@@ -10,7 +10,7 @@ function Mark({ size = 34 }) {
     <span
       className="relative inline-flex items-center justify-center rounded-[30%]
                  bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700
-                 shadow-[0_4px_12px_-3px_rgba(15,133,123,.6)]"
+                 shadow-[0_4px_12px_-3px_rgba(37,99,235,.6)]"
       style={{ width: size, height: size }}
     >
       <svg viewBox="0 0 24 24" width={size * 0.62} height={size * 0.62} fill="none">

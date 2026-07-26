@@ -3,29 +3,29 @@
 /**
  * MediBridge design tokens.
  *
- * Deliberately avoids the default Tailwind palette. The stock blue-600 +
- * slate + Inter combination is the visual signature of scaffolded projects;
- * this system uses a clinical teal, a warm coral accent, and sand-toned
- * neutrals instead — closer to how real healthcare products (Practo, Zocdoc,
- * Ro) actually look.
+ * A clinical blue primary (like Practo, Apollo 24|7, 1mg, Zocdoc, Halodoc),
+ * a warm coral accent, and sand-toned neutrals instead of cold slate — the
+ * palette real telemedicine products use to read as trustworthy, kept off the
+ * bare Tailwind defaults by the custom scale + sand neutrals.
  */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
-        /* Primary — clinical teal. Trust and calm without the generic blue. */
+        /* Primary — clinical blue, matching how real telemedicine apps
+           (Practo, Apollo 24|7, 1mg, Zocdoc, Halodoc) present trust. */
         primary: {
-          50:  '#EFFCF9',
-          100: '#D6F5EF',
-          200: '#AEEAE0',
-          300: '#7BD8CB',
-          400: '#45BFB1',
-          500: '#1FA396',
-          600: '#0F857B',
-          700: '#0C6A63',
-          800: '#0B544F',
-          900: '#0A4441',
+          50:  '#EFF6FF',
+          100: '#DBEAFE',
+          200: '#BFDBFE',
+          300: '#93C5FD',
+          400: '#60A5FA',
+          500: '#3B82F6',
+          600: '#2563EB',
+          700: '#1D4ED8',
+          800: '#1E40AF',
+          900: '#1E3A8A',
         },
 
         /* Accent — warm coral. Used sparingly for emphasis and human warmth. */
@@ -99,18 +99,18 @@ export default {
       boxShadow: {
         /* Layered and brand-tinted. Flat uniform shadow-sm is a tell. */
         soft:  '0 1px 2px rgba(26,24,21,.04), 0 4px 12px -2px rgba(26,24,21,.06)',
-        card:  '0 1px 3px rgba(26,24,21,.05), 0 12px 32px -12px rgba(15,133,123,.18)',
-        lift:  '0 2px 8px rgba(26,24,21,.06), 0 20px 48px -16px rgba(15,133,123,.28)',
-        glow:  '0 0 0 4px rgba(31,163,150,.12)',
+        card:  '0 1px 3px rgba(26,24,21,.05), 0 12px 32px -12px rgba(37,99,235,.18)',
+        lift:  '0 2px 8px rgba(26,24,21,.06), 0 20px 48px -16px rgba(37,99,235,.28)',
+        glow:  '0 0 0 4px rgba(59,130,246,.12)',
         'glow-accent': '0 0 0 4px rgba(246,95,62,.12)',
         inner_soft: 'inset 0 1px 2px rgba(26,24,21,.05)',
       },
 
       backgroundImage: {
         'mesh-teal':
-          'radial-gradient(at 12% 18%, rgba(31,163,150,.16) 0px, transparent 55%),' +
+          'radial-gradient(at 12% 18%, rgba(59,130,246,.16) 0px, transparent 55%),' +
           'radial-gradient(at 88% 12%, rgba(246,95,62,.12) 0px, transparent 50%),' +
-          'radial-gradient(at 70% 88%, rgba(69,191,177,.14) 0px, transparent 55%)',
+          'radial-gradient(at 70% 88%, rgba(96,165,250,.14) 0px, transparent 55%)',
         'grid-sand':
           'linear-gradient(rgba(207,200,189,.35) 1px, transparent 1px),' +
           'linear-gradient(90deg, rgba(207,200,189,.35) 1px, transparent 1px)',

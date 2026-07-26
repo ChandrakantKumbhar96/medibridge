@@ -31,7 +31,7 @@ body {
      wash stays put while content scrolls. */
   background-color: #F8F6F3;
   background-image:
-    radial-gradient(1100px 560px at 100% -8%, rgba(31, 163, 150, 0.06), transparent 60%),
+    radial-gradient(1100px 560px at 100% -8%, rgba(59, 130, 246, 0.06), transparent 60%),
     radial-gradient(820px 480px at -8% 2%, rgba(246, 95, 62, 0.045), transparent 58%);
   background-attachment: fixed;
 }
@@ -43,8 +43,8 @@ h1, h2, h3 {
 
 /* Branded text selection instead of the browser default blue. */
 ::selection {
-  background: rgba(31, 163, 150, 0.20);
-  color: #0A4441;
+  background: rgba(59, 130, 246, 0.20);
+  color: #1E3A8A;
 }
 
 /* Figures line up in tables and money columns — a small "designed" detail. */
@@ -60,7 +60,7 @@ tbody tr {
   transition: background-color 0.15s ease;
 }
 tbody tr:hover {
-  background-color: rgba(15, 133, 123, 0.045);
+  background-color: rgba(37, 99, 235, 0.045);
 }
 
 @layer components {
@@ -152,8 +152,8 @@ tbody tr:hover {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .toggle[data-on='true'] {
-  background-color: #0F857B;
-  box-shadow: 0 0 0 4px rgba(31, 163, 150, 0.12);
+  background-color: #2563EB;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
 }
 .toggle[data-on='false'] { background-color: #CFC8BD; }
 .toggle[data-on='true'] span { transform: translateX(22px); }
