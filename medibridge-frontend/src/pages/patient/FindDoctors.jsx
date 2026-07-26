@@ -73,7 +73,7 @@ export default function FindDoctors() {
               onClick={() => setSpec(s)}
               className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
                 spec === s
-                  ? 'bg-primary-600 text-white shadow-[0_6px_16px_-8px_rgba(15,133,123,.7)]'
+                  ? 'bg-primary-600 text-white shadow-[0_6px_16px_-8px_rgba(37,99,235,.7)]'
                   : 'border border-sand-200 bg-white text-sand-600 hover:border-primary-300 hover:text-primary-700'
               }`}>
               {s}
@@ -122,7 +122,7 @@ export default function FindDoctors() {
               <Avatar name={d.full_name} size={76} color="solid" />
               {d.status === 'active' && (
                 <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white">
-                  <BadgeCheck size={20} className="text-primary-600" fill="#D6F5EF" />
+                  <BadgeCheck size={20} className="text-primary-600" fill="#DBEAFE" />
                 </span>
               )}
             </div>

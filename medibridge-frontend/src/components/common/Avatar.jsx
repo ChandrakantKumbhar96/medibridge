@@ -48,7 +48,7 @@ export default function Avatar({
     src ||
     (name
       ? `https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(name)}` +
-        `&backgroundColor=D6F5EF,FFE2DA,F1EEE9&radius=50`
+        `&backgroundColor=DBEAFE,FFE2DA,F1EEE9&radius=50`
       : null)
 
   const base = `relative flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full ${

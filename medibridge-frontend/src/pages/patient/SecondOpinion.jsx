@@ -137,7 +137,7 @@ export default function SecondOpinion() {
             <button key={s} onClick={() => setSpec(s)}
               className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
                 spec === s
-                  ? 'bg-primary-600 text-white shadow-[0_6px_16px_-8px_rgba(15,133,123,.7)]'
+                  ? 'bg-primary-600 text-white shadow-[0_6px_16px_-8px_rgba(37,99,235,.7)]'
                   : 'border border-sand-200 bg-white text-sand-600 hover:border-primary-300 hover:text-primary-700'}`}>
               {s}
             </button>
