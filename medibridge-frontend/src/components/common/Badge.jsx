@@ -23,9 +23,17 @@ const map = {
   Cancelled:   { s: 'bg-danger-50 text-danger-700 ring-danger-100', d: 'bg-danger-500' },
   suspended:   { s: 'bg-danger-50 text-danger-700 ring-danger-100', d: 'bg-danger-500' },
   Refunded:    { s: 'bg-accent-50 text-accent-700 ring-accent-200', d: 'bg-accent-500' },
+
+  // Deliberately not the cancelled red: nobody cancelled this, and a patient
+  // who reads "cancelled" next to "not refunded" assumes they were charged a
+  // cancellation fee. Slate reads as "did not happen", which is what it means.
+  no_show:     { s: 'bg-sand-100 text-sand-700 ring-sand-300', d: 'bg-sand-500' },
 }
 
 const fallback = { s: 'bg-primary-50 text-primary-700 ring-primary-200', d: 'bg-primary-500' }
+
+/** Statuses whose raw value is not readable once upper-cased by the pill. */
+const labels = { no_show: 'No show' }
 
 export default function Badge({ status, children, className = '', dot = true }) {
   const tone = map[status] || fallback
@@ -36,7 +44,7 @@ export default function Badge({ status, children, className = '', dot = true }) 
                   ${tone.s} ${className}`}
     >
       {dot && <span className={`h-1.5 w-1.5 rounded-full ${tone.d}`} />}
-      {children || status}
+      {children || labels[status] || status}
     </span>
   )
 }

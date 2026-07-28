@@ -159,6 +159,25 @@ public class AdminService {
                 AccountStatus.ACTIVE, AccountStatus.INACTIVE,
                 AccountStatus.SUSPENDED, AccountStatus.PENDING);
 
+        // Taking a doctor offline hides them from search, but it does not undo
+        // the appointments patients have already paid for. Flipping the flag
+        // alone would leave those patients holding a booking with a doctor the
+        // platform has just told to stop working - and nobody would be notified.
+        // The queue has to be cleared first, deliberately, one refund at a time.
+        if (target != AccountStatus.ACTIVE && target != AccountStatus.PENDING) {
+            long committed = appointmentRepository
+                    .countByDoctorIdAndStatusAndAppointmentDateAfter(
+                            doctor.getId(), AppointmentStatus.ACCEPTED, LocalDateTime.now());
+
+            if (committed > 0) {
+                throw new BadRequestException(
+                        "This doctor has " + committed + " confirmed upcoming appointment"
+                                + (committed == 1 ? "" : "s")
+                                + " that patients have already paid for. Cancel or reschedule "
+                                + "them first - each cancellation refunds the patient in full.");
+            }
+        }
+
         doctor.setStatus(target);
         doctorRepository.save(doctor);
 

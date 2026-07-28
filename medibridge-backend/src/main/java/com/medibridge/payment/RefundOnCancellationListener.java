@@ -54,4 +54,35 @@ public class RefundOnCancellationListener {
         appointmentService.findById(event.appointmentId()).ifPresent(appointment ->
                 notificationService.sendCancelled(appointment, amount, event.reason()));
     }
+
+    /**
+     * Refunds an appointment written off because the doctor did not attend.
+     *
+     * <p>Only the refunding cases reach here - a patient no-show publishes the
+     * completion event instead, so the doctor is paid and no money moves.
+     */
+    @TransactionalEventListener
+    public void onAppointmentNoShow(AppointmentService.AppointmentNoShowEvent event) {
+        String reason = "DOCTOR".equals(event.noShowBy())
+                ? "The doctor did not join the consultation"
+                : "The consultation did not take place";
+
+        BigDecimal refunded = BigDecimal.ZERO;
+        try {
+            refunded = paymentService.refundForCancellation(
+                    event.appointmentId(), event.refundPercent(), reason);
+
+            if (refunded.signum() > 0) {
+                log.info("Refunded Rs.{} ({}%) for no-show appointment {} ({})",
+                        refunded, event.refundPercent(), event.appointmentId(), event.noShowBy());
+            }
+        } catch (Exception e) {
+            log.error("No-show refund failed for appointment {} - needs manual review: {}",
+                    event.appointmentId(), e.getMessage());
+        }
+
+        final BigDecimal amount = refunded;
+        appointmentService.findById(event.appointmentId()).ifPresent(appointment ->
+                notificationService.sendNoShow(appointment, event.noShowBy(), amount));
+    }
 }

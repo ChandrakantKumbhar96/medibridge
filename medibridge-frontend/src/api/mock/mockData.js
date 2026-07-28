@@ -27,11 +27,12 @@ export const patientAppointments = {
   upcoming: [
     { appointment_id: 'a-1', doctor: 'Dr. Aditya Nair', specialization: 'Cardiologist', appointment_date: '2026-05-05', time: '10:00 AM', status: 'confirmed' },
     { appointment_id: 'a-2', doctor: 'Dr. Rohan Mehta', specialization: 'Dermatologist', appointment_date: '2026-05-08', time: '02:30 PM', status: 'pending' },
-    { appointment_id: 'a-3', doctor: 'Dr. Meera Joshi', specialization: 'General Physician', appointment_date: '2026-05-12', time: '11:00 AM', status: 'confirmed' },
+    { appointment_id: 'a-3', doctor: 'Dr. Meera Joshi', specialization: 'General Physician', appointment_date: '2026-05-12', time: '11:00 AM', status: 'confirmed', free_cancellation: true },
   ],
   past: [
     { appointment_id: 'a-4', doctor: 'Dr. Vikram Rao', specialization: 'Orthopedic', appointment_date: '2026-04-20', time: '03:00 PM', reason: 'Routine checkup' },
     { appointment_id: 'a-5', doctor: 'Dr. Aditya Nair', specialization: 'Cardiologist', appointment_date: '2026-04-10', time: '10:00 AM', reason: 'Blood pressure monitoring' },
+    { appointment_id: 'a-6', doctor: 'Dr. Rohan Mehta', specialization: 'Dermatologist', appointment_date: '2026-04-02', time: '09:30 AM', reason: 'Skin allergy', status: 'no_show', no_show_by: 'PATIENT' },
   ],
 }
 
@@ -69,6 +70,7 @@ export const doctorPendingRequests = [
 export const doctorCompletedConsults = [
   { id: 'c-1', name: 'Vivaan Shah', age: 39, time: '09:00 AM', diagnosis: 'Viral infection', prescription: true },
   { id: 'c-2', name: 'Divya Pillai', age: 47, time: '08:00 AM', diagnosis: 'Routine checkup', prescription: false },
+  { id: 'c-3', name: 'Kavya Reddy', age: 31, time: '07:30 AM', diagnosis: '', prescription: false, no_show_by: 'PATIENT' },
 ]
 
 export const doctorPatientRecords = [

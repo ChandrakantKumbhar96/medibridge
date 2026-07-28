@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Clock, FileText, CheckCircle2, XCircle, CalendarDays } from 'lucide-react'
+import { Clock, FileText, CheckCircle2, XCircle, CalendarDays, CalendarClock, UserX } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Avatar from '../../components/common/Avatar'
 import Button from '../../components/common/Button'
 import JoinButton from '../../components/common/JoinButton'
 import Badge from '../../components/common/Badge'
+import RescheduleModal from '../../components/common/RescheduleModal'
 import { doctorNav } from './doctorNav'
 import { fetchDoctorDashboard } from '../../features/appointments/appointmentsSlice'
 import { appointmentService } from '../../services/appointmentService'
@@ -19,6 +20,7 @@ export default function DoctorAppointments() {
 
   const [busy, setBusy] = useState(null)
   const [msg, setMsg] = useState(null)
+  const [rescheduling, setRescheduling] = useState(null)
 
   useEffect(() => { dispatch(fetchDoctorDashboard()) }, [dispatch])
 
@@ -62,6 +64,17 @@ export default function DoctorAppointments() {
       setBusy(null)
     }
   }
+
+  /**
+   * Offered on Today as well as Upcoming: the reschedule_min_hours cutoff is
+   * enforced for patients only, so a doctor with an emergency can still move a
+   * slot that starts in ten minutes.
+   */
+  const rescheduleBtn = (a) => (
+    <Button variant="outline" className="px-4 py-1.5" onClick={() => setRescheduling(a)}>
+      <CalendarClock size={14} /> Reschedule
+    </Button>
+  )
 
   const Row = ({ a, actions, muted }) => (
     <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sand-100 p-4 transition ${
@@ -124,6 +137,7 @@ export default function DoctorAppointments() {
               onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
               <FileText size={14} /> Prescribe
             </Button>
+            {rescheduleBtn(a)}
           </>} />
         ))}
       </Section>
@@ -152,6 +166,7 @@ export default function DoctorAppointments() {
         {upcoming.map((a) => (
           <Row key={a.appointment_id} a={a} actions={<>
             <Badge status={a.status} />
+            {rescheduleBtn(a)}
             <Button variant="danger" className="px-4 py-1.5"
               disabled={busy === `c-${a.appointment_id}`}
               onClick={() => cancel(a)}>
@@ -161,17 +176,37 @@ export default function DoctorAppointments() {
         ))}
       </Section>
 
-      <Section title="Completed" count={completed.length}
+      {/* Holds no-shows as well as completed consultations - both are finished
+          slots the doctor was scheduled for, and a patient no-show was paid. */}
+      <Section title="Past consultations" count={completed.length}
         chipClass="border-success-100 bg-success-50 text-success-700">
-        {completed.length === 0 && empty('No completed consultations yet.')}
+        {completed.length === 0 && empty('No past consultations yet.')}
         {completed.map((a) => (
           <Row key={a.appointment_id} a={a} muted actions={
-            <span className="chip border-success-100 bg-success-50 text-success-700">
-              <CheckCircle2 size={13} /> Completed
-            </span>
+            a.no_show_by
+              ? <span className="chip border-sand-300 bg-sand-100 text-sand-700">
+                  <UserX size={13} />
+                  {a.no_show_by === 'PATIENT' ? 'Patient no-show — paid' : 'Not attended'}
+                </span>
+              : <span className="chip border-success-100 bg-success-50 text-success-700">
+                  <CheckCircle2 size={13} /> Completed
+                </span>
           } />
         ))}
       </Section>
+
+      {rescheduling && (
+        <RescheduleModal
+          appointment={rescheduling}
+          as="doctor"
+          onClose={() => setRescheduling(null)}
+          onDone={(text) => {
+            setRescheduling(null)
+            dispatch(fetchDoctorDashboard())
+            notify(text)
+          }}
+        />
+      )}
     </DashboardLayout>
   )
 }

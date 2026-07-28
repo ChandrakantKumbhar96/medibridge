@@ -148,6 +148,70 @@ public class NotificationService {
     }
 
     /**
+     * Tells the patient an appointment was written off as unattended.
+     *
+     * <p>Deliberately not worded as a cancellation. Nobody cancelled it, and a
+     * patient who reads "cancelled" next to "no refund" concludes they were
+     * charged for a cancellation - which is the complaint this wording exists
+     * to prevent. The message names what happened and what it cost.
+     *
+     * @param by             PATIENT, DOCTOR or BOTH
+     * @param refundAmount   what was actually returned; zero for a patient no-show
+     */
+    public void sendNoShow(Appointment a, String by, BigDecimal refundAmount) {
+        boolean patientMissedIt = "PATIENT".equals(by);
+        boolean refunded = refundAmount != null && refundAmount.signum() > 0;
+
+        String explanation = patientMissedIt
+                ? """
+                  Our records show the consultation room was not opened from your
+                  side, so the appointment has been closed as missed. As set out
+                  at booking, a missed consultation is not refunded - the doctor
+                  held the time.
+                  """
+                : "DOCTOR".equals(by)
+                        ? "The doctor was unable to join, so you are not being charged for it."
+                        : "The consultation did not take place, so you are not being charged for it.";
+
+        String refundLine = refunded
+                ? "A refund of Rs. %s has been issued and should reach your account in 5-7 working days."
+                        .formatted(refundAmount)
+                : patientMissedIt
+                        ? "You can book a new appointment whenever suits you."
+                        : "Any amount paid is being returned to you.";
+
+        deliver(a, Notification.Type.APPOINTMENT_NO_SHOW,
+                patientMissedIt
+                        ? "You missed your MediBridge consultation"
+                        : "Your MediBridge consultation did not take place",
+                """
+                Hello %s,
+
+                Your appointment with %s on %s did not go ahead.
+
+                %s
+
+                %s
+
+                - MediBridge
+                """.formatted(
+                        a.getPatient().getFullName(),
+                        a.getDoctor().getFullName(),
+                        a.getAppointmentDate().format(WHEN),
+                        explanation.strip(),
+                        refundLine));
+
+        deliverSms(a, Notification.Type.APPOINTMENT_NO_SHOW,
+                patientMissedIt
+                        ? "MediBridge: you missed your consultation with %s on %s. A missed consultation is not refunded."
+                                .formatted(a.getDoctor().getFullName(),
+                                        a.getAppointmentDate().format(WHEN))
+                        : "MediBridge: your consultation with %s on %s did not take place. %s"
+                                .formatted(a.getDoctor().getFullName(),
+                                        a.getAppointmentDate().format(WHEN), refundLine));
+    }
+
+    /**
      * Not de-duplicated by the usual key alone: an appointment can legitimately
      * be rescheduled more than once, so the count is folded into the type to
      * keep each move notifiable.
