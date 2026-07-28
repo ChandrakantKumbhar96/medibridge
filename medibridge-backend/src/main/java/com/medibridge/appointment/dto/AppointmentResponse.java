@@ -61,6 +61,21 @@ public record AppointmentResponse(
 
         /** When the room opens, so the UI can show "Available at 09:45 AM". */
         @JsonProperty("join_from")
-        String joinFrom
+        String joinFrom,
+
+        /**
+         * True when this patient may cancel with a full refund regardless of how
+         * close the appointment is, because the doctor moved it.
+         *
+         * <p>Sent so the UI can stop threatening a cancellation fee it will not
+         * charge. Advisory only - the refund is decided server-side in
+         * {@code cancelAsPatient}, never from this flag.
+         */
+        @JsonProperty("free_cancellation")
+        Boolean freeCancellation,
+
+        /** PATIENT, DOCTOR or BOTH once closed as a no-show; null otherwise. */
+        @JsonProperty("no_show_by")
+        String noShowBy
 ) {
 }

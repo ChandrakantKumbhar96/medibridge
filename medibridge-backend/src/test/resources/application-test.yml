@@ -1,0 +1,39 @@
+# Test profile.
+#
+# Activated *alongside* `local`, which supplies the DB credentials and JWT
+# secret from the gitignored application-local.yml. This file overrides only
+# what must differ, so tests never drift from the real configuration.
+#
+# The database is a separate schema - medibridge_test - created on first
+# connect. Tests run the same Flyway migrations and the same
+# ddl-auto: validate as production, which is the point: a test suite on H2
+# would not execute the MySQL ENUMs, CHECK constraints or the UNIQUE index
+# that the booking guarantee actually depends on.
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/medibridge_test?useSSL=false&serverTimezone=Asia/Kolkata&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  # Nothing should reach a real SMTP server. EmailService is @Async, so a
+  # connection failure is logged on a background thread and never fails a test.
+  mail:
+    host: localhost
+    port: 3025
+
+medibridge:
+  razorpay:
+    # Blank keys put RazorpayGateway into its simulated mode - no test should
+    # ever create a real order or issue a real refund.
+    key-id: ""
+    key-secret: ""
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.flywaydb: warn
+    com.medibridge: info

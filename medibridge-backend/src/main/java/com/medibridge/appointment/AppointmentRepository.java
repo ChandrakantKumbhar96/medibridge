@@ -43,11 +43,39 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     List<Appointment> findByStatusAndAppointmentDateBetween(
             AppointmentStatus status, LocalDateTime from, LocalDateTime to);
 
+    /**
+     * Backs the no-show sweep.
+     *
+     * <p>Restricted to appointments that had a video room: attendance can only
+     * be judged where joining was possible. Rows where both parties joined are
+     * excluded here rather than in Java, so a doctor who consulted but has not
+     * yet written their notes is never pulled into the sweep - that appointment
+     * belongs in "Awaiting consultation notes", not in a no-show.
+     */
+    @Query("""
+           SELECT a.id FROM Appointment a
+           WHERE a.status = :status
+             AND a.meetingLink IS NOT NULL
+             AND a.meetingValidUntil IS NOT NULL
+             AND a.meetingValidUntil < :cutoff
+             AND (a.patientJoinedAt IS NULL OR a.doctorJoinedAt IS NULL)
+           ORDER BY a.appointmentDate ASC
+           """)
+    List<Integer> findNoShowCandidateIds(@Param("status") AppointmentStatus status,
+                                         @Param("cutoff") LocalDateTime cutoff);
+
     Optional<Appointment> findByIdAndPatientId(Integer id, Integer patientId);
 
     Optional<Appointment> findByIdAndDoctorId(Integer id, String doctorId);
 
     long countByStatus(AppointmentStatus status);
+
+    /**
+     * Paid appointments a doctor still owes. Taking their account offline while
+     * this is non-zero would strand patients who have already been charged.
+     */
+    long countByDoctorIdAndStatusAndAppointmentDateAfter(
+            String doctorId, AppointmentStatus status, LocalDateTime after);
 
     long countByDoctorId(String doctorId);
 

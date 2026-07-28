@@ -2,6 +2,17 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "medibridge-backend",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": [
+        "-f",
+        "medibridge-backend/pom.xml",
+        "spring-boot:run",
+        "-Dspring-boot.run.profiles=local"
+      ],
+      "port": 8080
+    },
+    {
       "name": "medibridge-frontend",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "medibridge-frontend", "run", "dev"],

@@ -16,7 +16,16 @@ public enum AppointmentStatus {
     RESCHEDULED("Rescheduled", "pending"),
     COMPLETED("Completed", "confirmed"),
     CANCELLED("Cancelled", "cancelled"),
-    AUTO_EXPIRED("AutoExpired", "cancelled");
+    AUTO_EXPIRED("AutoExpired", "cancelled"),
+
+    /**
+     * Nobody attended. Kept distinct from CANCELLED all the way to the UI:
+     * the money rule is the opposite - a cancellation refunds, a no-show
+     * usually does not - and a patient shown "cancelled" beside "no refund"
+     * concludes they were charged a cancellation fee. Badge.jsx has its own
+     * `no_show` entry.
+     */
+    NO_SHOW("NoShow", "no_show");
 
     private final String dbValue;
     private final String frontendValue;

@@ -151,6 +151,18 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!--
+            MockMvc. Spring Boot 4 split test autoconfiguration into
+            per-technology modules exactly as it did for Flyway, so
+            spring-boot-starter-test no longer brings @AutoConfigureMockMvc -
+            it lives in spring-boot-webmvc-test and must be asked for.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

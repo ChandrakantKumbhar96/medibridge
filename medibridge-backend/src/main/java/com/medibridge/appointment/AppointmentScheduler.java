@@ -55,6 +55,33 @@ public class AppointmentScheduler {
     }
 
     /**
+     * Closes out consultations nobody attended.
+     *
+     * <p>Every five minutes rather than every minute: the decision is only made
+     * once the room has closed and a grace period has passed, so there is
+     * nothing a faster sweep would catch sooner. Rows where both parties joined
+     * are filtered out in SQL, so a doctor who consulted and has not yet written
+     * their notes is never touched by this.
+     */
+    @Scheduled(fixedDelay = 300_000, initialDelay = 120_000)
+    public void settleNoShows() {
+        List<Integer> candidates = appointmentService.findNoShowCandidateIds();
+        if (candidates.isEmpty()) {
+            return;
+        }
+
+        int settled = 0;
+        for (Integer id : candidates) {
+            try {
+                settled += appointmentService.settleNoShow(id);
+            } catch (Exception e) {
+                log.error("Could not settle no-show on appointment {}: {}", id, e.getMessage());
+            }
+        }
+        log.info("No-show sweep: settled {} of {} candidates", settled, candidates.size());
+    }
+
+    /**
      * Sends the pre-appointment reminder.
      *
      * <p>Hourly is enough for a 24-hour reminder, and the notification unique
