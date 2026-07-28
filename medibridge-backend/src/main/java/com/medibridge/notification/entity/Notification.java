@@ -87,6 +87,7 @@ public class Notification {
         public static final String REMINDER_24H = "REMINDER_24H";
         public static final String APPOINTMENT_CANCELLED = "APPOINTMENT_CANCELLED";
         public static final String APPOINTMENT_RESCHEDULED = "APPOINTMENT_RESCHEDULED";
+        public static final String APPOINTMENT_NO_SHOW = "APPOINTMENT_NO_SHOW";
         public static final String REFUND_ISSUED = "REFUND_ISSUED";
         public static final String HOLD_EXPIRED = "HOLD_EXPIRED";
         public static final String PRESCRIPTION_READY = "PRESCRIPTION_READY";

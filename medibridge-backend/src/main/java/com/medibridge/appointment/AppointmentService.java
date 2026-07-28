@@ -57,7 +57,8 @@ public class AppointmentService {
 
     private static final List<AppointmentStatus> PAST = List.of(
             AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED,
-            AppointmentStatus.REJECTED, AppointmentStatus.AUTO_EXPIRED);
+            AppointmentStatus.REJECTED, AppointmentStatus.AUTO_EXPIRED,
+            AppointmentStatus.NO_SHOW);
 
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
@@ -199,6 +200,8 @@ public class AppointmentService {
      *   <li>patient cancels with more than {@code free_cancellation_hours} to go - 100%</li>
      *   <li>patient cancels inside that window - {@code partial_refund_percent}%,
      *       because the slot is now unlikely to be resold</li>
+     *   <li>patient cancels an appointment the <em>doctor</em> moved - always
+     *       100%, whatever the clock says</li>
      * </ul>
      */
     @Transactional
@@ -211,9 +214,22 @@ public class AppointmentService {
         long hoursUntil = Duration.between(
                 LocalDateTime.now(), appointment.getAppointmentDate()).toHours();
 
-        int refundPercent = hoursUntil >= settings.freeCancellationHours()
-                ? 100
-                : settings.partialRefundPercent();
+        // A doctor-initiated move leaves the patient holding a time they never
+        // agreed to, often inside the penalty window. Billing them for that
+        // would be charging them for the doctor's schedule change, so the
+        // cutoff is waived for the rest of this booking's life.
+        //
+        // It is deliberately not time-boxed. reschedule() overwrites
+        // rescheduled_by on every move, so the moment the patient reschedules
+        // it themselves the flag flips back to PATIENT and the normal cutoff
+        // returns - they chose the latest time, so they own it again.
+        boolean movedByDoctor =
+                appointment.getRescheduledBy() == Appointment.ActorRole.DOCTOR;
+
+        int refundPercent =
+                (movedByDoctor || hoursUntil >= settings.freeCancellationHours())
+                        ? 100
+                        : settings.partialRefundPercent();
 
         return cancel(appointment, Appointment.ActorRole.PATIENT, reason, refundPercent);
     }
@@ -430,9 +446,13 @@ public class AppointmentService {
                 .map(a -> AppointmentMapper.toDto(a, true))
                 .toList();
 
+        // No-shows belong here too. A consultation the doctor turned up for and
+        // the patient did not is still work they were paid for, and hiding it
+        // would leave them unable to see why an unattended slot was billed.
         List<AppointmentResponse> completed = appointmentRepository
                 .findByDoctorIdAndStatusInOrderByAppointmentDateAsc(
-                        doctorId, List.of(AppointmentStatus.COMPLETED))
+                        doctorId, List.of(AppointmentStatus.COMPLETED,
+                                AppointmentStatus.NO_SHOW))
                 .stream().map(a -> AppointmentMapper.toDto(a, false)).toList();
 
         Map<String, List<AppointmentResponse>> dashboard = new LinkedHashMap<>();
@@ -501,18 +521,41 @@ public class AppointmentService {
      * caller owns the appointment, it is paid and confirmed, and the current
      * time is inside the join window.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public String getJoinLinkAsPatient(Integer patientId, Integer appointmentId) {
         Appointment a = appointmentRepository.findByIdAndPatientId(appointmentId, patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
-        return resolveJoinLink(a);
+        String link = resolveJoinLink(a);
+        stampAttendance(a, Appointment.ActorRole.PATIENT);
+        return link;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public String getJoinLinkAsDoctor(String doctorId, Integer appointmentId) {
         Appointment a = appointmentRepository.findByIdAndDoctorId(appointmentId, doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
-        return resolveJoinLink(a);
+        String link = resolveJoinLink(a);
+        stampAttendance(a, Appointment.ActorRole.DOCTOR);
+        return link;
+    }
+
+    /**
+     * Records the first time a party opened the room, and only the first.
+     *
+     * <p>Reconnecting after a dropped call must not read as a later arrival, and
+     * the no-show question is only ever "did they come at all". Stamped after
+     * {@link #resolveJoinLink} succeeds, so a rejected request - wrong window,
+     * wrong owner, unpaid - never counts as attendance.
+     */
+    private void stampAttendance(Appointment a, Appointment.ActorRole who) {
+        if (who == Appointment.ActorRole.PATIENT && a.getPatientJoinedAt() == null) {
+            a.setPatientJoinedAt(LocalDateTime.now());
+        } else if (who == Appointment.ActorRole.DOCTOR && a.getDoctorJoinedAt() == null) {
+            a.setDoctorJoinedAt(LocalDateTime.now());
+        } else {
+            return;
+        }
+        appointmentRepository.save(a);
     }
 
     private String resolveJoinLink(Appointment a) {
@@ -570,6 +613,77 @@ public class AppointmentService {
                 .stream().map(Appointment::getId).toList();
     }
 
+    // ------------------------------------------------------------- no-show
+
+    /**
+     * Appointments whose room has closed with at least one party never having
+     * opened it.
+     *
+     * <p>The grace period is measured from {@code meeting_valid_until}, not from
+     * the slot time: the room deliberately stays open past the end, and someone
+     * who joins late still attended.
+     */
+    @Transactional(readOnly = true)
+    public List<Integer> findNoShowCandidateIds() {
+        LocalDateTime cutoff = LocalDateTime.now()
+                .minusMinutes(settings.getInt("no_show_grace_minutes", 15));
+        return appointmentRepository.findNoShowCandidateIds(AppointmentStatus.ACCEPTED, cutoff);
+    }
+
+    /**
+     * Closes out an appointment nobody attended, and settles the money.
+     *
+     * <p>The patient forfeits only where the doctor demonstrably turned up.
+     * Every other case refunds in full - if the platform cannot show the doctor
+     * was there, it cannot bill the patient for the empty room. That asymmetry
+     * is deliberate: it prices the platform's own failures, not the patient's.
+     *
+     * <p>A patient no-show pays the doctor exactly as a completed consultation
+     * would. They held the hour; the patient's absence is not their loss to
+     * carry.
+     *
+     * @return 1 if the appointment was closed as a no-show, 0 if it was left
+     *         alone (already settled, or both parties actually attended)
+     */
+    @Transactional
+    public int settleNoShow(Integer appointmentId) {
+        Appointment a = appointmentRepository.findById(appointmentId).orElse(null);
+        if (a == null || a.getStatus() != AppointmentStatus.ACCEPTED) {
+            return 0;
+        }
+
+        Appointment.NoShowParty party = a.decideNoShowParty();
+        if (party == null) {
+            // Both joined. This is a real consultation waiting on notes, and it
+            // belongs to the doctor's to-do list - not to this sweep.
+            return 0;
+        }
+
+        int refundPercent = party == Appointment.NoShowParty.PATIENT ? 0 : 100;
+
+        a.setStatus(AppointmentStatus.NO_SHOW);
+        a.setNoShowBy(party);
+        a.setNoShowMarkedAt(LocalDateTime.now());
+        appointmentRepository.save(a);
+
+        if (refundPercent == 0) {
+            // Reuses the completion event on purpose: the payout module's job is
+            // to accrue what the doctor earned, and they earned this.
+            events.publishEvent(new AppointmentCompletedEvent(a.getId()));
+
+            // No money moves, so nothing downstream would tell the patient. They
+            // still need to know the slot was consumed and why.
+            notificationService.sendNoShow(a, party.name(), java.math.BigDecimal.ZERO);
+        } else {
+            events.publishEvent(new AppointmentNoShowEvent(
+                    a.getId(), refundPercent, party.name()));
+        }
+
+        log.info("Appointment {} closed as no-show by {} ({}% refund)",
+                appointmentId, party, refundPercent);
+        return 1;
+    }
+
     @Transactional(readOnly = true)
     public List<Appointment> findAppointmentsNeedingReminder() {
         LocalDateTime from = LocalDateTime.now();
@@ -590,5 +704,17 @@ public class AppointmentService {
 
     /** Published on completion so the payout module can accrue the earning. */
     public record AppointmentCompletedEvent(Integer appointmentId) {
+    }
+
+    /**
+     * Published when an appointment is written off as unattended and money is
+     * owed back. Kept separate from {@link AppointmentCancelledEvent} because
+     * the patient must not be told their appointment was "cancelled" - nobody
+     * cancelled it, and the wording decides whether they trust the refund.
+     *
+     * @param noShowBy PATIENT, DOCTOR or BOTH
+     */
+    public record AppointmentNoShowEvent(Integer appointmentId, int refundPercent,
+                                         String noShowBy) {
     }
 }

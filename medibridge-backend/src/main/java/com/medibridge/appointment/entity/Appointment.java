@@ -132,6 +132,24 @@ public class Appointment {
     @Column(name = "rescheduled_by")
     private ActorRole rescheduledBy;
 
+    /**
+     * Stamped by the join endpoint, which is the only route to the room URL.
+     * Attendance is therefore observed, not self-reported - neither side can
+     * claim to have turned up without having asked for the link.
+     */
+    @Column(name = "patient_joined_at")
+    private LocalDateTime patientJoinedAt;
+
+    @Column(name = "doctor_joined_at")
+    private LocalDateTime doctorJoinedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "no_show_by")
+    private NoShowParty noShowBy;
+
+    @Column(name = "no_show_marked_at")
+    private LocalDateTime noShowMarkedAt;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -165,7 +183,36 @@ public class Appointment {
                 && holdExpiresAt.isBefore(LocalDateTime.now());
     }
 
+    /**
+     * True once a doctor-initiated move has left the patient at a time they
+     * never chose. Their cancellation cutoff is waived while this holds - see
+     * {@code AppointmentService.cancelAsPatient}.
+     */
+    public boolean wasMovedByDoctor() {
+        return rescheduledBy == ActorRole.DOCTOR;
+    }
+
+    /**
+     * Who failed to attend, decided only from observed join timestamps.
+     *
+     * <p>Returns null when the consultation clearly happened (both joined) or
+     * when it is too early to judge - the caller must not treat null as
+     * "nobody was at fault".
+     */
+    public NoShowParty decideNoShowParty() {
+        boolean patientCame = patientJoinedAt != null;
+        boolean doctorCame = doctorJoinedAt != null;
+
+        if (patientCame && doctorCame) return null;
+        if (!patientCame && !doctorCame) return NoShowParty.BOTH;
+        return patientCame ? NoShowParty.DOCTOR : NoShowParty.PATIENT;
+    }
+
     public enum ActorRole {
         PATIENT, DOCTOR, ADMIN, SYSTEM
+    }
+
+    public enum NoShowParty {
+        PATIENT, DOCTOR, BOTH
     }
 }

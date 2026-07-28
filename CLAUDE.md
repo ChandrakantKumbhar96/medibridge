@@ -93,7 +93,41 @@ comes from the row actually loaded.
 - Uploaded files get a generated UUID filename and an allow-listed content type;
   the user's filename is never used as a path.
 
-There is no linter, test runner, or TypeScript in this project. Do not invent `npm test` / `npm run lint` — they don't exist. Verification is done by running the dev server.
+## Tests
+
+Backend only — from `medibridge-backend/`:
+
+```bash
+mvn test -Dspring-boot.run.profiles=local
+```
+
+The suite is **integration tests against a real MySQL schema** (`medibridge_test`,
+created on first connect), running the real Flyway migrations and the same
+`ddl-auto: validate`. That is deliberate: the guarantees under test are database
+guarantees — a UNIQUE index, a CHECK constraint, row locking — and an in-memory
+database would silently not have them, leaving a green suite that proves nothing.
+No Docker, so no Testcontainers.
+
+- `src/test/resources/application-test.yml` activates alongside `local`, which
+  supplies the DB password. It overrides only the JDBC URL, blanks the Razorpay
+  keys (forcing the gateway's simulated mode) and points mail at a dead port.
+- `AbstractIntegrationTest` holds the fixtures and `@MockitoBean`s the scheduler
+  so timed sweeps can't mutate a fixture mid-assertion.
+- Fixtures are **additive, never rolled back** — `ConcurrentBookingTest` needs
+  real commits from 20 threads, so a transactional test wrapper would defeat it.
+  Every fixture uses a UUID email/licence so tests can't collide.
+- Policy decisions are asserted on **published events** (`@RecordApplicationEvents`)
+  rather than on money moving: the refund percentage *is* the policy; what the
+  gateway does with it belongs to the payment module.
+
+**Spring Boot 4 split test autoconfiguration too.** `spring-boot-starter-test` no
+longer provides `@AutoConfigureMockMvc` — it needs
+`org.springframework.boot:spring-boot-webmvc-test`, and the package is
+`org.springframework.boot.webmvc.test.autoconfigure`. Same trap as `spring-boot-flyway`.
+
+There is no linter, no frontend test runner, and no TypeScript. Do not invent
+`npm test` / `npm run lint` — they don't exist. Frontend verification is done by
+running the dev server.
 
 ## Mock-vs-live API architecture
 

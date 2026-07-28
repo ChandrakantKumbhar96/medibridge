@@ -59,7 +59,11 @@ public final class AppointmentMapper {
                 a.getDoctor().getConsultationFee(),
                 null,          // raw link never sent in lists — see join endpoint
                 canJoin,
-                joinFrom);
+                joinFrom,
+                // NON_NULL on the record means false would be dropped from the
+                // JSON entirely, so only the true case is worth sending.
+                a.wasMovedByDoctor() ? Boolean.TRUE : null,
+                a.getNoShowBy() == null ? null : a.getNoShowBy().name());
     }
 
     public static Integer ageOf(LocalDate dateOfBirth) {

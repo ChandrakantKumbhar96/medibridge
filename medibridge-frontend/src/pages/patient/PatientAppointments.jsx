@@ -36,10 +36,16 @@ export default function PatientAppointments() {
    * Cancelling refunds automatically on the server: the full amount outside the
    * free-cancellation window, a partial amount inside it. The warning here
    * mirrors that so the patient is not surprised.
+   *
+   * `free_cancellation` is set when the doctor moved the appointment. Showing
+   * the fee warning then would be threatening a charge the server will not
+   * make - and would push people into keeping a slot they never picked.
    */
   const cancel = async (a) => {
     const reason = window.prompt(
-      'Cancelling may incur a charge if your appointment is within 24 hours.\n\n'
+      (a.free_cancellation
+        ? 'Your doctor moved this appointment, so cancelling is free - you will be refunded in full.\n\n'
+        : 'Cancelling may incur a charge if your appointment is within 24 hours.\n\n')
       + 'Reason for cancelling (optional):')
 
     if (reason === null) return   // dismissed the dialog
@@ -48,7 +54,9 @@ export default function PatientAppointments() {
     try {
       await appointmentService.cancelAppointment(a.appointment_id, reason || null)
       dispatch(fetchPatientAppointments())
-      notify('Appointment cancelled. Any refund due has been issued.')
+      notify(a.free_cancellation
+        ? 'Appointment cancelled. You have been refunded in full.'
+        : 'Appointment cancelled. Any refund due has been issued.')
     } catch (err) {
       notify(err?.response?.data?.message || 'Could not cancel this appointment.', true)
     } finally {
@@ -105,6 +113,15 @@ export default function PatientAppointments() {
                     <span className="flex items-center gap-1"><Clock size={12} /> {a.time}</span>
                     {a.consultation_fee != null && <span className="font-semibold text-sand-700">{money(a.consultation_fee)}</span>}
                   </div>
+
+                  {/* The patient never chose this time, so they need to know the
+                      usual late-cancellation charge does not apply - before
+                      they decide whether to keep it. */}
+                  {a.free_cancellation && (
+                    <div className="mt-1.5 text-xs font-semibold text-warning-700">
+                      Moved by your doctor — cancel any time for a full refund
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -164,6 +181,20 @@ export default function PatientAppointments() {
                     {a.appointment_date} • {a.time}
                     {a.reason ? ` • ${a.reason}` : ''}
                   </div>
+
+                  {/* A no-show is the one past outcome where the patient may
+                      have been charged, so it has to say who missed it. Left
+                      unexplained it reads as an unexplained deduction. */}
+                  {a.no_show_by === 'PATIENT' && (
+                    <div className="mt-1 text-xs font-semibold text-sand-700">
+                      You did not join — this consultation was not refunded
+                    </div>
+                  )}
+                  {(a.no_show_by === 'DOCTOR' || a.no_show_by === 'BOTH') && (
+                    <div className="mt-1 text-xs font-semibold text-success-700">
+                      Did not take place — you were refunded in full
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
