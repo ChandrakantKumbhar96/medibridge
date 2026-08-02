@@ -37,7 +37,18 @@ public record AuthResponse(
             BigDecimal consultationFee,
 
             /** Doctor only: 'pending' until an admin approves the account. */
-            String status
+            String status,
+
+            /** Patient only. The number they signed in with, as they typed it. */
+            String phone,
+
+            /**
+             * Patient only. False for an account created by phone login, which
+             * has no name or email yet - LoginPage sends those to complete their
+             * profile instead of to a dashboard rendering blanks.
+             */
+            @JsonProperty("profile_complete")
+            Boolean profileComplete
     ) {
     }
 }

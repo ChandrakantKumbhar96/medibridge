@@ -5,6 +5,7 @@ import com.medibridge.appointment.entity.Appointment;
 import com.medibridge.common.enums.AccountStatus;
 import com.medibridge.common.enums.AppointmentStatus;
 import com.medibridge.common.enums.PaymentStatus;
+import com.medibridge.common.util.PhoneNumbers;
 import com.medibridge.doctor.DoctorAvailabilityRepository;
 import com.medibridge.doctor.DoctorRepository;
 import com.medibridge.doctor.DoctorScheduleRepository;
@@ -368,8 +369,12 @@ public class SampleDataSeeder {
                         LocalDate.of(2000, 8, 8), Patient.Gender.Female, "A-",
                         "12 T. Nagar, Chennai, Tamil Nadu"));
 
+        // A phone-first account has no email at all (V14), and this ran at
+        // startup - so one OTP signup made every subsequent boot fail here.
         Set<String> existing = patientRepository.findAll().stream()
-                .map(p -> p.getEmail().toLowerCase())
+                .map(Patient::getEmail)
+                .filter(Objects::nonNull)
+                .map(String::toLowerCase)
                 .collect(Collectors.toSet());
 
         List<Patient> saved = new ArrayList<>();
@@ -383,6 +388,9 @@ public class SampleDataSeeder {
                     .passwordHash(passwordEncoder.encode(DEMO_PASSWORD))
                     .authProvider(Patient.AuthProvider.LOCAL)
                     .phone(s.phone())
+                    // Same normalisation V14 backfills with, so a demo patient
+                    // can sign in by code as well as by password.
+                    .phoneE164(PhoneNumbers.toE164(s.phone()))
                     .dateOfBirth(s.dob())
                     .gender(s.gender())
                     .bloodGroup(s.blood())

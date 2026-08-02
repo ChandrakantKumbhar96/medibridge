@@ -84,6 +84,12 @@
             <div class="line">Age: <span th:text="${patientAge}">35</span> &#183;
                 <span th:text="${patientGender}">Male</span></div>
             <div class="line">Blood Group: <span th:text="${patientBloodGroup}">O+</span></div>
+            <!-- Only present when the visit was for a dependent: the sheet must
+                 say whose it is and who to contact, since those differ here. -->
+            <div class="line" th:if="${accountHolderName != null}">
+                <span th:text="${subjectRelation}">Child</span> of
+                <span th:text="${accountHolderName}">Rahul Sharma</span>
+            </div>
             <div class="line" th:text="${patientPhone}">+91 90000 00000</div>
         </td>
         <td style="width:4%;"></td>

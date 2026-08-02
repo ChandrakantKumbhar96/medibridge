@@ -4,7 +4,9 @@ import com.medibridge.appointment.AppointmentRepository;
 import com.medibridge.auth.RefreshTokenRepository;
 import com.medibridge.common.enums.UserType;
 import com.medibridge.common.exception.BadRequestException;
+import com.medibridge.common.exception.ConflictException;
 import com.medibridge.common.exception.ResourceNotFoundException;
+import com.medibridge.common.util.PhoneNumbers;
 import com.medibridge.patient.dto.ChangePasswordRequest;
 import com.medibridge.patient.dto.PatientProfileResponse;
 import com.medibridge.patient.dto.PatientProfileUpdateRequest;
@@ -41,8 +43,24 @@ public class PatientService {
                                                 PatientProfileUpdateRequest request) {
         Patient patient = load(patientId);
 
+        // Set-once. A phone-first account has no email until here; an account
+        // that already has one keeps it, whatever the body says.
+        if (patient.getEmail() == null && request.email() != null
+                && !request.email().isBlank()) {
+            String email = request.email().trim().toLowerCase();
+            if (patientRepository.existsByEmailIgnoreCase(email)) {
+                throw new ConflictException("An account with this email already exists");
+            }
+            patient.setEmail(email);
+        }
+
         patient.setFullName(request.fullName());
         patient.setPhone(request.phone());
+        // The E.164 form is what phone login matches on, so it has to move with
+        // `phone`. Left behind, the patient would sign in by code to whatever
+        // their OLD number resolved to - or auto-register a second account on
+        // the new one.
+        patient.setPhoneE164(claimPhone(patient, request.phone()));
         patient.setAnotherNumber(request.anotherNumber());
         patient.setAddress(request.address());
         patient.setDateOfBirth(request.dateOfBirth());
@@ -94,6 +112,23 @@ public class PatientService {
         return stats;
     }
 
+    /**
+     * The normalised number this patient may hold, or null when it is not a
+     * number we can text.
+     *
+     * <p>Checked rather than left to the UNIQUE index: the index would reject
+     * the save with a constraint violation and a 500, and "that number belongs
+     * to another account" is something the patient can act on.
+     */
+    private String claimPhone(Patient patient, String phone) {
+        String e164 = PhoneNumbers.toE164(phone);
+        if (e164 != null && !e164.equals(patient.getPhoneE164())
+                && patientRepository.existsByPhoneE164(e164)) {
+            throw new ConflictException("This mobile number is already registered");
+        }
+        return e164;
+    }
+
     private Patient load(Integer patientId) {
         return patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
@@ -108,7 +143,10 @@ public class PatientService {
                 p.getAnotherNumber(),
                 p.getAddress(),
                 p.getDateOfBirth() == null ? null : p.getDateOfBirth().format(DATE),
-                p.getGender().name(),
+                // Null on any account that has not completed its profile -
+                // Google since V3, phone since V14. This threw an NPE on the
+                // one screen those users are sent to in order to fix it.
+                p.getGender() == null ? null : p.getGender().name(),
                 p.getBloodGroup(),
                 p.getReasonOfConsult(),
                 p.getStatus().getDbValue());

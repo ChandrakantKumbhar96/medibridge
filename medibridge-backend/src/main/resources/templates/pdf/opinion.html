@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Second Opinion</title>
+    <style>
+        /* openhtmltopdf needs well-formed XHTML - every tag closed, including
+           <br/>. Malformed markup throws at render time rather than degrading. */
+        @page { size: A4; margin: 40px 40px 60px 40px;
+                @bottom-center { content: "Page " counter(page) " of " counter(pages);
+                                 font-family: sans-serif; font-size: 9px; color: #94a3b8; } }
+        body { font-family: sans-serif; color: #0f172a; font-size: 12px; }
+
+        /* Teal, not the prescription's blue. The two documents must not be
+           mistaken for one another at a glance - a patient showing this to their
+           original doctor needs it to read as an assessment, not a drug list. */
+        .header { border-bottom: 3px solid #0f766e; padding-bottom: 14px; margin-bottom: 22px; }
+        .brand { font-size: 26px; font-weight: bold; color: #0f766e; }
+        .tagline { font-size: 10px; color: #64748b; margin-top: 2px; }
+        .doc-title { float: right; text-align: right; margin-top: -34px; }
+        .doc-title .label { font-size: 15px; font-weight: bold; letter-spacing: 1px;
+                            color: #0f766e; }
+        .doc-title .meta { font-size: 10px; color: #64748b; margin-top: 3px; }
+
+        .panels { width: 100%; margin-bottom: 18px; }
+        .panel { width: 48%; vertical-align: top; padding: 12px 14px;
+                 background: #f8fafc; border-left: 3px solid #0f766e; }
+        .panel h3 { margin: 0 0 8px 0; font-size: 10px; text-transform: uppercase;
+                    letter-spacing: 1px; color: #0f766e; }
+        .panel .name { font-weight: bold; font-size: 13px; margin-bottom: 3px; }
+        .panel .line { font-size: 11px; color: #475569; margin-top: 2px; }
+
+        /* The verdict is the answer being paid for, so it is the largest thing
+           on the page after the letterhead. */
+        .verdict { padding: 14px 16px; border-radius: 4px; margin-bottom: 18px; }
+        .verdict.agree  { background: #ecfdf5; border: 1px solid #a7f3d0; }
+        .verdict.differ { background: #fffbeb; border: 1px solid #fde68a; }
+        .verdict h3 { margin: 0 0 4px 0; font-size: 10px; text-transform: uppercase;
+                      letter-spacing: 1px; color: #64748b; }
+        .verdict .value { font-size: 16px; font-weight: bold; }
+        .verdict.agree  .value { color: #047857; }
+        .verdict.differ .value { color: #b45309; }
+
+        .section { margin-bottom: 16px; }
+        .section h3 { margin: 0 0 6px 0; font-size: 10px; text-transform: uppercase;
+                      letter-spacing: 1px; color: #0f766e;
+                      border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        .section .body { font-size: 12px; line-height: 1.55; color: #1e293b;
+                         white-space: pre-wrap; }
+
+        .reviewed { background: #f1f5f9; border-left: 3px solid #94a3b8;
+                    padding: 10px 14px; margin-bottom: 16px; }
+        .reviewed h3 { margin: 0 0 4px 0; font-size: 10px; text-transform: uppercase;
+                       letter-spacing: 1px; color: #64748b; }
+        .reviewed .body { font-size: 12px; color: #334155; }
+
+        table.sign { width: 100%; margin-top: 34px; }
+        table.sign .box { width: 45%; border-top: 1px solid #94a3b8; padding-top: 6px;
+                          vertical-align: top; }
+        table.sign .line { font-weight: bold; font-size: 12px; }
+        table.sign .sub { font-size: 10px; color: #64748b; margin-top: 2px; }
+
+        .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #e2e8f0;
+                  font-size: 9px; color: #94a3b8; line-height: 1.5; }
+        .disclaimer { background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px;
+                      padding: 10px 12px; margin-top: 18px;
+                      font-size: 10px; color: #7f1d1d; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="brand">MediBridge</div>
+    <div class="tagline">Digital Healthcare Platform</div>
+    <div class="doc-title">
+        <div class="label">SECOND OPINION</div>
+        <div class="meta">No: <span th:text="${opinionNo}">MB-SO-00001</span></div>
+        <div class="meta">Issued: <span th:text="${issuedOn}">29 Jul 2026</span></div>
+    </div>
+</div>
+
+<table class="panels">
+    <tr>
+        <td class="panel">
+            <h3>Patient</h3>
+            <div class="name" th:text="${patientName}">Aarav Gupta</div>
+            <div class="line">
+                <span th:if="${patientAge != null}">
+                    <span th:text="${patientAge}">35</span> years
+                </span>
+                <span th:if="${patientGender != null}" th:text="' · ' + ${patientGender}"> · MALE</span>
+            </div>
+            <div class="line" th:if="${patientPhone != null}" th:text="${patientPhone}">+91 90000 11111</div>
+        </td>
+        <td style="width:4%;"></td>
+        <td class="panel">
+            <h3>Reviewing Specialist</h3>
+            <div class="name" th:text="${doctorName}">Dr. Aditya Nair</div>
+            <div class="line" th:text="${doctorSpecialization}">Cardiology</div>
+            <div class="line" th:if="${doctorQualifications != null}"
+                 th:text="${doctorQualifications}">MBBS, MD</div>
+            <div class="line">Reg. No: <span th:text="${doctorLicense}">MD-12345</span></div>
+        </td>
+    </tr>
+</table>
+
+<div class="reviewed">
+    <h3>Diagnosis under review</h3>
+    <div class="body" th:text="${originalDiagnosis}">Grade II ACL tear; surgery advised.</div>
+</div>
+
+<div th:class="'verdict ' + (${agrees} ? 'agree' : 'differ')">
+    <h3>Opinion</h3>
+    <div class="value" th:text="${verdict}">Differs from the original diagnosis</div>
+</div>
+
+<div class="section">
+    <h3>Clinical findings</h3>
+    <div class="body" th:text="${findings}">Reviewed MRI dated 12 July 2026...</div>
+</div>
+
+<div class="section">
+    <h3>Recommendation</h3>
+    <div class="body" th:text="${recommendation}">A 12-week supervised physiotherapy...</div>
+</div>
+
+<div class="section" th:if="${suggestedTests != null}">
+    <h3>Suggested investigations</h3>
+    <div class="body" th:text="${suggestedTests}">Repeat MRI after 8 weeks.</div>
+</div>
+
+<table class="sign">
+    <tr>
+        <td class="box"></td>
+        <td style="width:10%;"></td>
+        <td class="box">
+            <div class="line" th:text="${doctorName}">Dr. Aditya Nair</div>
+            <div class="sub" th:text="${doctorSpecialization}">Cardiology</div>
+            <div class="sub">Reg. No: <span th:text="${doctorLicense}">MD-12345</span></div>
+        </td>
+    </tr>
+</table>
+
+<!-- A second opinion is advice on someone else's treatment plan. Saying so is
+     not boilerplate: without it a patient may stop a prescribed treatment on
+     the strength of this document alone. -->
+<div class="disclaimer">
+    <strong>Important:</strong> This is an independent opinion based on the records
+    and history made available to the reviewing specialist. It does not replace
+    your treating doctor's care. Do not stop or change any prescribed treatment
+    without discussing this opinion with them first.
+</div>
+
+<div class="footer">
+    Digitally generated through MediBridge and valid without a physical signature.<br/>
+    Generated on <span th:text="${generatedOn}">2026-07-29 11:20</span> &#183;
+    Not to be used for medico-legal purposes.
+</div>
+
+</body>
+</html>

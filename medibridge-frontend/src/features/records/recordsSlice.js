@@ -1,7 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { recordService } from '../../services/recordService'
 
-export const fetchRecords = createAsyncThunk('records/fetch', () => recordService.getRecords())
+/** @param subject undefined for the whole account, 'self', or a family_member_id. */
+export const fetchRecords = createAsyncThunk('records/fetch', (subject) =>
+  recordService.getRecords(subject))
 
 const recordsSlice = createSlice({
   name: 'records',

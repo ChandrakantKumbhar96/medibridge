@@ -59,7 +59,7 @@ class ConcurrentBookingTest extends AbstractIntegrationTest {
                     try {
                         startGun.await();
                         appointmentService.book(patient.getId(), new BookAppointmentRequest(
-                                doctor.getId(), slot.getId(), "Consultation", "race"));
+                                doctor.getId(), slot.getId(), "Consultation", "race", null));
                         booked.incrementAndGet();
                     } catch (Exception e) {
                         // Either guard is a correct outcome: the pessimistic
@@ -128,7 +128,7 @@ class ConcurrentBookingTest extends AbstractIntegrationTest {
     private Throwable catchBooking(Integer patientId, String doctorId, Integer scheduleId) {
         try {
             appointmentService.book(patientId, new BookAppointmentRequest(
-                    doctorId, scheduleId, "Consultation", "second attempt"));
+                    doctorId, scheduleId, "Consultation", "second attempt", null));
             return null;
         } catch (Exception e) {
             return e;

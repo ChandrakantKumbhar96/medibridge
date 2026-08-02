@@ -1,5 +1,6 @@
 package com.medibridge.notification;
 
+import com.medibridge.common.util.PhoneNumbers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,20 +69,14 @@ public class SmsService {
      */
     @Async
     public void send(String toPhone, String body) {
-        String to = normalise(toPhone);
+        String to = PhoneNumbers.toE164(toPhone);
         if (to == null) {
             log.warn("SMS/WhatsApp skipped: no valid phone number");
             return;
         }
 
         if (!enabled) {
-            log.info("""
-
-                    ---------- {} (not sent: medibridge.sms.enabled=false) ----------
-                    To   : {}
-                    {}
-                    -----------------------------------------------------------------""",
-                    isWhatsApp() ? "WHATSAPP" : "SMS", to, body);
+            logInsteadOfSending(to, body);
             return;
         }
 
@@ -93,6 +88,52 @@ public class SmsService {
             log.error("{} to {} failed: {}",
                     isWhatsApp() ? "WhatsApp" : "SMS", to, e.getMessage());
         }
+    }
+
+    /**
+     * The same delivery, synchronous and loud.
+     *
+     * <p>{@link #send} is right for a booking notice: it happens behind an
+     * action the user already completed, so a slow gateway must not hold up the
+     * response and a failed text must not undo a confirmed appointment.
+     *
+     * <p>A login code is the opposite on both counts. The user is sitting on the
+     * "enter the code" screen waiting for it, so a swallowed failure leaves them
+     * waiting for something that is never coming - and the caller needs the
+     * exception so it can roll back the code it just issued rather than leave a
+     * live row nobody can satisfy.
+     *
+     * @throws IllegalArgumentException the number is not one we can text
+     * @throws IllegalStateException    the gateway refused or was unreachable
+     */
+    public void sendNow(String toPhone, String body) {
+        String to = PhoneNumbers.toE164(toPhone);
+        if (to == null) {
+            throw new IllegalArgumentException("Not a valid mobile number");
+        }
+
+        if (!enabled) {
+            logInsteadOfSending(to, body);
+            return;
+        }
+
+        try {
+            deliverViaTwilio(to, body);
+            log.info("{} sent to {}", isWhatsApp() ? "WhatsApp" : "SMS", to);
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    (isWhatsApp() ? "WhatsApp" : "SMS") + " delivery failed", e);
+        }
+    }
+
+    private void logInsteadOfSending(String to, String body) {
+        log.info("""
+
+                ---------- {} (not sent: medibridge.sms.enabled=false) ----------
+                To   : {}
+                {}
+                -----------------------------------------------------------------""",
+                isWhatsApp() ? "WHATSAPP" : "SMS", to, body);
     }
 
     private void deliverViaTwilio(String to, String body) throws Exception {
@@ -121,18 +162,6 @@ public class SmsService {
             throw new IllegalStateException("Twilio returned " + res.statusCode()
                     + ": " + res.body());
         }
-    }
-
-    /** Reduces "+91 90000 11111" to E.164 "+919000011111". */
-    private String normalise(String phone) {
-        if (phone == null) return null;
-        String digits = phone.replaceAll("[^0-9+]", "");
-        if (digits.isBlank()) return null;
-        if (!digits.startsWith("+")) {
-            // Assume an Indian number if no country code is present.
-            digits = "+91" + digits.replaceFirst("^0+", "");
-        }
-        return digits;
     }
 
     private static String enc(String v) {

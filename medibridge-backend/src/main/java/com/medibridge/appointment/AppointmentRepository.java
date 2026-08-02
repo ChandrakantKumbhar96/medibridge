@@ -35,6 +35,29 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     boolean existsByScheduleId(Integer scheduleId);
 
+    /**
+     * Whether this consultation's one free revisit has already been taken.
+     *
+     * <p>A courtesy check only - it exists so the caller gets "already used"
+     * instead of a constraint violation. The guarantee is {@code
+     * uq_follow_up_parent}; this query can always be beaten by a concurrent
+     * insert, which is why the insert is still wrapped.
+     */
+    boolean existsByParentAppointmentId(Integer parentAppointmentId);
+
+    /**
+     * Parent ids among this patient's bookings whose free revisit is spent.
+     *
+     * <p>One query for the whole past list rather than a lookup per row: the
+     * appointments screen renders every completed consultation the patient has
+     * ever had.
+     */
+    @Query("""
+           SELECT a.parentAppointment.id FROM Appointment a
+           WHERE a.patient.id = :patientId AND a.parentAppointment IS NOT NULL
+           """)
+    List<Integer> findUsedFollowUpParentIds(@Param("patientId") Integer patientId);
+
     /** Backs the hold-expiry job. */
     List<Appointment> findByStatusAndHoldExpiresAtBefore(
             AppointmentStatus status, LocalDateTime cutoff);

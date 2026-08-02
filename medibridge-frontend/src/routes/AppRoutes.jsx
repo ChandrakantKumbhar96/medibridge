@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from '../components/routing/ProtectedRoute'
+import SessionSync from '../components/routing/SessionSync'
 
 // Public
 import LandingPage from '../pages/public/LandingPage'
@@ -13,6 +14,7 @@ import FindDoctors from '../pages/patient/FindDoctors'
 import DoctorProfile from '../pages/patient/DoctorProfile'
 import BookAppointment from '../pages/patient/BookAppointment'
 import MedicalRecords from '../pages/patient/MedicalRecords'
+import FamilyProfiles from '../pages/patient/FamilyProfiles'
 import HealthTimeline from '../pages/patient/HealthTimeline'
 import SecondOpinion from '../pages/patient/SecondOpinion'
 import SymptomChecker from '../pages/patient/SymptomChecker'
@@ -27,6 +29,7 @@ import PatientRecordsDoctor from '../pages/doctor/PatientRecordsDoctor'
 import ManageSchedule from '../pages/doctor/ManageSchedule'
 import DoctorSettings from '../pages/doctor/DoctorSettings'
 import WritePrescription from '../pages/doctor/WritePrescription'
+import WriteOpinion from '../pages/doctor/WriteOpinion'
 import DoctorEarnings from '../pages/doctor/DoctorEarnings'
 
 // Admin
@@ -44,6 +47,9 @@ const admin = (el) => <ProtectedRoute role="admin">{el}</ProtectedRoute>
 
 export default function AppRoutes() {
   return (
+    <>
+    {/* Inside the router, so it can redirect; renders nothing. */}
+    <SessionSync />
     <Routes>
       {/* Public */}
       <Route path="/" element={<LandingPage />} />
@@ -59,6 +65,7 @@ export default function AppRoutes() {
       <Route path="/patient/payment" element={patient(<PaymentPage />)} />
       <Route path="/patient/rate" element={patient(<RateExperience />)} />
       <Route path="/patient/records" element={patient(<MedicalRecords />)} />
+      <Route path="/patient/family" element={patient(<FamilyProfiles />)} />
       <Route path="/patient/timeline" element={patient(<HealthTimeline />)} />
       <Route path="/patient/symptom-checker" element={patient(<SymptomChecker />)} />
       <Route path="/patient/second-opinion" element={patient(<SecondOpinion />)} />
@@ -69,6 +76,7 @@ export default function AppRoutes() {
       <Route path="/doctor/appointments" element={doctor(<DoctorAppointments />)} />
       <Route path="/doctor/patients" element={doctor(<PatientRecordsDoctor />)} />
       <Route path="/doctor/prescribe/:appointmentId" element={doctor(<WritePrescription />)} />
+      <Route path="/doctor/opinion/:appointmentId" element={doctor(<WriteOpinion />)} />
       <Route path="/doctor/earnings" element={doctor(<DoctorEarnings />)} />
       <Route path="/doctor/schedule" element={doctor(<ManageSchedule />)} />
       <Route path="/doctor/settings" element={doctor(<DoctorSettings />)} />
@@ -84,5 +92,6 @@ export default function AppRoutes() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   )
 }

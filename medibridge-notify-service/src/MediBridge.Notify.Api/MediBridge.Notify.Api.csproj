@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MediBridge.Notify.Sms\MediBridge.Notify.Sms.csproj" />
+    <ProjectReference Include="..\MediBridge.Notify.SpringClient\MediBridge.Notify.SpringClient.csproj" />
+    <ProjectReference Include="..\MediBridge.Notify.Reports\MediBridge.Notify.Reports.csproj" />
+    <ProjectReference Include="..\MediBridge.Notify.Jobs\MediBridge.Notify.Jobs.csproj" />
+  </ItemGroup>
+
+</Project>

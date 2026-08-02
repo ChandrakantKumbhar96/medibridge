@@ -1,183 +1,148 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-Two packages: `medibridge-frontend/` (React + Vite) and `medibridge-backend/`
-(Spring Boot 4.1 + MySQL). They are developed together — the backend was built
-to fit the already-finished frontend, not the other way round.
+Two packages: `medibridge-frontend/` (React + Vite, no TypeScript) and
+`medibridge-backend/` (Spring Boot 4.1 + MySQL). The backend was built to fit the
+already-finished frontend, not the other way round.
 
 ## Commands
 
-Frontend, from `medibridge-frontend/`:
+The `local` profile is required on every backend command — it supplies the DB
+password and JWT secret from the gitignored `application-local.yml`. Without it
+the app starts against an empty password and fails.
 
-```bash
-npm install
-npm run dev        # Vite dev server, port 5173, opens browser
-npm run build      # -> dist/
-```
-
-Backend, from `medibridge-backend/`:
-
-```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=local   # port 8080, context path /api
-mvn compile
-```
-
-The `local` profile is required — it supplies the DB password and JWT secret
-from the gitignored `src/main/resources/application-local.yml`. Without it the
-app starts against an empty password and fails.
-
+Backend runs on 8080 with context path `/api`; Vite on 5173.
 Demo admin: `admin@medibridge.com` / `Admin@123` (seeded by `DataSeeder`).
+
+There is no linter, no frontend test runner, no TypeScript. Do not invent
+`npm test` / `npm run lint` — they don't exist.
 
 ## Backend architecture
 
-**Modular monolith**, not microservices: one deployable, organized into feature
-packages under `com.medibridge` — `auth`, `patient`, `doctor`, `appointment`,
-`record`, `prescription`, `payment`, `review`, `admin`, `notification`, `pdf`,
-plus shared `common/`.
-
+**Modular monolith**: one deployable, feature packages under `com.medibridge`.
 The rule that keeps it modular: **a module may import another module's `Service`
-and `dto`, never its `entity` or `repository`.** `auth` is the one documented
-exception — authentication inherently spans all three identity tables.
+and `dto`, never its `entity` or `repository`.** `auth` is the one exception —
+authentication inherently spans all three identity tables.
 
-Three separate identity tables (`patient`, `doctor`, `admin`), each with its own
+Three identity tables (`patient`, `doctor`, `admin`), each with its own
 `password_hash`. Login sends `role` to pick the table. **That role is never
 trusted as authority** — it selects where to look up the account; authority
 comes from the row actually loaded.
 
 ## Things that will bite you
 
-- **Spring Boot 4 split its autoconfiguration into per-technology modules.**
-  `flyway-core` alone gives you the library with *no* Spring integration —
-  migrations silently never run, then Hibernate fails with a confusing
-  "missing table". You need `org.springframework.boot:spring-boot-flyway`.
-  Expect the same pattern for other integrations.
-
+- **Spring Boot 4 split autoconfiguration into per-technology modules.**
+  `flyway-core` alone gives the library with *no* Spring integration — migrations
+  silently never run. You need `org.springframework.boot:spring-boot-flyway`.
+  Expect the same for other integrations (see `docs/testing.md` for the test one).
 - **`ddl-auto: validate` and `baseline-on-migrate: false` are deliberate.**
-  Flyway owns the schema; validate catches entity/schema drift at startup
-  (it already caught `Short` → SMALLINT vs a TINYINT column). `baseline-on-migrate:
-  true` would make Flyway silently skip V1 against a non-empty database.
-
+  Flyway owns the schema; validate catches entity/schema drift at startup.
+  `baseline-on-migrate: true` would make Flyway silently skip V1.
 - **Java enums vs MySQL ENUM literals need converters.** `@Enumerated(STRING)`
-  writes the Java constant name (`ACTIVE`, `BEDSIDE_MANNER`), but the columns
-  hold `'active'` and `'Bedside Manner'`. See `common/enums/converter/`. Adding a
-  new enum-backed column means adding a converter.
-
-- **JSON casing is mixed and must stay that way.** Entity fields are snake_case
-  (`appointment_id`, `full_name`); admin aggregates are camelCase
-  (`totalPatients`, `revenueMTD`). A global Jackson naming strategy breaks one or
-  the other — use explicit `@JsonProperty` on DTOs.
-
-- **`AppointmentStatus.toFrontend()` exists because the DB and the UI disagree.**
-  The DB has `Requested`/`Accepted`/`Completed`; `Badge.jsx` only colours
-  `pending`/`confirmed`/`cancelled`. Never return the raw DB value to the client.
-
+  writes `ACTIVE`; the column holds `'active'`. See `common/enums/converter/`.
+  A new enum-backed column means a new converter.
+- **JSON casing is mixed and must stay that way.** Entity fields snake_case,
+  admin aggregates camelCase. No global Jackson strategy — explicit
+  `@JsonProperty` on DTOs.
+- **`AppointmentStatus.toFrontend()` exists because the DB and UI disagree.**
+  DB has `Requested`/`Accepted`/`Completed`; `Badge.jsx` only colours
+  `pending`/`confirmed`/`cancelled`. Never return the raw DB value to a client.
+- **JWT tokens are HS384, not HS256.** `JwtService`'s javadoc says HS256 and is
+  wrong — no explicit algorithm is passed, so JJWT picks the strongest the
+  62-byte key supports. Anything verifying these outside Spring must not
+  hardcode HS256.
 - **PDF templates must be well-formed XHTML** — openhtmltopdf throws on unclosed
-  tags. It also uses built-in Helvetica, which has no glyph for symbols like
-  U+211E (℞ renders as a box). Use plain text or embed a font.
+  tags, and built-in Helvetica has no glyph for ℞ (U+211E).
 
 ## Security invariants — do not weaken these
 
 - **Ownership checks live in the service layer, not in URL rules.**
   `hasRole('PATIENT')` cannot express "only *their own* records". Every
-  patient-scoped lookup queries by `(id, ownerId)` — see
-  `findByIdAndPatientId`. Take the caller's id from `@CurrentUser`, never from a
-  request parameter.
-- **Return 404, not 403, on ownership failures.** A 403 confirms the resource
-  exists.
+  patient-scoped lookup queries by `(id, ownerId)` — see `findByIdAndPatientId`.
+  Take the caller's id from `@CurrentUser`, never from a request parameter.
+- **Return 404, not 403, on ownership failures.** A 403 confirms it exists.
 - Login failures say "Invalid email or password" regardless of cause — anything
   more specific enumerates registered accounts.
 - Double booking is prevented by the UNIQUE constraint on
   `appointment.schedule_id`. `doctor_schedule.is_booked` is a read cache only —
-  never use it as the booking guard.
+  never the booking guard.
 - Uploaded files get a generated UUID filename and an allow-listed content type;
   the user's filename is never used as a path.
 
-## Tests
-
-Backend only — from `medibridge-backend/`:
-
-```bash
-mvn test -Dspring-boot.run.profiles=local
-```
-
-The suite is **integration tests against a real MySQL schema** (`medibridge_test`,
-created on first connect), running the real Flyway migrations and the same
-`ddl-auto: validate`. That is deliberate: the guarantees under test are database
-guarantees — a UNIQUE index, a CHECK constraint, row locking — and an in-memory
-database would silently not have them, leaving a green suite that proves nothing.
-No Docker, so no Testcontainers.
-
-- `src/test/resources/application-test.yml` activates alongside `local`, which
-  supplies the DB password. It overrides only the JDBC URL, blanks the Razorpay
-  keys (forcing the gateway's simulated mode) and points mail at a dead port.
-- `AbstractIntegrationTest` holds the fixtures and `@MockitoBean`s the scheduler
-  so timed sweeps can't mutate a fixture mid-assertion.
-- Fixtures are **additive, never rolled back** — `ConcurrentBookingTest` needs
-  real commits from 20 threads, so a transactional test wrapper would defeat it.
-  Every fixture uses a UUID email/licence so tests can't collide.
-- Policy decisions are asserted on **published events** (`@RecordApplicationEvents`)
-  rather than on money moving: the refund percentage *is* the policy; what the
-  gateway does with it belongs to the payment module.
-
-**Spring Boot 4 split test autoconfiguration too.** `spring-boot-starter-test` no
-longer provides `@AutoConfigureMockMvc` — it needs
-`org.springframework.boot:spring-boot-webmvc-test`, and the package is
-`org.springframework.boot.webmvc.test.autoconfigure`. Same trap as `spring-boot-flyway`.
-
-There is no linter, no frontend test runner, and no TypeScript. Do not invent
-`npm test` / `npm run lint` — they don't exist. Frontend verification is done by
-running the dev server.
-
 ## Mock-vs-live API architecture
 
-This is the central design constraint of the codebase. The frontend was built to run standalone against mock data, then switch to a Spring Boot backend by flipping one env flag in `.env`:
+The central design constraint. The frontend runs standalone against mock data or
+against the real backend, switched by one env flag:
 
 ```
-VITE_API_BASE_URL=http://localhost:8080/api
 VITE_USE_MOCK=true     # false -> real HTTP calls
 ```
 
-`USE_MOCK` is exported from [axiosClient.js](medibridge-frontend/src/api/axiosClient.js) and defaults to **true** unless the string is exactly `"false"`.
+`USE_MOCK` is exported from `src/api/axiosClient.js` and defaults to **true**
+unless the string is exactly `"false"`. Every method in `src/services/*` branches
+on it — `if (USE_MOCK) return mockResolve(fixture)` then the axios call.
+**Components never branch on mock mode.** Adding a feature means the service
+method with *both* branches plus a fixture in `src/api/mock/mockData.js`, or the
+app breaks in its default configuration.
 
-Every method in `src/services/*` follows this shape and **must keep following it** — components never branch on mock mode:
+## Frontend conventions
 
-```js
-async getPatientAppointments() {
-  if (USE_MOCK) return mockResolve(patientAppointments)   // from src/services/_mock.js
-  const { data } = await axiosClient.get('/appointments/patient')
-  return data
-}
-```
+`page` → `dispatch(thunk)` → `features/*/slice.js` → `services/*Service.js` →
+mock or `axiosClient`. Slices expose `status`/`error`
+(`'idle' | 'loading' | 'succeeded' | 'failed'`).
 
-`mockResolve` deep-clones and resolves after ~300ms to emulate latency. When adding a feature, add the service method with both branches plus a fixture in `src/api/mock/mockData.js` — otherwise the app breaks in its default configuration.
+- Mock fixtures mirror the MySQL schema — entity fields are **snake_case**
+  (`appointment_id`, `full_name`). Only the auth `user` object is camel-ish.
+- `authSlice` is the only persisted slice: `mb_token` / `mb_user` /
+  `mb_refresh_token` in `localStorage`, rehydrated into `initialState`.
+- Tailwind only. `Badge.jsx` maps status → colour and is **case-sensitive**;
+  a new status needs an entry there or it falls back to blue.
+- Reuse `src/components/common/` primitives rather than re-styling ad hoc.
+- Adding a dashboard page means a route **and** a nav entry in
+  `patientNav.js` / `doctorNav.js` / `adminNav.js`.
+- Some dashboard numbers are hardcoded to match the wireframes. Check before
+  assuming a value is wired up.
+- `src/api/mock/mockData.js` holds already-mis-encoded emoji — targeted edits
+  only, never a whole-file rewrite.
 
-The backend contract (endpoints the Spring Boot side is expected to expose) is listed in [README.md](medibridge-frontend/README.md).
+## Tests
 
-## Data flow
+See `docs/testing.md`. Integration tests against a real MySQL schema; do not
+run them unless I say so.
 
-`page component` → `dispatch(thunk)` → `features/*/slice.js` (createAsyncThunk) → `services/*Service.js` → mock or `axiosClient`.
+## Working style
 
-- Store: [store.js](medibridge-frontend/src/app/store.js) — slices `auth`, `doctors`, `appointments`, `records`, `admin`.
-- Pages read state with `useSelector` and fire fetch thunks from a `useEffect` on mount. Slices expose `status`/`error` strings (`'idle' | 'loading' | 'succeeded' | 'failed'`).
-- Mock fixtures mirror the MySQL schema, so entity fields are **snake_case** (`appointment_id`, `full_name`, `report_id`, `consultation_fee`). Keep that convention in new fixtures and payloads; only the auth `user` object is camel-ish (`{ id, name, email, role }`).
+This section is loaded into context on **every** message, so anything added here
+is paid for every time. Only rules that change behaviour belong in it.
 
-## Auth and RBAC
+**Verifying**
 
-- [authSlice.js](medibridge-frontend/src/features/auth/authSlice.js) is the only slice with persistence: it writes `mb_token` / `mb_user` to `localStorage` and rehydrates `initialState` from them on load.
-- `axiosClient` request interceptor reads `mb_token` directly from `localStorage` and sets `Authorization: Bearer <token>`.
-- [ProtectedRoute.jsx](medibridge-frontend/src/components/routing/ProtectedRoute.jsx) guards on `isAuthenticated` + exact `user.role`; a role mismatch redirects to `/login`, not to the user's own dashboard.
-- Three roles → three route trees in [AppRoutes.jsx](medibridge-frontend/src/routes/AppRoutes.jsx): `/patient/*`, `/doctor/*`, `/admin/*`. Patient and doctor share `/login` (role toggle); admin has a separate `/admin/login`.
-- In mock mode any email/password works; the role picked on the login screen determines the mock user returned.
+- Do not run anything unless I say "run it". No dev server, no browser,
+  no preview, no screenshots, no `mvn test`, no `npm run build`.
+- `mvn -q compile -o` is the one exception: prints nothing on success,
+  so it costs no tokens. Use it to check a change compiles.
+- I run the dev server in my own terminal and verify all visual changes myself.
+- When I do say "run it": one filtered command, report the last line only.
+  Never paste full logs, stack traces, or test output back to me.
+- Don't restart servers, re-seed the database, or re-run migrations.
 
-## UI conventions
+**UI work**
 
-- Dashboard pages render `<DashboardLayout navItems={...}>`; the nav arrays live next to the pages as `patientNav.js` / `doctorNav.js` / `adminNav.js` (lucide-react icons). Adding a dashboard page means adding a route **and** a nav entry.
-- Tailwind only — no CSS modules or styled-components. Custom `primary.*` blue scale in [tailwind.config.js](medibridge-frontend/tailwind.config.js); slate is the neutral.
-- [Badge.jsx](medibridge-frontend/src/components/common/Badge.jsx) maps status strings to colors and is **case-sensitive** with mixed conventions already present (`confirmed`, `Requested`, `Cancelled`). New statuses need an entry in that map or they fall back to blue.
-- Shared primitives in `src/components/common/` (Button, Card, Input + `Field`, Avatar, StatCard, Logo) — reuse rather than re-styling ad hoc.
+- Write the CSS/Tailwind once and stop. No iterate-and-recheck loops,
+  no "let me adjust the spacing" follow-ups.
+- Report what you changed in 3-5 lines. I'll tell you if it's wrong.
 
-## Gotchas
+**Reading the codebase**
 
-- The layout matches a fixed set of wireframes; some dashboard numbers (e.g. the stat tiles in `PatientOverview`) are hardcoded rather than derived from store data. Check before assuming a value is wired up.
-- `src/api/mock/mockData.js` contains emoji that are already stored mis-encoded. When editing it, use targeted edits — rewriting the whole file risks mangling those strings further.
+- Grep before Read. Read line ranges, not whole files, for anything long.
+- Don't re-read a file already read this session, and don't re-derive anything
+  already stated in this file.
+- Batch independent tool calls into one message.
+
+**Answering**
+
+- Lead with the answer. No alternatives unless asked.
+- Plans: output only, no prose explanation.
+- After a change, 3-5 lines: what changed, anything surprising.
+  No walkthrough of code I can read myself.
+- Ask before starting work when the request is ambiguous. A wrong guess costs
+  more than the question.

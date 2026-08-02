@@ -6,9 +6,13 @@ import com.medibridge.auth.dto.*;
 import com.medibridge.auth.entity.RefreshToken;
 import com.medibridge.common.enums.AccountStatus;
 import com.medibridge.common.enums.UserType;
+import com.medibridge.admin.SettingsProvider;
+import com.medibridge.common.exception.BadRequestException;
 import com.medibridge.common.exception.ConflictException;
+import com.medibridge.common.exception.InvalidOtpException;
 import com.medibridge.common.exception.OAuthException;
 import com.medibridge.common.security.JwtService;
+import com.medibridge.common.util.PhoneNumbers;
 import com.medibridge.doctor.DoctorRepository;
 import com.medibridge.doctor.SpecializationRepository;
 import com.medibridge.doctor.entity.Doctor;
@@ -50,6 +54,11 @@ public class AuthService {
     private final JwtService jwtService;
     private final ApplicationEventPublisher events;
     private final GoogleTokenVerifier googleTokenVerifier;
+    private final PhoneOtpService phoneOtpService;
+    private final SettingsProvider settings;
+
+    /** Placeholder until the patient completes their profile. */
+    private static final String NEW_PHONE_PATIENT_NAME = "New Patient";
 
     public boolean isGoogleEnabled() {
         return googleTokenVerifier.isEnabled();
@@ -72,11 +81,22 @@ public class AuthService {
         Patient patient = patientRepository.findByEmailIgnoreCase(request.email())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
-        // A Google account has no password hash. Without this check, the
-        // encoder would be handed a null and the failure mode would be unclear.
-        if (patient.getAuthProvider() == Patient.AuthProvider.GOOGLE) {
-            throw new BadCredentialsException(
-                    "This account uses Google Sign-In. Please continue with Google.");
+        // Neither a Google nor a phone account has a password hash. Without this
+        // the encoder is handed a null, and the caller gets an unexplained
+        // failure on an account that is perfectly fine.
+        //
+        // OAuthException, not BadCredentialsException: the handler answers the
+        // latter with a fixed "Invalid email or password" to avoid enumerating
+        // accounts, which would swallow the one message that actually helps
+        // here. Naming the sign-in method does confirm the address is
+        // registered - accepted, because the alternative is a user stuck
+        // retyping a password that does not exist.
+        if (patient.getAuthProvider() != Patient.AuthProvider.LOCAL) {
+            throw new OAuthException(switch (patient.getAuthProvider()) {
+                case GOOGLE -> "This account uses Google Sign-In. Please continue with Google.";
+                case PHONE -> "This account signs in with a code sent to your mobile number.";
+                default -> "This account uses a different sign-in method.";
+            });
         }
 
         verifyPassword(request.password(), patient.getPasswordHash());
@@ -87,11 +107,7 @@ public class AuthService {
 
         return issueTokens(
                 String.valueOf(patient.getId()), patient.getEmail(),
-                patient.getFullName(), UserType.PATIENT,
-                new AuthResponse.User(
-                        String.valueOf(patient.getId()), patient.getFullName(),
-                        patient.getEmail(), "patient",
-                        null, null, null, patient.getStatus().getDbValue()));
+                patient.getFullName(), UserType.PATIENT, patientUser(patient));
     }
 
     private AuthResponse loginDoctor(LoginRequest request) {
@@ -116,7 +132,8 @@ public class AuthService {
                 new AuthResponse.User(
                         doctor.getId(), doctor.getFullName(), doctor.getEmail(), "doctor",
                         doctor.getSpecialization().getName(), null,
-                        doctor.getConsultationFee(), doctor.getStatus().getDbValue()));
+                        doctor.getConsultationFee(), doctor.getStatus().getDbValue(),
+                        null, null));
     }
 
     private AuthResponse loginAdmin(LoginRequest request) {
@@ -135,7 +152,8 @@ public class AuthService {
                 new AuthResponse.User(
                         String.valueOf(admin.getId()), admin.getFullName(),
                         admin.getEmail(), "admin",
-                        null, admin.getTitle(), null, admin.getStatus().getDbValue()));
+                        null, admin.getTitle(), null, admin.getStatus().getDbValue(),
+                        null, null));
     }
 
     private void verifyPassword(String raw, String hash) {
@@ -197,11 +215,97 @@ public class AuthService {
 
         return issueTokens(
                 String.valueOf(patient.getId()), patient.getEmail(),
-                patient.getFullName(), UserType.PATIENT,
-                new AuthResponse.User(
-                        String.valueOf(patient.getId()), patient.getFullName(),
-                        patient.getEmail(), "patient",
-                        null, null, null, patient.getStatus().getDbValue()));
+                patient.getFullName(), UserType.PATIENT, patientUser(patient));
+    }
+
+    // --------------------------------------------------------- phone sign-in
+
+    /**
+     * Texts a login code to the number, whoever it belongs to.
+     *
+     * <p>The response is identical for a registered number and an unknown one.
+     * Anything else - a different message, a 404, even a visibly faster reply -
+     * makes this endpoint a way to test whether a given person is a MediBridge
+     * patient, one number at a time.
+     *
+     * <p>No account is created here. Registration happens on VERIFY, so a number
+     * that was typed by mistake, or by someone probing, never leaves a row
+     * behind.
+     */
+    @Transactional
+    public PhoneOtpSentResponse requestPhoneOtp(PhoneOtpRequest request) {
+        phoneOtpService.issue(toLookupKey(request.phone()));
+
+        return new PhoneOtpSentResponse(
+                "If that number can receive messages, a verification code is on its way.",
+                settings.otpLength(),
+                settings.otpResendCooldownSeconds(),
+                settings.otpTtlMinutes() * 60);
+    }
+
+    /**
+     * Signs in the owner of a verified number, creating the account if this is
+     * the first time it has been seen.
+     *
+     * <p>Patients only, for the reason Google Sign-In is patients only: a doctor
+     * account is a licence an admin checked, and an admin account is seeded.
+     * Neither should be obtainable by holding a SIM.
+     */
+    @Transactional
+    public AuthResponse loginWithPhoneOtp(PhoneOtpVerifyRequest request) {
+        String e164 = toLookupKey(request.phone());
+
+        // One message for a wrong code, an expired one, one already used, one
+        // burnt by too many guesses, and a number that was never sent anything.
+        // Same rule as "Invalid email or password": each of those, told apart,
+        // is a hint about what to change next. Not a BadCredentialsException,
+        // because that handler replaces the message with the password-login one.
+        if (!phoneOtpService.consume(e164, request.code())) {
+            throw new InvalidOtpException("That code is not valid. Please request a new one.");
+        }
+
+        Patient patient = patientRepository.findByPhoneE164(e164)
+                .orElseGet(() -> registerPhonePatient(e164, request.phone()));
+
+        if (patient.getStatus() != AccountStatus.ACTIVE) {
+            throw new DisabledException("Your account is inactive. Please contact support.");
+        }
+
+        return issueTokens(
+                String.valueOf(patient.getId()), patient.getEmail(),
+                patient.getFullName(), UserType.PATIENT, patientUser(patient));
+    }
+
+    /**
+     * The verified-number account: no password, no email, a placeholder name.
+     *
+     * <p>Exactly the half-built state V3 introduced for Google users rather than
+     * a second one - {@code auth_provider} says how they got in and
+     * {@code isProfileComplete()} says what is still missing.
+     */
+    private Patient registerPhonePatient(String e164, String asTyped) {
+        return patientRepository.save(Patient.builder()
+                .fullName(NEW_PHONE_PATIENT_NAME)
+                .email(null)
+                .passwordHash(null)
+                .authProvider(Patient.AuthProvider.PHONE)
+                // Both forms: one to show them, one to find them by.
+                .phone(asTyped.trim())
+                .phoneE164(e164)
+                .status(AccountStatus.ACTIVE)
+                .build());
+    }
+
+    /**
+     * Rejects here rather than letting a null reach the lookup, which would
+     * quietly match nothing and read as a wrong code.
+     */
+    private String toLookupKey(String phone) {
+        String e164 = PhoneNumbers.toE164(phone);
+        if (e164 == null) {
+            throw new BadRequestException("Enter a valid mobile number");
+        }
+        return e164;
     }
 
     // ------------------------------------------------------------- register
@@ -217,6 +321,10 @@ public class AuthService {
                 .email(request.email().toLowerCase())
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .phone(request.phone())
+                // Populated on every path that writes a phone, so an
+                // email-registered patient can still sign in by code later
+                // instead of auto-registering a second account on one number.
+                .phoneE164(PhoneNumbers.toE164(request.phone()))
                 .anotherNumber(blankToNull(request.anotherNumber()))
                 .address(blankToNull(request.address()))
                 .dateOfBirth(request.dateOfBirth())
@@ -230,11 +338,7 @@ public class AuthService {
 
         return issueTokens(
                 String.valueOf(patient.getId()), patient.getEmail(),
-                patient.getFullName(), UserType.PATIENT,
-                new AuthResponse.User(
-                        String.valueOf(patient.getId()), patient.getFullName(),
-                        patient.getEmail(), "patient",
-                        null, null, null, "active"));
+                patient.getFullName(), UserType.PATIENT, patientUser(patient));
     }
 
     /**
@@ -276,7 +380,8 @@ public class AuthService {
         // shows the message and keeps them on the login screen.
         return new AuthResponse(null, null, new AuthResponse.User(
                 doctor.getId(), doctor.getFullName(), doctor.getEmail(), "doctor",
-                specialization.getName(), null, doctor.getConsultationFee(), "pending"));
+                specialization.getName(), null, doctor.getConsultationFee(), "pending",
+                null, null));
     }
 
     // -------------------------------------------------------------- refresh
@@ -301,10 +406,7 @@ public class AuthService {
                 Patient p = patientRepository.findById(Integer.valueOf(stored.getUserId()))
                         .orElseThrow(() -> new BadCredentialsException("Account no longer exists"));
                 yield issueTokens(String.valueOf(p.getId()), p.getEmail(), p.getFullName(),
-                        UserType.PATIENT,
-                        new AuthResponse.User(String.valueOf(p.getId()), p.getFullName(),
-                                p.getEmail(), "patient", null, null, null,
-                                p.getStatus().getDbValue()));
+                        UserType.PATIENT, patientUser(p));
             }
             case DOCTOR -> {
                 Doctor d = doctorRepository.findById(stored.getUserId())
@@ -312,7 +414,7 @@ public class AuthService {
                 yield issueTokens(d.getId(), d.getEmail(), d.getFullName(), UserType.DOCTOR,
                         new AuthResponse.User(d.getId(), d.getFullName(), d.getEmail(), "doctor",
                                 d.getSpecialization().getName(), null, d.getConsultationFee(),
-                                d.getStatus().getDbValue()));
+                                d.getStatus().getDbValue(), null, null));
             }
             case ADMIN -> {
                 Admin a = adminRepository.findById(Integer.valueOf(stored.getUserId()))
@@ -321,7 +423,7 @@ public class AuthService {
                         UserType.ADMIN,
                         new AuthResponse.User(String.valueOf(a.getId()), a.getFullName(),
                                 a.getEmail(), "admin", null, a.getTitle(), null,
-                                a.getStatus().getDbValue()));
+                                a.getStatus().getDbValue(), null, null));
             }
         };
     }
@@ -356,6 +458,18 @@ public class AuthService {
                 .build());
 
         return new AuthResponse(accessToken, rawRefresh, user);
+    }
+
+    /**
+     * One place patients turn into a response body. There are four paths in and
+     * they were drifting - registration reported a hardcoded "active" while the
+     * others read the column.
+     */
+    private AuthResponse.User patientUser(Patient p) {
+        return new AuthResponse.User(
+                String.valueOf(p.getId()), p.getFullName(), p.getEmail(), "patient",
+                null, null, null, p.getStatus().getDbValue(),
+                p.getPhone(), p.isProfileComplete());
     }
 
     private String blankToNull(String value) {

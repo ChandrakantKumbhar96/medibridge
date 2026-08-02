@@ -1,5 +1,6 @@
 package com.medibridge.record.entity;
 
+import com.medibridge.patient.entity.FamilyMember;
 import com.medibridge.patient.entity.Patient;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,9 +21,21 @@ public class MedicalReport {
     @Column(name = "report_id")
     private Integer id;
 
+    /** The owning account. Every access check resolves through this. */
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
+
+    /**
+     * Whose document this is. Null means the account holder's own.
+     *
+     * <p>Unlike a prescription, a report is uploaded outside any appointment, so
+     * it has no visit to inherit its subject from and needs its own column. The
+     * composite foreign key in V12 keeps this dependent tied to {@code patient}.
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "family_member_id")
+    private FamilyMember familyMember;
 
     @Column(name = "report_name", nullable = false, length = 150)
     private String reportName;

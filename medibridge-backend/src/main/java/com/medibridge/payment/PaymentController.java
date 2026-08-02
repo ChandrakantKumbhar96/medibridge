@@ -32,7 +32,12 @@ public class PaymentController {
     public Map<String, Object> config() {
         return Map.of(
                 "gatewayEnabled", paymentService.isGatewayEnabled(),
-                "platformFee", settings.platformFee());
+                "platformFee", settings.platformFee(),
+                // The checkout screens need this to quote a second opinion at the
+                // price that will actually be charged. Without it they show the
+                // doctor's base fee and the gateway then takes the premium - a
+                // billing surprise at the worst possible moment.
+                "secondOpinionFeePercent", settings.secondOpinionFeePercent());
     }
 
     /** Step 1 of a gateway payment: server creates the order and fixes the amount. */

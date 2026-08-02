@@ -79,6 +79,29 @@ public class GlobalExceptionHandler {
         return body(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
+    /**
+     * Message shown as thrown - see InvalidOtpException. It is already uniform
+     * across every way a code can be refused, so nothing is enumerable; routing
+     * it through handleBadCredentials would only mislabel it as a password
+     * failure on a screen with no password field.
+     */
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidOtp(InvalidOtpException ex) {
+        return body(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    /**
+     * Mirrors what AuthRateLimitFilter writes by hand, Retry-After included, so
+     * a client sees one shape of 429 whichever guard turned it away.
+     */
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<Map<String, Object>> handleTooManyRequests(
+            TooManyRequestsException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                .body(body(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage()).getBody());
+    }
+
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<Map<String, Object>> handleDisabled(DisabledException ex) {
         return body(HttpStatus.FORBIDDEN, ex.getMessage());
