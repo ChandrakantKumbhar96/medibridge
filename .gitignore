@@ -38,6 +38,9 @@ sample-output/
 .DS_Store
 Thumbs.db
 
+# Claude Code local settings - machine-specific, not shared
+.claude/settings.local.json
+
 # Logs
 *.log
 logs/
