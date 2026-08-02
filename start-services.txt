@@ -1,0 +1,24 @@
+MediBridge — commands to start every service
+Run each block in its own terminal window, from the project root (D:\CPROJECT).
+Prereqs (not started by these commands): MySQL running, Redis running on localhost:6379.
+
+1) Backend (Spring Boot) — port 8080, context path /api
+cd medibridge-backend
+$env:SPRING_PROFILES_ACTIVE='local'; mvn spring-boot:run
+
+2) Frontend (Vite) — port 5173
+cd medibridge-frontend
+npm run dev
+
+3) Gateway (Node/Express) — port 4000
+cd medibridge-gateway
+npm run dev
+
+4) Notify service (.NET) — port 5154
+cd medibridge-notify-service
+dotnet run --project src/MediBridge.Notify.Api
+
+5) Chat service (FastAPI) — port 8000
+cd medibridge-chat-service
+python -m uvicorn app.main:app --reload --port 8000
+(if uvicorn is missing: pip install -r requirements.txt)

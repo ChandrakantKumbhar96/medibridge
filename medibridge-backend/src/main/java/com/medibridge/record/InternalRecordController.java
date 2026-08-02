@@ -1,7 +1,6 @@
-package com.medibridge.payment;
+package com.medibridge.record;
 
-import com.medibridge.payment.dto.PaymentResponse;
-import com.medibridge.payment.dto.RefundStatusResponse;
+import com.medibridge.record.dto.RecordResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,23 +18,16 @@ import java.util.List;
  * all requires the shared secret, never a user-supplied JWT.
  */
 @RestController
-@RequestMapping("/internal/payments")
+@RequestMapping("/internal/records")
 @RequiredArgsConstructor
-public class InternalPaymentController {
+public class InternalRecordController {
 
-    private final PaymentService paymentService;
+    private final RecordService recordService;
 
-    /** Backs the chat-service's get_refund_status tool - see spring_client.py. */
-    @GetMapping("/patient/{patientId}/latest-refund")
-    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
-    public RefundStatusResponse getLatestRefund(@PathVariable Integer patientId) {
-        return paymentService.latestRefundForPatient(patientId);
-    }
-
-    /** Backs the chat-service's get_payment_history tool - see spring_client.py. */
+    /** Backs the chat-service's get_medical_records tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
-    public List<PaymentResponse> listForPatient(@PathVariable Integer patientId) {
-        return paymentService.listForPatient(patientId);
+    public List<RecordResponse> listForPatient(@PathVariable Integer patientId) {
+        return recordService.listForPatient(patientId);
     }
 }
