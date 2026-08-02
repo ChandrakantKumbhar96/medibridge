@@ -40,14 +40,22 @@ is auto-attached as `Authorization: Bearer <token>` by `src/api/axiosClient.js`.
 POST /auth/login                 { email, password, role }
 POST /auth/register/patient
 POST /auth/register/doctor
+POST /auth/otp/request           { phone }   -- patients only; same reply either way
+POST /auth/otp/verify            { phone, code }   -- unknown number auto-registers
 GET  /doctors
 GET  /specialties
 GET  /appointments/patient
-POST /appointments
+POST /appointments               { doctor_id, schedule_id, consult_type, reason,
+                                   family_member_id? }   -- null = for myself
+POST /appointments/{id}/follow-up { schedule_id }   -- free revisit, same doctor
 PATCH /appointments/{id}/cancel
 GET  /appointments/doctor/dashboard
-GET  /records
-POST /records
+GET  /records                    ?subject=self | <family_member_id> | (omitted = all)
+POST /records                    ?report_name&report_type&family_member_id?
+GET  /patient/family
+POST /patient/family             { full_name, date_of_birth, gender, relation, ... }
+PUT  /patient/family/{id}
+DELETE /patient/family/{id}      -- archives; history stays readable
 GET  /admin/dashboard | /admin/patients | /admin/doctors
 GET  /admin/appointments | /admin/analytics | /admin/settings
 ```

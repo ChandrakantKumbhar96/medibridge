@@ -31,10 +31,11 @@ public class Patient {
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
-    @Column(nullable = false, unique = true, length = 100)
+    /** Null until a phone-first account completes its profile - see V14. */
+    @Column(unique = true, length = 100)
     private String email;
 
-    /** Null for Google accounts - they never set a password here. */
+    /** Null for Google and phone accounts - they never set a password here. */
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
@@ -53,8 +54,19 @@ public class Patient {
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
+    /** As typed, as displayed: "+91 90000 11111". */
     @Column(length = 20)
     private String phone;
+
+    /**
+     * The same number reduced to E.164, and the key phone login matches on.
+     *
+     * <p>Set through {@code PhoneNumbers.toE164} and never by hand: it has to be
+     * the identical string {@code SmsService} addresses the code to, or the
+     * system texts a number it cannot resolve back to this row.
+     */
+    @Column(name = "phone_e164", length = 16, unique = true)
+    private String phoneE164;
 
     @Column(name = "another_number", length = 20)
     private String anotherNumber;
@@ -96,9 +108,15 @@ public class Patient {
         }
     }
 
-    /** True once the Google user has filled in the fields registration would have required. */
+    /**
+     * True once the account holds everything registration would have required.
+     *
+     * <p>{@code email} is in the list for phone-first accounts, which have none
+     * at signup. Google accounts always arrive with one, so adding it changes
+     * nothing for them.
+     */
     public boolean isProfileComplete() {
-        return dateOfBirth != null && gender != null
+        return email != null && dateOfBirth != null && gender != null
                 && bloodGroup != null && phone != null;
     }
 
@@ -107,6 +125,6 @@ public class Patient {
     }
 
     public enum AuthProvider {
-        LOCAL, GOOGLE
+        LOCAL, GOOGLE, PHONE
     }
 }

@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Clock, FileText, CheckCircle2, XCircle, CalendarDays, CalendarClock, UserX } from 'lucide-react'
+import { Clock, FileText, CheckCircle2, XCircle, CalendarDays, CalendarClock, UserX, ClipboardCheck } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Avatar from '../../components/common/Avatar'
 import Button from '../../components/common/Button'
 import JoinButton from '../../components/common/JoinButton'
 import Badge from '../../components/common/Badge'
+import QueueStatus from '../../components/common/QueueStatus'
 import RescheduleModal from '../../components/common/RescheduleModal'
 import { doctorNav } from './doctorNav'
 import { fetchDoctorDashboard } from '../../features/appointments/appointmentsSlice'
 import { appointmentService } from '../../services/appointmentService'
+
+/** Matches ConsultType.SECOND_OPINION server-side; the column is free text. */
+const isSecondOpinion = (a) => (a.type || '').toLowerCase() === 'second opinion'
 
 export default function DoctorAppointments() {
   const dispatch = useDispatch()
@@ -92,6 +96,9 @@ export default function DoctorAppointments() {
             </span>
             {a.reason && <span className="text-sand-500">{a.reason}</span>}
           </div>
+          {/* Only today's confirmed bookings carry a queue standing, so this
+              shows on the Today section and hides itself everywhere else. */}
+          <QueueStatus appointment={a} as="doctor" />
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">{actions}</div>
@@ -132,10 +139,15 @@ export default function DoctorAppointments() {
         {today.length === 0 && empty('Nothing scheduled today.')}
         {today.map((a) => (
           <Row key={a.appointment_id} a={a} actions={<>
-            <JoinButton appointment={a} label="Start consultation" onError={(m) => notify(m, true)} />
+            <JoinButton appointment={a} as="doctor" label="Start consultation"
+              onError={(m) => notify(m, true)} />
             <Button variant="outline" className="px-4 py-1.5"
-              onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
-              <FileText size={14} /> Prescribe
+              onClick={() => navigate(isSecondOpinion(a)
+                ? `/doctor/opinion/${a.appointment_id}`
+                : `/doctor/prescribe/${a.appointment_id}`)}>
+              {isSecondOpinion(a)
+                ? <><ClipboardCheck size={14} /> Write opinion</>
+                : <><FileText size={14} /> Prescribe</>}
             </Button>
             {rescheduleBtn(a)}
           </>} />
@@ -148,10 +160,20 @@ export default function DoctorAppointments() {
         {pending.length === 0 && empty('Nothing awaiting notes.')}
         {pending.map((a) => (
           <Row key={a.appointment_id} a={a} actions={<>
-            <Button className="px-4 py-1.5"
-              onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
-              <FileText size={14} /> Write prescription
-            </Button>
+            {/* A second opinion ends in an opinion document, not a prescription
+                — the server rejects the wrong form for the consult type, so
+                sending the doctor to the right one is not merely cosmetic. */}
+            {isSecondOpinion(a) ? (
+              <Button className="px-4 py-1.5"
+                onClick={() => navigate(`/doctor/opinion/${a.appointment_id}`)}>
+                <ClipboardCheck size={14} /> Write opinion
+              </Button>
+            ) : (
+              <Button className="px-4 py-1.5"
+                onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
+                <FileText size={14} /> Write prescription
+              </Button>
+            )}
             <Button variant="outline" className="px-4 py-1.5"
               disabled={busy === `k-${a.appointment_id}`}
               onClick={() => complete(a)}>

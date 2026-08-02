@@ -7,6 +7,7 @@ import {
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Badge from '../../components/common/Badge'
 import Avatar from '../../components/common/Avatar'
+import QueueStatus from '../../components/common/QueueStatus'
 import { patientNav } from './patientNav'
 import { fetchPatientAppointments } from '../../features/appointments/appointmentsSlice'
 import { doctorService } from '../../services/doctorService'
@@ -147,6 +148,7 @@ export default function PatientOverview() {
                 <div className="min-w-0">
                   <div className="truncate font-bold text-sand-900">{a.doctor}</div>
                   <div className="text-sm text-sand-500">{a.specialization}</div>
+                  <QueueStatus appointment={a} />
                 </div>
               </div>
               <div className="hidden text-right text-xs text-sand-500 sm:block">

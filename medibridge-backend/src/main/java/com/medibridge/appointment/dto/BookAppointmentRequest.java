@@ -24,6 +24,19 @@ public record BookAppointmentRequest(
         @JsonProperty("consult_type")
         String consultType,
 
-        String reason
+        String reason,
+
+        /**
+         * Who the visit is for. Null - the common case - means the account holder
+         * themselves.
+         *
+         * <p>Unvalidated here on purpose: "does this dependent belong to the
+         * caller" is not a shape constraint, and answering it needs the token's
+         * owner id, which a bean validator never sees. It is resolved in
+         * {@code FamilyMemberService.requireOwned} and backed by a composite
+         * foreign key.
+         */
+        @JsonProperty("family_member_id")
+        Integer familyMemberId
 ) {
 }

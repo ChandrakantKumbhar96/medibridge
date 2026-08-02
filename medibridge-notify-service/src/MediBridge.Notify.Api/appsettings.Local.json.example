@@ -1,0 +1,10 @@
+{
+  "Spring": {
+    "InternalApiKey": "set-me"
+  },
+  "Twilio": {
+    "AccountSid": "set-me",
+    "AuthToken": "set-me",
+    "FromNumber": "set-me"
+  }
+}

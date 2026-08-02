@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="src/MediBridge.Notify.Api/MediBridge.Notify.Api.csproj" />
+  <Project Path="src/MediBridge.Notify.Jobs/MediBridge.Notify.Jobs.csproj" />
+  <Project Path="src/MediBridge.Notify.Reports/MediBridge.Notify.Reports.csproj" />
+  <Project Path="src/MediBridge.Notify.Sms/MediBridge.Notify.Sms.csproj" />
+  <Project Path="src/MediBridge.Notify.SpringClient/MediBridge.Notify.SpringClient.csproj" />
+</Solution>

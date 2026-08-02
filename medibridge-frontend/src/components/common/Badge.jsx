@@ -28,6 +28,11 @@ const map = {
   // who reads "cancelled" next to "not refunded" assumes they were charged a
   // cancellation fee. Slate reads as "did not happen", which is what it means.
   no_show:     { s: 'bg-sand-100 text-sand-700 ring-sand-300', d: 'bg-sand-500' },
+
+  // Chat/triage urgency levels (medibridge-chat-service TriageResult.urgency).
+  routine:     { s: 'bg-success-50 text-success-700 ring-success-100', d: 'bg-success-500' },
+  urgent:      { s: 'bg-warning-50 text-warning-700 ring-warning-100', d: 'bg-warning-500' },
+  emergency:   { s: 'bg-danger-50 text-danger-700 ring-danger-100', d: 'bg-danger-500' },
 }
 
 const fallback = { s: 'bg-primary-50 text-primary-700 ring-primary-200', d: 'bg-primary-500' }

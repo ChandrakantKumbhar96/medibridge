@@ -40,9 +40,14 @@ public class SecurityUser implements UserDetails {
         return null;
     }
 
+    /**
+     * Falls back to the id because a phone-first patient has no email yet, and
+     * UserDetails.getUsername() is contractually non-null - Spring Security
+     * calls it from getName() on every authentication.
+     */
     @Override
     public String getUsername() {
-        return email;
+        return email != null ? email : id;
     }
 
     @Override

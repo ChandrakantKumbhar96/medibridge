@@ -32,6 +32,17 @@ medibridge:
     key-id: ""
     key-secret: ""
 
+  # application-local.yml turns Twilio ON with real sandbox credentials, and the
+  # test profile inherits everything it does not override - so the suite was
+  # sending real WhatsApp messages on every booking and burning the sandbox's
+  # 50/day allowance. Both the flag and the credentials are cleared: the flag
+  # alone would be one edit away from sending again.
+  sms:
+    enabled: false
+    twilio:
+      account-sid: ""
+      auth-token: ""
+
 logging:
   level:
     org.hibernate.SQL: warn

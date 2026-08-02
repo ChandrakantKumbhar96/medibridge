@@ -1,5 +1,7 @@
 package com.medibridge.common.config;
 
+import com.medibridge.common.security.AuthRateLimitFilter;
+import com.medibridge.common.security.InternalApiKeyAuthFilter;
 import com.medibridge.common.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +41,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final AuthRateLimitFilter authRateLimitFilter;
+    private final InternalApiKeyAuthFilter internalApiKeyAuthFilter;
 
     @Value("${medibridge.cors.allowed-origins}")
     private String allowedOrigins;
@@ -72,7 +76,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     // --- public ---
                     .requestMatchers("/auth/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/specialties", "/specializations").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/specialties", "/specializations", "/policies").permitAll()
                     .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
@@ -81,6 +85,12 @@ public class SecurityConfig {
                     // enumerate every endpoint for an attacker too.
                     .requestMatchers("/swagger-ui/**", "/swagger-ui.html",
                                      "/v3/api-docs/**", "/api-docs/**").permitAll()
+
+                    // --- machine-to-machine ---
+                    // Only InternalApiKeyAuthFilter can ever grant this authority, and
+                    // only on the shared secret - no user JWT, however privileged,
+                    // carries ROLE_INTERNAL_SERVICE.
+                    .requestMatchers("/internal/**").hasRole("INTERNAL_SERVICE")
 
                     // --- role gates ---
                     .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -93,7 +103,14 @@ public class SecurityConfig {
 
                     .anyRequest().authenticated())
 
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(internalApiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+            // Ahead of the JWT filter, and therefore ahead of the controllers:
+            // /auth/** is permitAll, so nothing else in this chain would stop a
+            // caller hammering the login endpoint. Throttling has to happen
+            // before any password is checked, not after.
+            .addFilterBefore(authRateLimitFilter, JwtAuthFilter.class);
 
         return http.build();
     }

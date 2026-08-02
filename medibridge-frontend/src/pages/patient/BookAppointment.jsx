@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import {
   Check, Star, Calendar, Clock, ArrowLeft, BadgeCheck, Award, Video,
 } from 'lucide-react'
@@ -8,6 +9,8 @@ import Avatar from '../../components/common/Avatar'
 import Button from '../../components/common/Button'
 import { doctorService } from '../../services/doctorService'
 import { paymentService } from '../../services/paymentService'
+import { appointmentService } from '../../services/appointmentService'
+import { fetchFamily } from '../../features/family/familySlice'
 
 const money = (n) => `₹${Number(n ?? 0).toLocaleString('en-IN')}`
 const todayStr = () => new Date().toISOString().split('T')[0]
@@ -52,8 +55,15 @@ function Stepper({ steps, currentKey }) {
   )
 }
 
-/** Compact "who you're booking" strip shown on the Time and Confirm steps. */
-function DoctorStrip({ doctor }) {
+/**
+ * Compact "who you're booking" strip shown on the Time and Confirm steps.
+ *
+ * @param fee what this booking actually costs, which is not always the doctor's
+ *   list price - a free follow-up is ₹0 and a second opinion is a premium.
+ *   Quoting the list price here and charging something else is exactly the bug
+ *   the booked-fee snapshot exists to prevent.
+ */
+function DoctorStrip({ doctor, fee, feeNote }) {
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-sand-100 bg-sand-25 p-4">
       <Avatar name={doctor.full_name} size={52} color="solid" />
@@ -65,8 +75,10 @@ function DoctorStrip({ doctor }) {
         <div className="text-sm text-primary-700">{doctor.specialization}</div>
       </div>
       <div className="text-right">
-        <div className="text-lg font-extrabold text-sand-900">{money(doctor.consultation_fee)}</div>
-        <div className="text-[11px] uppercase tracking-wide text-sand-400">per consult</div>
+        <div className="text-lg font-extrabold text-sand-900">{money(fee)}</div>
+        <div className="text-[11px] uppercase tracking-wide text-sand-400">
+          {feeNote || 'per consult'}
+        </div>
       </div>
     </div>
   )
@@ -75,6 +87,8 @@ function DoctorStrip({ doctor }) {
 export default function BookAppointment() {
   const navigate = useNavigate()
   const { state } = useLocation()
+  const dispatch = useDispatch()
+  const family = useSelector((s) => s.family.list)
 
   const warm = !!state?.doctorId
   const steps = warm ? WARM_STEPS : FULL_STEPS
@@ -89,14 +103,45 @@ export default function BookAppointment() {
   const [date, setDate] = useState(warm && state?.date ? state.date : '')
   const [slot, setSlot] = useState(null)          // { schedule_id, label }
   const [reason, setReason] = useState(state?.reason || '')
+  // '' = booking for myself, which is the overwhelmingly common case and so the
+  // default. Kept as a string because it comes back from a <select>.
+  const [familyMemberId, setFamilyMemberId] = useState(
+    state?.familyMember ? String(state.familyMember.family_member_id) : '')
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [platformFee, setPlatformFee] = useState(5)   // real value from server config
+  const [opinionPercent, setOpinionPercent] = useState(150)
+
+  // The free revisit earned by a completed consultation. Set means this whole
+  // screen books off that parent: same doctor, no fee, no payment step.
+  const followUpOf = state?.followUpOf || null
+  const isFollowUp = !!followUpOf
+
+  // A second opinion is billed at a premium server-side. Quoting the doctor's
+  // base fee here would show one number and charge another.
+  const consultType = state?.consultType || 'Consultation'
+  const isSecondOpinion = consultType.toLowerCase() === 'second opinion'
+  const payableFee = (base) => {
+    if (isFollowUp) return 0
+    const value = Number(base || 0)
+    return isSecondOpinion ? Math.round(value * opinionPercent) / 100 : value
+  }
+  // Free means free - a platform fee on a zero-fee revisit is still a charge
+  // the patient was told they would not pay. The server sets it to 0 too.
+  const payablePlatformFee = isFollowUp ? 0 : Number(platformFee)
+
+  const selectedMember = family.find(
+    (m) => String(m.family_member_id) === familyMemberId) || null
+
+  useEffect(() => { dispatch(fetchFamily()) }, [dispatch])
 
   useEffect(() => {
     paymentService.getConfig()
-      .then((c) => { if (c.platformFee != null) setPlatformFee(Number(c.platformFee)) })
+      .then((c) => {
+        if (c.platformFee != null) setPlatformFee(Number(c.platformFee))
+        if (c.secondOpinionFeePercent != null) setOpinionPercent(Number(c.secondOpinionFeePercent))
+      })
       .catch(() => {})
   }, [])
 
@@ -175,8 +220,32 @@ export default function BookAppointment() {
   // abandoned checkout never leaves an orphaned booking holding a slot.
   const proceedToPayment = () => {
     navigate('/patient/payment', {
-      state: { doctor, specialty, date, slot, reason, consultType: state?.consultType || 'Consultation' },
+      state: { doctor, specialty, date, slot, reason, consultType, familyMember: selectedMember },
     })
+  }
+
+  /**
+   * A free follow-up has nothing to pay, so it skips the payment screen and is
+   * booked outright - the server confirms it immediately and issues the room.
+   *
+   * Only the parent id and the slot are sent: the doctor, the fee and who the
+   * visit is for are all inherited from the consultation being followed up, so
+   * none of them is worth carrying (or tampering with) through the client.
+   *
+   * A 409 means the revisit was already claimed or the slot was just taken -
+   * both are surfaced verbatim, they need different responses from the patient.
+   */
+  const confirmFollowUp = async () => {
+    setError(null)
+    setLoading(true)
+    try {
+      await appointmentService.bookFollowUp(followUpOf, slot.schedule_id)
+      navigate('/patient/appointments')
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Could not book this follow-up.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const backFromTime = () => (warm ? navigate(-1) : setStep('doctor'))
@@ -270,7 +339,8 @@ export default function BookAppointment() {
             <h1 className="mt-1 text-display-sm text-sand-900">Select date &amp; time</h1>
 
             <div className="mt-5 space-y-5">
-              <DoctorStrip doctor={doctor} />
+              <DoctorStrip doctor={doctor} fee={payableFee(doctor.consultation_fee)}
+                feeNote={isFollowUp ? 'free follow-up' : undefined} />
 
               <div className="surface p-6">
                 <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-sand-700">
@@ -307,6 +377,32 @@ export default function BookAppointment() {
                   </>
                 )}
 
+                {/* Only rendered once the account actually has dependents - a
+                    dropdown whose only option is "Myself" is a control that asks
+                    a question with one answer. Hidden for a follow-up for the
+                    same reason: the subject is inherited from the consultation
+                    being followed up, so the choice would not be honoured. */}
+                {family.length > 0 && !isFollowUp && (
+                  <div className="mt-6">
+                    <label className="block text-sm font-semibold text-sand-700">Who is this for?</label>
+                    <select value={familyMemberId} onChange={(e) => setFamilyMemberId(e.target.value)}
+                      className="mt-1.5 w-full rounded-xl border border-sand-200 bg-sand-50/60 px-4 py-3 text-sm font-medium
+                                 text-sand-900 outline-none transition hover:bg-white
+                                 focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-500/10">
+                      <option value="">Myself</option>
+                      {family.map((m) => (
+                        <option key={m.family_member_id} value={String(m.family_member_id)}>
+                          {m.full_name} ({m.relation}{m.age != null ? `, ${m.age}` : ''})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-xs text-sand-500">
+                      The doctor sees this person's name and age, and the prescription is
+                      written for them.
+                    </p>
+                  </div>
+                )}
+
                 <div className="mt-6">
                   <label className="block text-sm font-semibold text-sand-700">
                     Reason for visit <span className="font-normal text-sand-400">(optional)</span>
@@ -335,33 +431,54 @@ export default function BookAppointment() {
         {step === 'confirm' && doctor && (
           <div className="animate-fade-up">
             <span className="eyebrow">Almost there</span>
-            <h1 className="mt-1 text-display-sm text-sand-900">Confirm your appointment</h1>
+            <h1 className="mt-1 text-display-sm text-sand-900">
+              {isFollowUp ? 'Confirm your free follow-up' : 'Confirm your appointment'}
+            </h1>
 
             <div className="mt-5 max-w-lg space-y-5">
-              <DoctorStrip doctor={doctor} />
+              <DoctorStrip doctor={doctor} fee={payableFee(doctor.consultation_fee)}
+                feeNote={isFollowUp ? 'free follow-up' : undefined} />
 
               <div className="surface p-6">
                 <dl className="space-y-3 text-sm">
+                  {selectedMember && (
+                    <div className="flex justify-between"><dt className="text-sand-500">Patient</dt><dd className="font-semibold text-sand-800">{selectedMember.full_name} <span className="font-normal text-sand-500">({selectedMember.relation})</span></dd></div>
+                  )}
                   <div className="flex justify-between"><dt className="text-sand-500">Specialty</dt><dd className="font-semibold text-sand-800">{specialty}</dd></div>
                   <div className="flex justify-between"><dt className="text-sand-500">Date</dt><dd className="font-semibold text-sand-800">{date}</dd></div>
                   <div className="flex justify-between"><dt className="text-sand-500">Time</dt><dd className="font-semibold text-sand-800">{slot?.label}</dd></div>
-                  <div className="flex justify-between"><dt className="text-sand-500">Mode</dt><dd className="inline-flex items-center gap-1 font-semibold text-sand-800"><Video size={14} className="text-success-600" /> Video consultation</dd></div>
+                  <div className="flex justify-between"><dt className="text-sand-500">Type</dt><dd className="inline-flex items-center gap-1 font-semibold text-sand-800"><Video size={14} className="text-success-600" /> {consultType} (video)</dd></div>
                   {reason && (
                     <div className="flex justify-between gap-6"><dt className="text-sand-500">Reason</dt><dd className="text-right font-semibold text-sand-800">{reason}</dd></div>
                   )}
                   <div className="space-y-1.5 border-t border-sand-100 pt-3">
                     <div className="flex justify-between">
-                      <dt className="text-sand-500">Consultation fee</dt>
-                      <dd className="font-semibold text-sand-800">{money(doctor.consultation_fee)}</dd>
+                      <dt className="text-sand-500">
+                        {isFollowUp ? 'Follow-up fee'
+                          : isSecondOpinion ? 'Second opinion fee' : 'Consultation fee'}
+                      </dt>
+                      <dd className="font-semibold text-sand-800">{money(payableFee(doctor.consultation_fee))}</dd>
                     </div>
+                    {isFollowUp && (
+                      <div className="text-xs text-sand-500">
+                        Your revisit with {doctor.full_name} is covered by your last
+                        consultation — there is nothing to pay.
+                      </div>
+                    )}
+                    {isSecondOpinion && (
+                      <div className="text-xs text-sand-500">
+                        Reviewing an existing diagnosis is charged at {opinionPercent}% of
+                        the doctor's standard {money(doctor.consultation_fee)} fee.
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <dt className="text-sand-500">Platform fee</dt>
-                      <dd className="font-semibold text-sand-800">{money(platformFee)}</dd>
+                      <dd className="font-semibold text-sand-800">{money(payablePlatformFee)}</dd>
                     </div>
                     <div className="flex justify-between border-t border-sand-100 pt-1.5">
                       <dt className="font-bold text-sand-700">Total payable</dt>
                       <dd className="text-lg font-extrabold text-sand-900">
-                        {money(Number(doctor.consultation_fee || 0) + Number(platformFee))}
+                        {money(payableFee(doctor.consultation_fee) + payablePlatformFee)}
                       </dd>
                     </div>
                   </div>
@@ -374,7 +491,16 @@ export default function BookAppointment() {
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-sand-500 hover:text-primary-600">
                 <ArrowLeft size={15} /> Back
               </button>
-              <Button onClick={proceedToPayment} className="px-6">Proceed to payment</Button>
+              {/* Nothing to pay, so there is no payment step to send them to -
+                  the server confirms the revisit outright. */}
+              {isFollowUp ? (
+                <Button onClick={confirmFollowUp} disabled={loading}
+                  variant={loading ? 'disabled' : 'primary'} className="px-6">
+                  {loading ? 'Booking…' : 'Confirm free follow-up'}
+                </Button>
+              ) : (
+                <Button onClick={proceedToPayment} className="px-6">Proceed to payment</Button>
+              )}
             </div>
           </div>
         )}

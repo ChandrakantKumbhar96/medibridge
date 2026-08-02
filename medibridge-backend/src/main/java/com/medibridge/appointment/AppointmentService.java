@@ -3,9 +3,12 @@ package com.medibridge.appointment;
 import com.medibridge.admin.SettingsProvider;
 import com.medibridge.appointment.dto.AppointmentResponse;
 import com.medibridge.appointment.dto.BookAppointmentRequest;
+import com.medibridge.appointment.dto.NextAvailableResponse;
+import com.medibridge.appointment.dto.RoomStatusResponse;
 import com.medibridge.appointment.entity.Appointment;
 import com.medibridge.common.enums.AccountStatus;
 import com.medibridge.common.enums.AppointmentStatus;
+import com.medibridge.common.enums.ConsultType;
 import com.medibridge.common.exception.BadRequestException;
 import com.medibridge.common.exception.ConflictException;
 import com.medibridge.common.exception.ResourceNotFoundException;
@@ -15,13 +18,16 @@ import com.medibridge.doctor.entity.Doctor;
 import com.medibridge.doctor.entity.DoctorSchedule;
 import com.medibridge.notification.MeetingLinkService;
 import com.medibridge.notification.NotificationService;
+import com.medibridge.patient.FamilyMemberService;
 import com.medibridge.patient.PatientRepository;
+import com.medibridge.patient.entity.FamilyMember;
 import com.medibridge.patient.entity.Patient;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +35,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -60,16 +67,81 @@ public class AppointmentService {
             AppointmentStatus.REJECTED, AppointmentStatus.AUTO_EXPIRED,
             AppointmentStatus.NO_SHOW);
 
+    // Same formatting as AppointmentMapper, kept local rather than shared:
+    // that class's formatters are private, and duplicating two constants beats
+    // widening its API for one caller.
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter TIME_FORMAT =
+            DateTimeFormatter.ofPattern("hh:mm a", java.util.Locale.ENGLISH);
+
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final DoctorScheduleRepository scheduleRepository;
+    private final com.medibridge.doctor.SpecializationRepository specializationRepository;
     private final MeetingLinkService meetingLinkService;
     private final NotificationService notificationService;
     private final SettingsProvider settings;
+    private final LiveQueueService liveQueue;
+    // Another module's Service, never its repository - the appointment module
+    // must not know how documents are stored, only how many there are.
+    private final com.medibridge.record.RecordService recordService;
+    // Same rule: the dependent is resolved through the patient module's service,
+    // which is where "is this yours" is answered.
+    private final FamilyMemberService familyMemberService;
     private final ApplicationEventPublisher events;
 
     // -------------------------------------------------------------- booking
+
+    /**
+     * The soonest open slot in the configured window, optionally narrowed to
+     * one specialization - for a patient who would rather be matched than
+     * browse. Takes the specialization by name, not id: that is what the
+     * specialty chips on FindDoctors already hold, the same as {@code
+     * DoctorService.listDoctors}.
+     *
+     * <p>Read-only: nothing is held or reserved. {@code scheduleId} is handed
+     * back into {@link #book} to confirm, so a slot taken between preview and
+     * confirm surfaces as the same "just been taken" conflict {@code book}
+     * already throws - no separate race handling needed here.
+     *
+     * <p>The floor keeps the offer reachable; without it a slot starting in two
+     * minutes could be shown to a patient who has not paid yet.
+     */
+    @Transactional(readOnly = true)
+    public Optional<NextAvailableResponse> nextAvailable(String specialization) {
+        Integer specializationId = null;
+        if (specialization != null && !specialization.isBlank() && !"All".equalsIgnoreCase(specialization)) {
+            specializationId = specializationRepository.findByNameIgnoreCase(specialization)
+                    .map(com.medibridge.doctor.entity.Specialization::getId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Unknown specialization: " + specialization));
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime from = now.plusMinutes(settings.nextAvailableFloorMinutes());
+        LocalDateTime until = now.plusHours(settings.nextAvailableWindowHours());
+
+        List<DoctorSchedule> matches = scheduleRepository.findEarliestOpenSlots(
+                specializationId, from, until, PageRequest.of(0, 1));
+        if (matches.isEmpty()) {
+            return Optional.empty();
+        }
+
+        DoctorSchedule slot = matches.get(0);
+        Doctor doctor = slot.getDoctor();
+        LocalDateTime slotStart = LocalDateTime.of(slot.getAvailableDate(), slot.getStartTime());
+
+        return Optional.of(new NextAvailableResponse(
+                doctor.getId(),
+                doctor.getFullName(),
+                doctor.getSpecialization().getName(),
+                slot.getId(),
+                slot.getAvailableDate().format(DATE_FORMAT),
+                slotStart.format(TIME_FORMAT).toUpperCase(java.util.Locale.ENGLISH),
+                doctor.getConsultationFee(),
+                (int) Math.max(0, Duration.between(now, slotStart).toMinutes())));
+    }
 
     /**
      * Books a slot and locks in the price.
@@ -88,6 +160,13 @@ public class AppointmentService {
     public AppointmentResponse book(Integer patientId, BookAppointmentRequest request) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
+
+        // Null for the ordinary "booking for myself" case. Anything else is
+        // verified to belong to this caller before it is used, and a dependent
+        // owned by someone else comes back as 404 - never 403, which would
+        // confirm the id exists.
+        FamilyMember bookedFor =
+                familyMemberService.requireOwned(patientId, request.familyMemberId());
 
         Doctor doctor = doctorRepository.findById(request.doctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
@@ -112,16 +191,47 @@ public class AppointmentService {
             throw new BadRequestException("That time slot is in the past");
         }
 
-        BigDecimal fee = doctor.getConsultationFee();
+        String consultType = request.consultType() == null
+                ? ConsultType.CONSULTATION : request.consultType();
+
+        // A second opinion is a review of an existing case. With nothing on file
+        // to review, the specialist has nothing to form an opinion on - and the
+        // patient pays a premium for a consultation that cannot deliver what the
+        // page promised them.
+        boolean secondOpinion = ConsultType.isSecondOpinion(consultType);
+        if (secondOpinion) {
+            int required = settings.secondOpinionMinReports();
+            // Counted for whoever the visit is for, not for the account holder.
+            // A parent with ten of their own reports still has nothing for a
+            // specialist to review about their child.
+            Integer subjectId = bookedFor == null ? null : bookedFor.getId();
+            if (required > 0 && recordService.countForSubject(patientId, subjectId) < required) {
+                throw new BadRequestException(
+                        "Please upload at least " + required + " report"
+                                + (required == 1 ? "" : "s")
+                                + " for " + (bookedFor == null ? "yourself" : bookedFor.getFullName())
+                                + " before requesting a second opinion - the specialist "
+                                + "needs their existing reports to review.");
+            }
+        }
+
+        // Reviewing another clinician's case file is more work than a first
+        // consultation, so it is not billed at the same rate. Applied here, at
+        // booking, because this is where the price is snapshotted - reading the
+        // multiplier at payment time would let it change under a booked patient.
+        BigDecimal fee = secondOpinion
+                ? premiumFee(doctor.getConsultationFee())
+                : doctor.getConsultationFee();
         BigDecimal platformFee = settings.platformFee();
 
         Appointment appointment = Appointment.builder()
                 .patient(patient)
+                .familyMember(bookedFor)
                 .doctor(doctor)
                 .schedule(slot)
                 .appointmentDate(when)
                 .status(AppointmentStatus.PENDING_PAYMENT)
-                .consultType(request.consultType() == null ? "Consultation" : request.consultType())
+                .consultType(consultType)
                 .reason(request.reason())
                 .bookedFee(fee)
                 .platformFee(platformFee)
@@ -144,6 +254,19 @@ public class AppointmentService {
     }
 
     /**
+     * The doctor's fee scaled by the second-opinion percentage.
+     *
+     * <p>HALF_UP to two places so the stored amount is a real payable sum - the
+     * gateway is charged this exact figure, and an unrounded value would make
+     * the invoice disagree with what was taken.
+     */
+    private BigDecimal premiumFee(BigDecimal baseFee) {
+        return baseFee
+                .multiply(BigDecimal.valueOf(settings.secondOpinionFeePercent()))
+                .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+    }
+
+    /**
      * Payment succeeded: confirm the appointment and issue the meeting link.
      *
      * <p>The link is time-boxed. A URL that works forever is a URL anyone it was
@@ -158,6 +281,19 @@ public class AppointmentService {
             return;   // already confirmed, or cancelled - nothing to do
         }
 
+        confirm(appointment);
+    }
+
+    /**
+     * Everything that makes a booking real: confirmed status, a time-boxed room,
+     * and the patient told.
+     *
+     * <p>Extracted so the free follow-up - which has no payment to wait on -
+     * lands in exactly the state a paid booking reaches. Two copies of this
+     * would drift, and the one that drifts is the one that issues no meeting
+     * link.
+     */
+    private void confirm(Appointment appointment) {
         appointment.setStatus(AppointmentStatus.ACCEPTED);
         appointment.setConfirmedAt(LocalDateTime.now());
         appointment.setHoldExpiresAt(null);
@@ -173,22 +309,192 @@ public class AppointmentService {
         notificationService.sendBookingConfirmed(appointment);
     }
 
+    // ---------------------------------------------------------- follow-up
+
+    /**
+     * Books the one free revisit a completed consultation earns.
+     *
+     * <p>A patient who was seen last Tuesday and needs five minutes to report
+     * back should not pay a second full fee for it - clinics have always worked
+     * this way, and charging for it is what pushes people into not following up
+     * at all. The window runs from {@code completed_at} for
+     * {@code follow_up_window_days}, and the revisit must be with the same
+     * doctor: a different clinician has not seen the case, so there is nothing
+     * to follow up on.
+     *
+     * <p><b>One per parent, and the UNIQUE index is what says so.</b> The
+     * {@code existsBy} check below only exists so the ordinary case reads as
+     * "already used" rather than a constraint violation; two concurrent requests
+     * both passing it is expected, and the loser is caught at the insert as a
+     * 409. A boolean on the parent set from Java would be the same mistake as
+     * treating {@code doctor_schedule.is_booked} as the booking guard.
+     */
+    @Transactional
+    public AppointmentResponse bookFollowUp(Integer patientId, Integer parentId,
+                                            Integer scheduleId) {
+        if (!settings.followUpEnabled()) {
+            throw new BadRequestException("Free follow-ups are not currently available.");
+        }
+
+        // Ownership is the (id, ownerId) lookup, and a miss is a 404 - telling a
+        // stranger that this appointment exists is itself a disclosure.
+        Appointment parent = appointmentRepository.findByIdAndPatientId(parentId, patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+
+        if (parent.getStatus() != AppointmentStatus.COMPLETED) {
+            throw new BadRequestException(
+                    "Only a completed consultation earns a free follow-up (status: "
+                            + parent.getStatus().getDbValue() + ")");
+        }
+        if (parent.isFollowUp()) {
+            throw new BadRequestException(
+                    "This is already a follow-up. A free revisit is earned by a paid "
+                            + "consultation, not by another follow-up.");
+        }
+
+        int windowDays = settings.followUpWindowDays();
+        LocalDateTime eligibleUntil = parent.followUpEligibleUntil(windowDays);
+        if (eligibleUntil == null || eligibleUntil.isBefore(LocalDateTime.now())) {
+            throw new BadRequestException(
+                    "The free follow-up window for this consultation closed after "
+                            + windowDays + " days. Please book a new appointment.");
+        }
+        if (appointmentRepository.existsByParentAppointmentId(parentId)) {
+            throw new ConflictException(
+                    "You have already used the free follow-up for this consultation.");
+        }
+
+        DoctorSchedule slot = scheduleRepository.findByIdForUpdate(scheduleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Time slot not found"));
+
+        if (!slot.getDoctor().getId().equals(parent.getDoctor().getId())) {
+            throw new BadRequestException(
+                    "A follow-up must be with the same doctor who saw you.");
+        }
+        if (Boolean.TRUE.equals(slot.getIsBooked())
+                || appointmentRepository.existsByScheduleId(slot.getId())) {
+            throw new ConflictException("That time slot has just been taken. Please pick another.");
+        }
+
+        LocalDateTime when = LocalDateTime.of(slot.getAvailableDate(), slot.getStartTime());
+        if (when.isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("That time slot is in the past");
+        }
+
+        Appointment followUp = Appointment.builder()
+                .patient(parent.getPatient())
+                // The revisit is for whoever was seen, not for whoever paid - a
+                // parent's follow-up on their child's consultation is still the
+                // child's appointment.
+                .familyMember(parent.getFamilyMember())
+                .doctor(parent.getDoctor())
+                .schedule(slot)
+                .parentAppointment(parent)
+                .appointmentDate(when)
+                .status(AppointmentStatus.PENDING_PAYMENT)
+                .consultType(ConsultType.FOLLOW_UP)
+                .reason(parent.getReason())
+                // Free means free: a platform fee on a zero-fee revisit is still
+                // a charge the patient was told they would not pay.
+                .bookedFee(BigDecimal.ZERO)
+                .platformFee(BigDecimal.ZERO)
+                .totalAmount(BigDecimal.ZERO)
+                .build();
+
+        try {
+            followUp = appointmentRepository.saveAndFlush(followUp);
+        } catch (DataIntegrityViolationException e) {
+            // Either uq_follow_up_parent or uq_schedule_booking. Both are races
+            // this request lost, and both are a 409 rather than a 500.
+            throw new ConflictException(isParentClash(e)
+                    ? "You have already used the free follow-up for this consultation."
+                    : "That time slot has just been taken. Please pick another.");
+        }
+
+        slot.setIsBooked(true);
+        scheduleRepository.save(slot);
+
+        // Nothing to pay, so nothing confirms it later. It reaches the same
+        // state a paid booking does, here.
+        confirm(followUp);
+
+        // The zero fee is announced rather than enacted: this module decides the
+        // price is nil, the payment module decides what that means for invoices
+        // and payouts. Same split as the refund percentage on cancellation.
+        events.publishEvent(new FollowUpBookedEvent(
+                followUp.getId(), parent.getId(), followUp.getTotalAmount()));
+
+        return AppointmentMapper.toDto(followUp, true);
+    }
+
+    /**
+     * True when the failed insert was a second follow-up off one parent rather
+     * than a lost race for the slot.
+     *
+     * <p>Matched on the constraint name because the two failures need different
+     * wording - "pick another time" is useless advice to someone whose free
+     * revisit is simply gone. Falls back to the slot message, which is by far
+     * the commoner clash.
+     */
+    private boolean isParentClash(DataIntegrityViolationException e) {
+        String detail = String.valueOf(e.getMostSpecificCause().getMessage());
+        return detail.contains("uq_follow_up_parent");
+    }
+
     // -------------------------------------------------------- patient views
 
     @Transactional(readOnly = true)
     public Map<String, List<AppointmentResponse>> getPatientAppointments(Integer patientId) {
-        List<AppointmentResponse> upcoming = appointmentRepository
-                .findByPatientIdAndStatusInOrderByAppointmentDateAsc(patientId, UPCOMING)
-                .stream().map(a -> AppointmentMapper.toDto(a, true)).toList();
+        List<Appointment> upcomingRows = appointmentRepository
+                .findByPatientIdAndStatusInOrderByAppointmentDateAsc(patientId, UPCOMING);
+
+        // Only today's confirmed bookings come back with a standing; the rest of
+        // the list maps to null and simply has no queue fields.
+        Map<Integer, LiveQueueService.QueueView> queue = liveQueue.viewsFor(upcomingRows);
+
+        List<AppointmentResponse> upcoming = upcomingRows.stream()
+                .map(a -> AppointmentMapper.toDto(a, true, queue.get(a.getId())))
+                .toList();
+
+        // Whether each completed consultation still has its free revisit going,
+        // resolved once for the whole list rather than per row.
+        boolean followUps = settings.followUpEnabled();
+        int windowDays = settings.followUpWindowDays();
+        Set<Integer> spent = followUps
+                ? new HashSet<>(appointmentRepository.findUsedFollowUpParentIds(patientId))
+                : Set.of();
+        LocalDateTime now = LocalDateTime.now();
 
         List<AppointmentResponse> past = appointmentRepository
                 .findByPatientIdAndStatusInOrderByAppointmentDateDesc(patientId, PAST)
-                .stream().map(a -> AppointmentMapper.toDto(a, false)).toList();
+                .stream()
+                .map(a -> AppointmentMapper.toDto(a, false, null,
+                        followUpEligibleUntil(a, followUps, windowDays, spent, now)))
+                .toList();
 
         Map<String, List<AppointmentResponse>> result = new LinkedHashMap<>();
         result.put("upcoming", upcoming);
         result.put("past", past);
         return result;
+    }
+
+    /**
+     * The deadline to send for one past row, or null if there is nothing to
+     * offer.
+     *
+     * <p>Null covers every reason at once - feature off, not a completed visit,
+     * window closed, revisit already taken, or this row is itself a follow-up -
+     * because NON_NULL then drops the field and the UI's only rule is "present
+     * means offer it". Encoding the reasons would put this policy in two places.
+     */
+    private LocalDateTime followUpEligibleUntil(Appointment a, boolean enabled,
+                                                int windowDays, Set<Integer> spent,
+                                                LocalDateTime now) {
+        if (!enabled || a.isFollowUp() || spent.contains(a.getId())) {
+            return null;
+        }
+        LocalDateTime until = a.followUpEligibleUntil(windowDays);
+        return until != null && until.isAfter(now) ? until : null;
     }
 
     // --------------------------------------------------------- cancellation
@@ -320,7 +626,7 @@ public class AppointmentService {
         // Policy limits apply to patients only. A doctor with an emergency must
         // always be able to move a slot, and the patient is not penalised.
         if (by == Appointment.ActorRole.PATIENT) {
-            int maxReschedules = settings.getInt("max_reschedules", 2);
+            int maxReschedules = settings.maxReschedules();
             if (appointment.getRescheduleCount() != null
                     && appointment.getRescheduleCount() >= maxReschedules) {
                 throw new BadRequestException(
@@ -330,7 +636,7 @@ public class AppointmentService {
 
             long hoursUntil = Duration.between(
                     LocalDateTime.now(), appointment.getAppointmentDate()).toHours();
-            int minHours = settings.getInt("reschedule_min_hours", 4);
+            int minHours = settings.rescheduleMinHours();
             if (hoursUntil < minHours) {
                 throw new BadRequestException(
                         "Appointments can only be rescheduled at least " + minHours
@@ -421,11 +727,16 @@ public class AppointmentService {
     public Map<String, List<AppointmentResponse>> getDoctorDashboard(String doctorId) {
         LocalDate today = LocalDate.now();
 
+        // The doctor sees the same queue their patients do - same positions,
+        // same running-late figure. Two versions of "how late am I" would be one
+        // version too many.
+        Map<Integer, LiveQueueService.QueueView> queue = liveQueue.queueFor(doctorId, today);
+
         List<AppointmentResponse> todays = appointmentRepository
                 .findDoctorDay(doctorId, today.atStartOfDay(), today.plusDays(1).atStartOfDay())
                 .stream()
                 .filter(a -> a.getStatus().isActive())
-                .map(a -> AppointmentMapper.toDto(a, true))
+                .map(a -> AppointmentMapper.toDto(a, true, queue.get(a.getId())))
                 .toList();
 
         // Confirmed and still ahead - what the doctor needs to prepare for.
@@ -558,6 +869,42 @@ public class AppointmentService {
         appointmentRepository.save(a);
     }
 
+    /**
+     * Who is in the room, for the patient's waiting screen.
+     *
+     * <p><b>Read-only on purpose.</b> The waiting room polls this every few
+     * seconds; if it stamped attendance the way {@link #stampAttendance} does,
+     * simply having the screen open would record the patient as present without
+     * them ever asking for the link - and a patient who opened the page and
+     * walked away would be indistinguishable from one who attended.
+     *
+     * <p>Ownership is enforced the same way as everywhere else: the lookup is by
+     * {@code (id, ownerId)}, and a miss is a 404 rather than a 403 so the
+     * endpoint cannot be used to discover that an appointment exists.
+     */
+    @Transactional(readOnly = true)
+    public RoomStatusResponse roomStatusAsPatient(Integer patientId, Integer appointmentId) {
+        return toRoomStatus(appointmentRepository.findByIdAndPatientId(appointmentId, patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found")));
+    }
+
+    @Transactional(readOnly = true)
+    public RoomStatusResponse roomStatusAsDoctor(String doctorId, Integer appointmentId) {
+        return toRoomStatus(appointmentRepository.findByIdAndDoctorId(appointmentId, doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found")));
+    }
+
+    private RoomStatusResponse toRoomStatus(Appointment a) {
+        return new RoomStatusResponse(
+                a.getId(),
+                a.getDoctorJoinedAt() != null,
+                a.getPatientJoinedAt() != null,
+                a.isMeetingJoinable(),
+                a.getMeetingJoinFrom() == null ? null
+                        : a.getMeetingJoinFrom().format(JOIN_TIME),
+                a.getStatus().toFrontend());
+    }
+
     private String resolveJoinLink(Appointment a) {
         if (a.getStatus() != AppointmentStatus.ACCEPTED) {
             throw new BadRequestException(
@@ -626,7 +973,7 @@ public class AppointmentService {
     @Transactional(readOnly = true)
     public List<Integer> findNoShowCandidateIds() {
         LocalDateTime cutoff = LocalDateTime.now()
-                .minusMinutes(settings.getInt("no_show_grace_minutes", 15));
+                .minusMinutes(settings.noShowGraceMinutes());
         return appointmentRepository.findNoShowCandidateIds(AppointmentStatus.ACCEPTED, cutoff);
     }
 
@@ -704,6 +1051,19 @@ public class AppointmentService {
 
     /** Published on completion so the payout module can accrue the earning. */
     public record AppointmentCompletedEvent(Integer appointmentId) {
+    }
+
+    /**
+     * Published when a completed consultation's free revisit is claimed.
+     *
+     * <p>{@code fee} is the decision, not a description of it: this module rules
+     * that the revisit costs nothing, and the payment module decides what a
+     * zero-amount booking means for invoices and the doctor's payout. Same split
+     * as the refund percentage on {@link AppointmentCancelledEvent} - the policy
+     * is the number, and money moving is somebody else's concern.
+     */
+    public record FollowUpBookedEvent(Integer appointmentId, Integer parentAppointmentId,
+                                      BigDecimal fee) {
     }
 
     /**

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
-  Search, Star, BadgeCheck, Clock, Award, Stethoscope, ChevronRight,
+  Search, Star, BadgeCheck, Clock, Award, Stethoscope, ChevronRight, Zap,
 } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Avatar from '../../components/common/Avatar'
@@ -10,8 +10,73 @@ import Button from '../../components/common/Button'
 import { patientNav } from './patientNav'
 import { fetchDoctors } from '../../features/doctors/doctorsSlice'
 import { doctorService } from '../../services/doctorService'
+import { appointmentService } from '../../services/appointmentService'
 
 const money = (n) => `₹${Number(n ?? 0).toLocaleString('en-IN')}`
+
+/**
+ * "Next available" banner - for a patient who would rather be matched to the
+ * soonest open slot than browse and pick one themselves.
+ *
+ * Absent entirely when nothing qualifies (204 from the server): an empty
+ * banner reading "nothing available" adds nothing a patient can act on, and
+ * the doctor list right below it is the fallback anyway.
+ *
+ * @param specialization the currently selected specialty chip ('All' or a
+ *   name), so a filter the patient already picked carries through instead of
+ *   the banner ignoring it and offering an unrelated doctor.
+ */
+function NextAvailableBanner({ specialization }) {
+  const navigate = useNavigate()
+  const [slot, setSlot] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setSlot(null)
+    appointmentService.getNextAvailable(specialization).then((s) => { if (!cancelled) setSlot(s) }).catch(() => {})
+    return () => { cancelled = true }
+  }, [specialization])
+
+  if (!slot) return null
+
+  const confirm = () => navigate('/patient/payment', {
+    state: {
+      doctor: {
+        doctor_id: slot.doctor_id,
+        full_name: slot.doctor_name,
+        specialization: slot.specialization,
+        consultation_fee: slot.fee,
+      },
+      date: slot.available_date,
+      slot: { schedule_id: slot.schedule_id, label: slot.start_time },
+      reason: null,
+      consultType: 'Consultation',
+      familyMember: null,
+      viaNextAvailable: true,
+    },
+  })
+
+  return (
+    <div className="surface-lift animate-fade-up mt-6 flex flex-wrap items-center justify-between gap-4 border-primary-100 bg-gradient-to-r from-primary-50 to-white p-5">
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-white">
+          <Zap size={20} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-sand-900">
+            Next available: {slot.doctor_name} · {slot.specialization}
+          </p>
+          <p className="text-sm text-sand-500">
+            {slot.start_time} today (in ~{slot.wait_minutes} min) · {money(slot.fee)}
+          </p>
+        </div>
+      </div>
+      <Button variant="primary" onClick={confirm}>
+        Book this slot <ChevronRight size={16} />
+      </Button>
+    </div>
+  )
+}
 
 export default function FindDoctors() {
   const dispatch = useDispatch()
@@ -53,6 +118,8 @@ export default function FindDoctors() {
           Consult verified specialists over secure video — book in under a minute.
         </p>
       </div>
+
+      <NextAvailableBanner specialization={spec} />
 
       {/* Search + filters */}
       <div className="surface mt-6 p-5">

@@ -1,6 +1,9 @@
 import axios from 'axios'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
+// Routed through the gateway (medibridge-gateway), not straight to Spring -
+// the gateway is JWT-gated and proxies everything under /api to Spring
+// untouched (see proxy.routes.js), so this is a drop-in swap.
+const baseURL = import.meta.env.VITE_GATEWAY_API_URL || 'http://localhost:4000/api'
 
 const axiosClient = axios.create({
   baseURL,
@@ -57,7 +60,8 @@ axiosClient.interceptors.response.use(
     // refresh token are bad - refreshing again would loop forever.
     if (original.url?.includes('/auth/login')
         || original.url?.includes('/auth/refresh')
-        || original.url?.includes('/auth/google')) {
+        || original.url?.includes('/auth/google')
+        || original.url?.includes('/auth/otp/')) {
       return Promise.reject(error)
     }
 

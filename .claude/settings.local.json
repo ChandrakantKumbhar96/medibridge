@@ -1,7 +1,5 @@
 {
   "permissions": {
-    "allow": [
-      "PowerShell(Get-ChildItem -Recurse -File D:\\\\CPROJECT\\\\medibridge-frontend\\\\src | ForEach-Object { $_.FullName.Replace\\('D:\\\\CPROJECT\\\\medibridge-frontend\\\\',''\\) })"
-    ]
+    "allow": []
   }
 }
