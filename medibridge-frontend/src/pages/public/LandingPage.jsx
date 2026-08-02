@@ -1,18 +1,20 @@
 import { Link } from 'react-router-dom'
 import {
   Calendar, FileText, ShieldCheck, Video, Star, ArrowRight,
-  Stethoscope, CheckCircle2, Clock, Mail, Phone, MapPin,
+  Stethoscope, CheckCircle2, Clock, Mail, Phone, MapPin, PhoneOff,
 } from 'lucide-react'
 import PublicNavbar from '../../components/layout/PublicNavbar'
 import Avatar from '../../components/common/Avatar'
+import Reveal from '../../components/common/Reveal'
+import StatCounter from '../../components/common/StatCounter'
 
-/* Free-licence clinical photography (Unsplash). Deliberately environments and
-   equipment rather than portraits — presenting a stock face as a named doctor
-   with a registration number would be misrepresentation, even in a demo. */
-const HERO_IMG =
-  'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80'
+/* Free-licence clinical photography (Unsplash) — deliberately an environment,
+   not a portrait — presenting a stock face as a named doctor with a
+   registration number would be misrepresentation, even in a demo. */
 const CARE_IMG =
   'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=1000&q=80'
+
+const onlineDoctors = ['Dr. Aditya Nair', 'Dr. Kavya Rao', 'Dr. Rohan Mehta']
 
 const features = [
   { icon: Calendar, tone: 'bg-primary-50 text-primary-600', title: 'Real-time booking',
@@ -33,6 +35,22 @@ const specialties = [
   { name: 'Cardiology', emoji: '🫀' }, { name: 'Dermatology', emoji: '🧴' },
   { name: 'General Physician', emoji: '🩺' }, { name: 'Orthopedics', emoji: '🦴' },
   { name: 'Pediatrics', emoji: '👶' }, { name: 'Neurology', emoji: '🧠' },
+]
+
+const stats = [
+  { value: 10000, suffix: '+', label: 'Patients treated' },
+  { value: 500, suffix: '+', label: 'Verified doctors' },
+  { value: 25000, suffix: '+', label: 'Consultations completed' },
+  { value: 4.9, suffix: '/5', decimals: 1, label: 'Average rating' },
+]
+
+const testimonials = [
+  { name: 'Sana Iyer', role: 'Patient · Pune', rating: 5,
+    quote: 'Booked a cardiologist in two minutes and had my prescription in hand before I even left the video call.' },
+  { name: 'Rahul Deshmukh', role: 'Patient · Mumbai', rating: 5,
+    quote: 'No more sitting in a waiting room. All my reports and past prescriptions are in one place now.' },
+  { name: 'Dr. Priya Menon', role: 'Dermatologist', rating: 5,
+    quote: 'The scheduling actually reflects my real calendar — no more double bookings from the front desk.' },
 ]
 
 export default function LandingPage() {
@@ -81,6 +99,19 @@ export default function LandingPage() {
               </Link>
             </div>
 
+            {/* online-doctors avatar stack */}
+            <div className="mt-6 flex items-center gap-3">
+              <div className="flex -space-x-3">
+                {onlineDoctors.map((n) => (
+                  <Avatar key={n} name={n} size={34} ring={false} className="ring-2 ring-white" />
+                ))}
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-sand-600">
+                +138 doctors online
+                <span className="h-2 w-2 rounded-full bg-success-500 shadow-[0_0_0_3px_rgba(34,197,94,.18)]" />
+              </span>
+            </div>
+
             {/* trust row */}
             <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3 text-[13px] font-semibold text-sand-500">
               {['Verified doctors only', 'Encrypted records', 'Secure payments'].map((t) => (
@@ -93,14 +124,41 @@ export default function LandingPage() {
 
           {/* imagery */}
           <div className="relative animate-fade-up lg:pl-6">
-            <div className="relative overflow-hidden rounded-[28px] border border-white/70 shadow-lift">
-              <img
-                src={HERO_IMG}
-                alt="Doctor consulting a patient"
-                className="h-[420px] w-full object-cover"
-                loading="eager"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary-900/45 via-transparent to-transparent" />
+            {/* illustrated in-call mockup — no stock portraits, see Avatar.jsx */}
+            <div className="relative h-[420px] w-full overflow-hidden rounded-[28px] border border-white/70 bg-gradient-to-br from-primary-700 via-primary-600 to-primary-900 shadow-lift">
+              <div aria-hidden className="absolute inset-0 bg-mesh-teal opacity-30" />
+
+              <div className="absolute left-5 top-5 flex items-center gap-1.5 text-[13px] font-extrabold text-white">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent-400" /> MediBridge
+              </div>
+
+              <div className="flex h-full flex-col items-center justify-center gap-3">
+                <Avatar name="Dr. Aditya Nair" size={124} ring={false} color="solid" />
+                <div className="text-[15px] font-bold text-white">Dr. Aditya Nair</div>
+                <div className="text-[12px] font-medium text-primary-100">Cardiology · Live now</div>
+              </div>
+
+              {/* inset participant */}
+              <div className="absolute right-5 top-5 h-28 w-24 overflow-hidden rounded-2xl border-2 border-white/70 bg-sand-100 shadow-lg">
+                <div className="flex h-full items-center justify-center">
+                  <Avatar name="Meera Joshi" size={64} ring={false} />
+                </div>
+              </div>
+
+              {/* call timer */}
+              <div className="absolute left-5 bottom-24 flex items-center gap-1.5 rounded-full bg-black/25 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-sm">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-400" /> 04:12
+              </div>
+
+              {/* hang-up control */}
+              <button
+                type="button"
+                aria-label="End call"
+                className="absolute bottom-6 left-1/2 flex h-12 w-12 -translate-x-1/2 items-center justify-center
+                           rounded-full bg-accent-600 text-white shadow-lg transition-transform hover:scale-105"
+              >
+                <PhoneOff size={19} />
+              </button>
             </div>
 
             {/* floating appointment card */}
@@ -132,9 +190,23 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ================= STATS ================= */}
+      <section className="border-y border-sand-200/70 bg-white">
+        <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-6 px-6 py-10 sm:grid-cols-4">
+          {stats.map((s) => (
+            <Reveal key={s.label} className="text-center">
+              <div className="text-[28px] font-extrabold tracking-[-0.02em] text-primary-700 sm:text-[34px]">
+                <StatCounter value={s.value} suffix={s.suffix} decimals={s.decimals || 0} />
+              </div>
+              <div className="mt-1.5 text-[12.5px] font-semibold text-sand-500">{s.label}</div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* ================= SPECIALTIES ================= */}
       <section id="services" className="mx-auto max-w-[1200px] scroll-mt-24 px-6 py-16">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <Reveal className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <span className="eyebrow">Departments</span>
             <h2 className="mt-2 text-[32px] font-extrabold tracking-[-0.03em] text-sand-900">
@@ -144,21 +216,22 @@ export default function LandingPage() {
           <Link to="/login" className="text-sm font-bold text-primary-600 hover:text-primary-700">
             View all doctors →
           </Link>
-        </div>
+        </Reveal>
 
         <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-          {specialties.map((s) => (
-            <Link
-              key={s.name}
-              to="/login"
-              className="group rounded-2xl border border-sand-200/70 bg-white p-5 text-center shadow-soft
-                         transition-all duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-card"
-            >
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-sand-50 text-2xl transition-colors group-hover:bg-primary-50">
-                {s.emoji}
-              </div>
-              <div className="mt-3 text-[13px] font-bold text-sand-800">{s.name}</div>
-            </Link>
+          {specialties.map((s, i) => (
+            <Reveal key={s.name} delay={i * 60}>
+              <Link
+                to="/login"
+                className="group block rounded-2xl border border-sand-200/70 bg-white p-5 text-center shadow-soft
+                           transition-all duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-card"
+              >
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-sand-50 text-2xl transition-colors group-hover:bg-primary-50">
+                  {s.emoji}
+                </div>
+                <div className="mt-3 text-[13px] font-bold text-sand-800">{s.name}</div>
+              </Link>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -166,26 +239,27 @@ export default function LandingPage() {
       {/* ================= FEATURES / ABOUT ================= */}
       <section id="about" className="scroll-mt-24 border-y border-sand-200/70 bg-sand-50">
         <div className="mx-auto max-w-[1200px] px-6 py-16">
-          <div className="max-w-xl">
+          <Reveal className="max-w-xl">
             <span className="eyebrow">Why MediBridge</span>
             <h2 className="mt-2 text-[32px] font-extrabold tracking-[-0.03em] text-sand-900">
               Built around how care actually works
             </h2>
-          </div>
+          </Reveal>
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {features.map((f) => (
-              <div
-                key={f.title}
-                className="rounded-2xl border border-sand-200/70 bg-white p-6 shadow-soft
-                           transition-all duration-300 hover:-translate-y-1 hover:shadow-card"
-              >
-                <div className={`inline-flex rounded-xl p-3 ${f.tone}`}>
-                  <f.icon size={21} strokeWidth={2.2} />
+            {features.map((f, i) => (
+              <Reveal key={f.title} delay={i * 80}>
+                <div
+                  className="h-full rounded-2xl border border-sand-200/70 bg-white p-6 shadow-soft
+                             transition-all duration-300 hover:-translate-y-1 hover:shadow-card"
+                >
+                  <div className={`inline-flex rounded-xl p-3 ${f.tone}`}>
+                    <f.icon size={21} strokeWidth={2.2} />
+                  </div>
+                  <h3 className="mt-5 text-[17px] font-bold tracking-tight text-sand-900">{f.title}</h3>
+                  <p className="mt-2 text-[14px] leading-relaxed text-sand-600">{f.text}</p>
                 </div>
-                <h3 className="mt-5 text-[17px] font-bold tracking-tight text-sand-900">{f.title}</h3>
-                <p className="mt-2 text-[14px] leading-relaxed text-sand-600">{f.text}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -194,7 +268,7 @@ export default function LandingPage() {
       {/* ================= HOW IT WORKS ================= */}
       <section className="mx-auto max-w-[1200px] px-6 py-16">
         <div className="grid items-center gap-14 lg:grid-cols-2">
-          <div className="relative order-2 lg:order-1">
+          <Reveal className="relative order-2 lg:order-1">
             <div className="overflow-hidden rounded-[28px] border border-sand-200/70 shadow-lift">
               <img src={CARE_IMG} alt="Clinical care" className="h-[400px] w-full object-cover" loading="lazy" />
             </div>
@@ -206,9 +280,9 @@ export default function LandingPage() {
                 Only you and your doctor can access them
               </div>
             </div>
-          </div>
+          </Reveal>
 
-          <div className="order-1 lg:order-2">
+          <Reveal delay={120} className="order-1 lg:order-2">
             <span className="eyebrow">How it works</span>
             <h2 className="mt-2 text-[32px] font-extrabold tracking-[-0.03em] text-sand-900">
               Three steps to care
@@ -227,13 +301,45 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ================= TESTIMONIALS ================= */}
+      <section className="mx-auto max-w-[1200px] px-6 py-16">
+        <Reveal className="max-w-xl">
+          <span className="eyebrow">Testimonials</span>
+          <h2 className="mt-2 text-[32px] font-extrabold tracking-[-0.03em] text-sand-900">
+            Loved by patients and doctors alike
+          </h2>
+        </Reveal>
+
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {testimonials.map((t, i) => (
+            <Reveal key={t.name} delay={i * 80}>
+              <div className="flex h-full flex-col rounded-2xl border border-sand-200/70 bg-white p-6 shadow-soft">
+                <div className="flex items-center gap-0.5 text-warning-500">
+                  {Array.from({ length: t.rating }).map((_, idx) => (
+                    <Star key={idx} size={14} fill="currentColor" />
+                  ))}
+                </div>
+                <p className="mt-4 flex-1 text-[14px] leading-relaxed text-sand-700">“{t.quote}”</p>
+                <div className="mt-5 flex items-center gap-3">
+                  <Avatar name={t.name} size={38} ring={false} />
+                  <div>
+                    <div className="text-[13px] font-bold text-sand-900">{t.name}</div>
+                    <div className="text-[11.5px] font-medium text-sand-500">{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
         </div>
       </section>
 
       {/* ================= CTA ================= */}
       <section className="px-6 pb-20">
-        <div className="relative mx-auto max-w-[1200px] overflow-hidden rounded-[28px] bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 px-8 py-14 text-center">
+        <Reveal className="relative mx-auto max-w-[1200px] overflow-hidden rounded-[28px] bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 px-8 py-14 text-center">
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-mesh-teal opacity-60" />
           <div className="relative">
             <h2 className="text-[32px] font-extrabold tracking-[-0.03em] text-white">
@@ -250,7 +356,7 @@ export default function LandingPage() {
               Get started free <ArrowRight size={17} />
             </Link>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ================= CONTACT / FOOTER ================= */}
