@@ -3,7 +3,9 @@ package com.medibridge.appointment;
 import com.medibridge.admin.SettingsProvider;
 import com.medibridge.appointment.dto.AppointmentResponse;
 import com.medibridge.appointment.dto.BookAppointmentRequest;
+import com.medibridge.appointment.dto.NextAppointmentResponse;
 import com.medibridge.appointment.dto.NextAvailableResponse;
+import com.medibridge.appointment.dto.RescheduleStatusResponse;
 import com.medibridge.appointment.dto.RoomStatusResponse;
 import com.medibridge.appointment.entity.Appointment;
 import com.medibridge.common.enums.AccountStatus;
@@ -439,6 +441,56 @@ public class AppointmentService {
     private boolean isParentClash(DataIntegrityViolationException e) {
         String detail = String.valueOf(e.getMostSpecificCause().getMessage());
         return detail.contains("uq_follow_up_parent");
+    }
+
+    // ------------------------------------------------------- internal tools
+
+    @Transactional(readOnly = true)
+    public long countUpcomingForPatient(Integer patientId) {
+        return appointmentRepository.countByPatientIdAndStatusIn(patientId, UPCOMING);
+    }
+
+    @Transactional(readOnly = true)
+    public long countUpcomingForDoctor(String doctorId) {
+        return appointmentRepository.countByDoctorIdAndStatusIn(doctorId, UPCOMING);
+    }
+
+    @Transactional(readOnly = true)
+    public long countTodayForDoctor(String doctorId) {
+        LocalDateTime dayStart = LocalDate.now().atStartOfDay();
+        return appointmentRepository.findDoctorDay(doctorId, dayStart, dayStart.plusDays(1)).size();
+    }
+
+    @Transactional(readOnly = true)
+    public NextAppointmentResponse nextForPatient(Integer patientId) {
+        return appointmentRepository
+                .findByPatientIdAndStatusInOrderByAppointmentDateAsc(patientId, UPCOMING)
+                .stream().findFirst()
+                .map(a -> new NextAppointmentResponse(
+                        a.getDoctor().getFullName(), a.getAppointmentDate().toString(), a.getStatus().toFrontend()))
+                .orElseThrow(() -> new ResourceNotFoundException("No upcoming appointment"));
+    }
+
+    @Transactional(readOnly = true)
+    public NextAppointmentResponse nextForDoctor(String doctorId) {
+        return appointmentRepository
+                .findByDoctorIdAndStatusInOrderByAppointmentDateAsc(doctorId, UPCOMING)
+                .stream().findFirst()
+                .map(a -> new NextAppointmentResponse(
+                        a.subjectName(), a.getAppointmentDate().toString(), a.getStatus().toFrontend()))
+                .orElseThrow(() -> new ResourceNotFoundException("No upcoming appointment"));
+    }
+
+    /** How many times the patient has moved their next upcoming appointment, against the policy cap. */
+    @Transactional(readOnly = true)
+    public RescheduleStatusResponse rescheduleStatusForPatient(Integer patientId) {
+        Appointment appointment = appointmentRepository
+                .findByPatientIdAndStatusInOrderByAppointmentDateAsc(patientId, UPCOMING)
+                .stream().findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No upcoming appointment"));
+        int used = appointment.getRescheduleCount() == null ? 0 : appointment.getRescheduleCount();
+        int max = settings.maxReschedules();
+        return new RescheduleStatusResponse(used, max, used < max);
     }
 
     // -------------------------------------------------------- patient views
