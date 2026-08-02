@@ -42,6 +42,18 @@ public class PaymentService {
     private final PaymentFailureRecorder failureRecorder;
     private final org.springframework.context.ApplicationEventPublisher events;
 
+    /** Backs the chat-service's get_refund_status tool - see spring_client.py. */
+    @Transactional(readOnly = true)
+    public RefundStatusResponse latestRefundForPatient(Integer patientId) {
+        PaymentTransaction tx = paymentRepository
+                .findFirstByAppointmentPatientIdAndRefundAmountIsNotNullOrderByRefundedAtDesc(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("No refund found"));
+        return new RefundStatusResponse(
+                tx.getRefundAmount(),
+                tx.getRefundedAt() == null ? null : tx.getRefundedAt().format(TS),
+                tx.getRefundReason());
+    }
+
     // ------------------------------------------------------- gateway payment
 
     public boolean isGatewayEnabled() {

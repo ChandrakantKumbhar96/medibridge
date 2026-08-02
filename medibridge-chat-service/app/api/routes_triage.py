@@ -11,7 +11,7 @@ from app.llm.prompts import TRIAGE_SYSTEM_PROMPT
 from app.models.triage import TriageAnswerRequest, TriageResult
 from app.session import redis_store
 from app.tools.handlers import dispatch
-from app.tools.specs import TOOLS
+from app.tools.specs import tools_for
 
 # Only the gateway may call this directly - see require_internal_key.
 router = APIRouter(prefix="/triage", tags=["triage"], dependencies=[Depends(require_internal_key)])
@@ -52,7 +52,9 @@ def answer(request: TriageAnswerRequest) -> TriageResult:
             needs_more_info=False,
         )
 
-    raw = complete_chat_with_tools(TRIAGE_SYSTEM_PROMPT, history, TOOLS, dispatch)
+    # Triage carries no user_id/role (see TriageAnswerRequest) - it only ever
+    # needs policy numbers, which tools_for(None) already resolves to.
+    raw = complete_chat_with_tools(TRIAGE_SYSTEM_PROMPT, history, tools_for(None), dispatch)
     result = _parse_llm_result(raw)
 
     if result.needs_more_info:

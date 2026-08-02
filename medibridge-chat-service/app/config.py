@@ -8,9 +8,6 @@ class Settings(BaseSettings):
     env: str = "development"
     cors_origin: str = "http://localhost:4000"
 
-    chroma_persist_dir: str = "./data/chroma"
-    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
-
     groq_api_key: str | None = None
     groq_model: str = "llama-3.3-70b-versatile"
     groq_model_fast: str = "llama-3.1-8b-instant"

@@ -21,6 +21,9 @@ public interface PaymentRepository extends JpaRepository<PaymentTransaction, Int
 
     List<PaymentTransaction> findByAppointmentPatientIdOrderByProcessedAtDesc(Integer patientId);
 
+    Optional<PaymentTransaction> findFirstByAppointmentPatientIdAndRefundAmountIsNotNullOrderByRefundedAtDesc(
+            Integer patientId);
+
     @Query("""
            SELECT COALESCE(SUM(p.amount), 0) FROM PaymentTransaction p
            WHERE p.transactionStatus = :status
