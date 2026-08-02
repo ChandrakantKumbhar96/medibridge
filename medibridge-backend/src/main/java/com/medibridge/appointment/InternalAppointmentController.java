@@ -1,7 +1,9 @@
 package com.medibridge.appointment;
 
 import com.medibridge.appointment.dto.AppointmentResponse;
+import com.medibridge.appointment.dto.NextAppointmentResponse;
 import com.medibridge.appointment.dto.ReminderCandidateResponse;
+import com.medibridge.appointment.dto.RescheduleStatusResponse;
 import com.medibridge.appointment.entity.Appointment;
 import com.medibridge.common.exception.ResourceNotFoundException;
 import com.medibridge.common.util.PhoneNumbers;
@@ -50,6 +52,48 @@ public class InternalAppointmentController {
      * double-send. This exists for the notify-service to poll instead of, not
      * alongside, the in-process Spring reminder sweep.
      */
+    /** Backs the chat-service's get_appointment_count tool - see spring_client.py. */
+    @GetMapping("/patient/{patientId}/count")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    public long getPatientAppointmentCount(@PathVariable Integer patientId) {
+        return appointmentService.countUpcomingForPatient(patientId);
+    }
+
+    /** Backs the chat-service's get_appointment_count tool - see spring_client.py. */
+    @GetMapping("/doctor/{doctorId}/count")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    public long getDoctorAppointmentCount(@PathVariable String doctorId) {
+        return appointmentService.countUpcomingForDoctor(doctorId);
+    }
+
+    /** Backs the chat-service's get_today_queue_count tool - see spring_client.py. */
+    @GetMapping("/doctor/{doctorId}/today-count")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    public long getDoctorTodayCount(@PathVariable String doctorId) {
+        return appointmentService.countTodayForDoctor(doctorId);
+    }
+
+    /** Backs the chat-service's get_next_appointment tool - see spring_client.py. */
+    @GetMapping("/patient/{patientId}/next")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    public NextAppointmentResponse getNextForPatient(@PathVariable Integer patientId) {
+        return appointmentService.nextForPatient(patientId);
+    }
+
+    /** Backs the chat-service's get_next_appointment tool - see spring_client.py. */
+    @GetMapping("/doctor/{doctorId}/next")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    public NextAppointmentResponse getNextForDoctor(@PathVariable String doctorId) {
+        return appointmentService.nextForDoctor(doctorId);
+    }
+
+    /** Backs the chat-service's get_reschedule_status tool - see spring_client.py. */
+    @GetMapping("/patient/{patientId}/reschedule-status")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    public RescheduleStatusResponse getRescheduleStatus(@PathVariable Integer patientId) {
+        return appointmentService.rescheduleStatusForPatient(patientId);
+    }
+
     @GetMapping("/reminder-candidates")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public List<ReminderCandidateResponse> getReminderCandidates() {

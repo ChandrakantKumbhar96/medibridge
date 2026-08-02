@@ -10,6 +10,7 @@ import com.medibridge.common.exception.ResourceNotFoundException;
 import com.medibridge.pdf.PdfService;
 import com.medibridge.prescription.dto.PrescriptionRequest;
 import com.medibridge.prescription.dto.PrescriptionResponse;
+import com.medibridge.prescription.dto.PrescriptionStatusResponse;
 import com.medibridge.prescription.entity.ConsultationRecord;
 import com.medibridge.prescription.entity.Prescription;
 import com.medibridge.prescription.entity.PrescriptionItem;
@@ -39,6 +40,15 @@ public class PrescriptionService {
     private final PdfService pdfService;
     private final com.medibridge.notification.NotificationService notificationService;
     private final org.springframework.context.ApplicationEventPublisher events;
+
+    /** Backs the chat-service's get_prescription_status tool - see spring_client.py. */
+    @Transactional(readOnly = true)
+    public PrescriptionStatusResponse latestForPatient(Integer patientId) {
+        Prescription rx = prescriptionRepository.findByPatientIdOrderByDateIssuedDesc(patientId)
+                .stream().findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No prescription found"));
+        return new PrescriptionStatusResponse(rx.getId(), rx.getDateIssued().format(DATE), rx.getDoctor().getFullName());
+    }
 
     /**
      * Doctor records the consultation and issues the prescription. Both writes

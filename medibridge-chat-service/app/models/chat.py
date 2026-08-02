@@ -4,6 +4,10 @@ from pydantic import BaseModel
 class ChatMessageRequest(BaseModel):
     session_id: str
     message: str
+    # Set by the gateway from the caller's verified JWT (see chat.routes.js) -
+    # never trust these if a client could set them directly.
+    user_id: str | None = None
+    role: str | None = None
 
 
 class RetrievedChunk(BaseModel):
