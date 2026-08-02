@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Mail, Lock, User, Stethoscope, ShieldCheck, Clock, FileLock2 } from 'lucide-react'
+import { Mail, Lock, User, Stethoscope, ShieldCheck, Clock, FileLock2, Smartphone } from 'lucide-react'
 import Logo from '../../components/common/Logo'
 import Input, { Field } from '../../components/common/Input'
 import GoogleSignInButton from '../../components/common/GoogleSignInButton'
-import { login } from '../../features/auth/authSlice'
+import { login, clearError } from '../../features/auth/authSlice'
 import PatientRegisterForm from './PatientRegisterForm'
 import DoctorRegisterForm from './DoctorRegisterForm'
+import PhoneOtpForm from './PhoneOtpForm'
 
 /* Clinical environment photography, not a portrait — see LandingPage note. */
 const PANEL_IMG =
@@ -22,17 +23,27 @@ const benefits = [
 export default function LoginPage() {
   const [role, setRole] = useState('patient')
   const [tab, setTab] = useState('login')
+  // Patients get a second way in; doctors and admins keep email + password.
+  const [method, setMethod] = useState('password')
   const [form, setForm] = useState({ email: '', password: '' })
   const [googleError, setGoogleError] = useState(null)
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { status, error } = useSelector((s) => s.auth)
 
+  // The two forms share one error slot in the slice, so a failure on one would
+  // otherwise greet you on the other.
+  const switchMethod = (next) => { dispatch(clearError()); setMethod(next) }
+
   const handleLogin = async (e) => {
     e.preventDefault()
     const res = await dispatch(login({ ...form, role }))
     if (login.fulfilled.match(res)) {
-      navigate(role === 'doctor' ? '/doctor' : '/patient')
+      // A Google account that never filled in its profile lands in the same
+      // place a fresh phone signup does - see PhoneOtpForm.
+      navigate(role === 'doctor' ? '/doctor'
+        : res.payload.user?.profile_complete === false ? '/patient/settings'
+        : '/patient')
     }
   }
 
@@ -99,7 +110,7 @@ export default function LoginPage() {
               ([key, Icon, label]) => (
                 <button
                   key={key}
-                  onClick={() => setRole(key)}
+                  onClick={() => { setRole(key); switchMethod('password') }}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-full py-2.5
                               text-[13px] font-bold transition-all duration-200 ${
                                 role === key
@@ -130,7 +141,9 @@ export default function LoginPage() {
             ))}
           </div>
 
-          {tab === 'login' ? (
+          {tab === 'login' && role === 'patient' && method === 'phone' ? (
+            <PhoneOtpForm onUsePassword={() => switchMethod('password')} />
+          ) : tab === 'login' ? (
             <form onSubmit={handleLogin} className="mt-7">
               <h2 className="text-[26px] font-extrabold tracking-[-0.03em] text-sand-900">
                 Welcome back
@@ -186,6 +199,20 @@ export default function LoginPage() {
                   <div className="my-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wider text-sand-400">
                     <div className="h-px flex-1 bg-sand-200" /> or <div className="h-px flex-1 bg-sand-200" />
                   </div>
+
+                  {/* Phone sign-in creates a patient account on first use, so
+                      like Google it is offered on the patient tab only. */}
+                  <button
+                    type="button"
+                    onClick={() => switchMethod('phone')}
+                    className="flex w-full items-center justify-center gap-2.5 rounded-full border border-sand-200
+                               bg-white py-3.5 text-sm font-bold text-sand-700 transition-all
+                               hover:border-sand-300 hover:bg-sand-50"
+                  >
+                    <Smartphone size={17} strokeWidth={2.3} /> Continue with mobile number
+                  </button>
+
+                  <div className="mt-3" />
                   <GoogleSignInButton onError={setGoogleError} />
                   {googleError && (
                     <div className="mt-3 rounded-xl border border-danger-100 bg-danger-50 px-4 py-2.5 text-[13px] text-danger-700">

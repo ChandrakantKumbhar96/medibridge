@@ -13,6 +13,12 @@ medibridge:
     # Must be at least 32 bytes for HS256.
     secret: change-this-to-a-long-random-string-at-least-32-chars
 
+  # Shared secret for trusted internal callers (the .NET notify service).
+  # Leave blank to keep /internal/** unreachable. Generate with:
+  #   openssl rand -hex 32
+  internal:
+    api-key: ""
+
   mail:
     # false logs emails to the console instead of sending them.
     enabled: false

@@ -22,10 +22,16 @@ public class RecordController {
 
     private final RecordService recordService;
 
+    /**
+     * @param subject omit for everyone on the account, {@code self} for the
+     *                holder alone, or a family member id. Whichever is given, the
+     *                account is always the caller's own.
+     */
     @GetMapping
     @PreAuthorize("hasRole('PATIENT')")
-    public List<RecordResponse> myRecords(@CurrentUser SecurityUser me) {
-        return recordService.listForPatient(me.idAsInt());
+    public List<RecordResponse> myRecords(@CurrentUser SecurityUser me,
+                                          @RequestParam(required = false) String subject) {
+        return recordService.listForSubject(me.idAsInt(), subject);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -33,8 +39,10 @@ public class RecordController {
     public RecordResponse upload(@CurrentUser SecurityUser me,
                                  @RequestPart("file") MultipartFile file,
                                  @RequestParam("report_name") String reportName,
-                                 @RequestParam(value = "report_type", required = false) String reportType) {
-        return recordService.upload(me.idAsInt(), file, reportName, reportType);
+                                 @RequestParam(value = "report_type", required = false) String reportType,
+                                 @RequestParam(value = "family_member_id", required = false)
+                                 Integer familyMemberId) {
+        return recordService.upload(me.idAsInt(), familyMemberId, file, reportName, reportType);
     }
 
     @GetMapping("/{reportId}/download")

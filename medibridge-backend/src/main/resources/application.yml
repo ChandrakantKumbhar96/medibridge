@@ -76,15 +76,58 @@ medibridge:
   cors:
     allowed-origins: http://localhost:5173
 
+  ratelimit:
+    # X-Forwarded-For is attacker-controlled unless a proxy overwrites it, so it
+    # is ignored by default. Turn this on ONLY when the app sits behind one -
+    # otherwise a caller can mint a new identity per request and skip the limit.
+    trust-forwarded-for: ${TRUST_FORWARDED_FOR:false}
+    auth:
+      # Per source address, per endpoint, over a sliding window. Generous enough
+      # for someone mistyping a password, far too tight to guess one.
+      max-attempts: 10
+      window-seconds: 60
+
   jwt:
     # Override in application-local.yml. Must be >= 32 bytes for HS256.
     secret: ${JWT_SECRET:change-me-in-application-local-yml-min-32-bytes-long}
     access-token-minutes: 15
     refresh-token-days: 7
 
+  internal:
+    # Shared secret for trusted service-to-service calls (the .NET notify
+    # service), checked by InternalApiKeyAuthFilter against the
+    # X-Internal-Api-Key header. Blank = the filter never matches, so
+    # /internal/** stays unreachable - fail closed, same convention as
+    # google.client-id and razorpay.key-id below.
+    api-key: ${INTERNAL_API_KEY:}
+
   storage:
     # Uploaded medical reports. Kept outside the app so files survive redeploys.
     upload-dir: ${UPLOAD_DIR:./storage/reports}
+
+  follow-up:
+    # One free revisit with the same doctor after a completed consultation.
+    # These are the DEFAULTS: SettingsProvider passes them as the fallback to a
+    # system_settings row, so an admin can still retune the window without a
+    # redeploy. Turning this off leaves existing follow-ups alone - it only
+    # stops new ones being booked.
+    enabled: ${FOLLOW_UP_ENABLED:true}
+    window-days: ${FOLLOW_UP_WINDOW_DAYS:7}
+
+  otp:
+    # Phone login. DEFAULTS only - SettingsProvider passes each as the fallback
+    # to a system_settings row, so an admin can retune them without a redeploy.
+    #
+    # A six-digit code is one in a million, which is only worth anything because
+    # of the three values under it: it expires, it survives a handful of guesses,
+    # and one number cannot ask for a new one every second. Weaken any of those
+    # and the length stops meaning what it looks like it means.
+    length: ${OTP_LENGTH:6}
+    ttl-minutes: ${OTP_TTL_MINUTES:5}
+    max-attempts: ${OTP_MAX_ATTEMPTS:5}
+    # Also enforced per NUMBER in the database, not just per IP in memory:
+    # every send costs money at the gateway.
+    resend-cooldown-seconds: ${OTP_RESEND_COOLDOWN_SECONDS:60}
 
   meeting:
     # No Zoom SDK/integration: we generate a unique room URL per appointment and

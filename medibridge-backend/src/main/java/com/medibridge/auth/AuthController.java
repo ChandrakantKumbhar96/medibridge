@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -31,6 +32,23 @@ public class AuthController {
     @PostMapping("/google")
     public AuthResponse googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
         return authService.loginWithGoogle(request);
+    }
+
+    /**
+     * Step one of phone login. Body: {@code { "phone": "+91 90000 11111" }}
+     *
+     * <p>Always answers the same way, registered number or not - see
+     * {@link AuthService#requestPhoneOtp}.
+     */
+    @PostMapping("/otp/request")
+    public PhoneOtpSentResponse requestOtp(@Valid @RequestBody PhoneOtpRequest request) {
+        return authService.requestPhoneOtp(request);
+    }
+
+    /** Step two: {@code { "phone": "...", "code": "123456" }} - signs in or registers. */
+    @PostMapping("/otp/verify")
+    public AuthResponse verifyOtp(@Valid @RequestBody PhoneOtpVerifyRequest request) {
+        return authService.loginWithPhoneOtp(request);
     }
 
     /** Lets the login page hide the Google button when the server has no client id. */
@@ -70,10 +88,15 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(Map.of(
-                "id", user.getId(),
-                "name", user.getFullName(),
-                "email", user.getEmail(),
-                "role", user.getUserType().toFrontend()));
+        // LinkedHashMap rather than Map.of, which throws on a null value: a
+        // phone-first account has no email until it completes its profile, and
+        // Map.of turned that into a 500 on the endpoint the frontend calls to
+        // find out who it is talking to.
+        Map<String, String> me = new LinkedHashMap<>();
+        me.put("id", user.getId());
+        me.put("name", user.getFullName());
+        me.put("email", user.getEmail());
+        me.put("role", user.getUserType().toFrontend());
+        return ResponseEntity.ok(me);
     }
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
-  Calendar, Clock, Star, CreditCard, CalendarClock, Plus, CalendarX2,
+  Calendar, Clock, Star, CreditCard, CalendarClock, Plus, CalendarX2, Gift,
 } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Badge from '../../components/common/Badge'
@@ -13,8 +13,24 @@ import { fetchPatientAppointments } from '../../features/appointments/appointmen
 import { appointmentService } from '../../services/appointmentService'
 import RescheduleModal from '../../components/common/RescheduleModal'
 import JoinButton from '../../components/common/JoinButton'
+import QueueStatus from '../../components/common/QueueStatus'
 
 const money = (n) => `₹${Number(n ?? 0).toLocaleString('en-IN')}`
+
+/**
+ * Whether this consultation's free revisit is still claimable.
+ *
+ * The server sends `follow_up_eligible_until` only on a completed consultation
+ * that has not spent its revisit, so the deadline is the whole rule - there is
+ * no status or count to re-check here. The clock is still worth testing on the
+ * client: a tab left open overnight would otherwise keep offering a window that
+ * closed hours ago, and the server would refuse it.
+ */
+const followUpOpen = (a) =>
+  !!a.follow_up_eligible_until && new Date(a.follow_up_eligible_until) > new Date()
+
+const untilDate = (iso) =>
+  new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 
 export default function PatientAppointments() {
   const dispatch = useDispatch()
@@ -108,11 +124,24 @@ export default function PatientAppointments() {
                 <div>
                   <div className="font-bold text-sand-900">{a.doctor}</div>
                   <div className="text-sm text-primary-700">{a.specialization}</div>
+                  {/* Present only when the visit is for a dependent — an account
+                      with several people in it needs to say whose slot this is
+                      before the date, not after. */}
+                  {a.family_member_id && (
+                    <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-accent-50 px-2 py-0.5 text-[11px] font-bold text-accent-700">
+                      For {a.patient}{a.booked_for ? ` • ${a.booked_for}` : ''}
+                    </div>
+                  )}
                   <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-sand-500">
                     <span className="flex items-center gap-1"><Calendar size={12} /> {a.appointment_date}</span>
                     <span className="flex items-center gap-1"><Clock size={12} /> {a.time}</span>
                     {a.consultation_fee != null && <span className="font-semibold text-sand-700">{money(a.consultation_fee)}</span>}
                   </div>
+
+                  {/* Where they stand in today's queue, and whether the clinic
+                      is behind. Only present for today's confirmed bookings -
+                      the component hides itself otherwise. */}
+                  <QueueStatus appointment={a} />
 
                   {/* The patient never chose this time, so they need to know the
                       usual late-cancellation charge does not apply - before
@@ -195,10 +224,37 @@ export default function PatientAppointments() {
                       Did not take place — you were refunded in full
                     </div>
                   )}
+
+                  {/* Says when it runs out, not just that it exists. "Free
+                      follow-up available" with no date is the kind of offer
+                      people put off until it has quietly expired. */}
+                  {followUpOpen(a) && (
+                    <div className="mt-1 text-xs font-semibold text-success-700">
+                      Free follow-up with {a.doctor} until {untilDate(a.follow_up_eligible_until)}
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge status={a.status} />
+
+                {/* Straight into the booking funnel with the doctor already
+                    fixed - a follow-up is a revisit to the same person, so
+                    there is no specialty or doctor left to choose. */}
+                {followUpOpen(a) && (
+                  <Button variant="primary" className="px-3 py-1.5"
+                    onClick={() => navigate('/patient/book', {
+                      state: {
+                        doctorId: a.doctor_id,
+                        followUpOf: a.appointment_id,
+                        consultType: 'Follow-up',
+                        reason: a.reason || '',
+                      },
+                    })}>
+                    <Gift size={14} /> Book free follow-up
+                  </Button>
+                )}
+
                 {/* Only a completed consultation can be reviewed - the server
                     enforces this too, but offering the button otherwise would
                     just produce an error. */}

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { UserCog, Lock } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Input, { Field } from '../../components/common/Input'
 import Button from '../../components/common/Button'
 import { patientNav } from './patientNav'
 import { patientProfileService } from '../../services/profileService'
+import { userUpdated } from '../../features/auth/authSlice'
 
 const EMPTY = {
   full_name: '', email: '', phone: '', another_number: '',
@@ -12,17 +14,35 @@ const EMPTY = {
 }
 
 export default function PatientSettings() {
+  const dispatch = useDispatch()
   const [form, setForm] = useState(EMPTY)
   const [pw, setPw] = useState({ current_password: '', new_password: '', confirm: '' })
   const [profileMsg, setProfileMsg] = useState(null)
   const [pwMsg, setPwMsg] = useState(null)
   const [saving, setSaving] = useState(false)
 
+  // An account that signed up by phone has no email yet, so the field has to be
+  // fillable exactly once. Everyone else keeps it read-only: it is a login
+  // identifier, and changing one needs a verification step this screen has no
+  // business doing.
+  const [emailLocked, setEmailLocked] = useState(true)
+
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
   useEffect(() => {
     patientProfileService.get()
-      .then((p) => setForm({ ...EMPTY, ...p }))
+      .then((p) => {
+        setEmailLocked(Boolean(p.email))
+        // Google and phone accounts arrive with holes in them, and a null in a
+        // controlled input makes React drop the field to uncontrolled.
+        setForm({
+          ...EMPTY, ...p,
+          email: p.email || '',
+          phone: p.phone || '',
+          gender: p.gender || 'Male',
+          blood_group: p.blood_group || 'O+',
+        })
+      })
       .catch(() => setProfileMsg({ error: true, text: 'Could not load your profile.' }))
   }, [])
 
@@ -33,6 +53,8 @@ export default function PatientSettings() {
     try {
       const updated = await patientProfileService.update({
         full_name: form.full_name,
+        // Ignored by the server once set, so sending it unconditionally is safe.
+        email: form.email || null,
         phone: form.phone,
         another_number: form.another_number || null,
         address: form.address || null,
@@ -40,7 +62,23 @@ export default function PatientSettings() {
         gender: form.gender,
         blood_group: form.blood_group,
       })
-      setForm({ ...EMPTY, ...updated })
+      setEmailLocked(Boolean(updated.email))
+      setForm({ ...EMPTY, ...updated, email: updated.email || '' })
+
+      // The session copy of these three is what the topbar, the greeting and
+      // the profile-completion redirect read; without this they keep showing
+      // whatever was true at login.
+      //
+      // Completeness keys off the email because the server's rule (Patient
+      // .isProfileComplete) also wants date of birth, gender, blood group and
+      // phone - and those four are @NotBlank/@NotNull on the update request,
+      // so a 200 already proves them. Email is the one it accepts as absent,
+      // which makes it the only field still in question here.
+      dispatch(userUpdated({
+        name: updated.full_name,
+        email: updated.email || null,
+        profile_complete: Boolean(updated.email),
+      }))
       setProfileMsg({ text: 'Profile updated successfully.' })
     } catch (err) {
       setProfileMsg({ error: true, text: err?.response?.data?.message || 'Could not save changes.' })
@@ -81,6 +119,17 @@ export default function PatientSettings() {
       <span className="eyebrow">Account</span>
       <h1 className="mt-1 text-display-sm text-sand-900">Settings</h1>
 
+      {/* Where LoginPage sends a fresh phone signup. Without this they arrive on
+          a settings screen with no idea why, holding an account named
+          "New Patient". */}
+      {!emailLocked && (
+        <div className="mt-5 rounded-xl border border-primary-100 bg-primary-50 px-4 py-3 text-sm text-primary-800">
+          <span className="font-bold">Welcome to MediBridge.</span> Your mobile number
+          is verified — add your name and email below so doctors know who they are
+          treating and your records reach you.
+        </div>
+      )}
+
       <div className="surface mt-6 p-6">
         <h2 className="flex items-center gap-2 text-lg font-extrabold text-sand-900">
           <UserCog size={18} className="text-primary-600" /> Profile information
@@ -91,9 +140,11 @@ export default function PatientSettings() {
             <Field label="Full Name">
               <Input required value={form.full_name} onChange={set('full_name')} />
             </Field>
-            <Field label="Email">
-              {/* Read-only: the email is the login identifier. */}
-              <Input value={form.email} disabled className="bg-sand-50 text-sand-500" />
+            <Field label="Email" hint={emailLocked ? undefined : 'Used for records and receipts.'}>
+              {emailLocked
+                ? <Input value={form.email} disabled className="bg-sand-50 text-sand-500" />
+                : <Input required type="email" placeholder="you@example.com"
+                    value={form.email} onChange={set('email')} />}
             </Field>
             <Field label="Phone Number">
               <Input required value={form.phone} onChange={set('phone')} />

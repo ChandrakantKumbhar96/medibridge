@@ -2,6 +2,8 @@ package com.medibridge.appointment;
 
 import com.medibridge.appointment.dto.AppointmentResponse;
 import com.medibridge.appointment.dto.BookAppointmentRequest;
+import com.medibridge.appointment.dto.NextAvailableResponse;
+import com.medibridge.appointment.dto.RoomStatusResponse;
 import com.medibridge.appointment.entity.Appointment;
 import com.medibridge.common.exception.BadRequestException;
 import com.medibridge.common.security.CurrentUser;
@@ -9,6 +11,7 @@ import com.medibridge.common.security.SecurityUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,12 +40,55 @@ public class AppointmentController {
         return appointmentService.getPatientAppointments(me.idAsInt());
     }
 
+    /**
+     * The soonest open slot in the configured window, for a patient who would
+     * rather be matched than browse. 204 when nothing qualifies, rather than
+     * a null body the frontend would have to special-case.
+     *
+     * <p>{@code specialization} is a name ("Cardiologist"), not an id - the
+     * same value the specialty chips on FindDoctors already hold, so a filter
+     * the patient picked there carries straight through without a lookup.
+     */
+    @GetMapping("/next-available")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<NextAvailableResponse> nextAvailable(
+            @RequestParam(value = "specialization", required = false) String specialization) {
+        return appointmentService.nextAvailable(specialization)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('PATIENT')")
     @ResponseStatus(HttpStatus.CREATED)
     public AppointmentResponse book(@CurrentUser SecurityUser me,
                                     @Valid @RequestBody BookAppointmentRequest request) {
         return appointmentService.book(me.idAsInt(), request);
+    }
+
+    /**
+     * Books the one free revisit a completed consultation earns.
+     *
+     * <p>Body: {@code { "schedule_id": 123 }} - the same shape as reschedule.
+     *
+     * <p>Deliberately its own endpoint rather than a flag on POST /appointments:
+     * this one takes no fee, no doctor and no consult type from the client. All
+     * three are inherited from the parent consultation, so there is nothing a
+     * caller could tamper with to get a free slot with a doctor they never saw.
+     *
+     * <p>Returns 409 when the revisit is already used or the slot is taken.
+     */
+    @PostMapping("/{appointmentId}/follow-up")
+    @PreAuthorize("hasRole('PATIENT')")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AppointmentResponse bookFollowUp(@CurrentUser SecurityUser me,
+                                            @PathVariable Integer appointmentId,
+                                            @RequestBody Map<String, Integer> body) {
+        Integer scheduleId = body == null ? null : body.get("schedule_id");
+        if (scheduleId == null) {
+            throw new BadRequestException("schedule_id is required");
+        }
+        return appointmentService.bookFollowUp(me.idAsInt(), appointmentId, scheduleId);
     }
 
     /**
@@ -111,6 +157,23 @@ public class AppointmentController {
             default -> throw new BadRequestException("Unsupported role for this action");
         };
         return Map.of("meeting_link", link);
+    }
+
+    /**
+     * Who is currently in the consultation room.
+     *
+     * <p>Polled by the patient's waiting room, so it is deliberately read-only —
+     * unlike {@code /join} it records nothing. It never returns the room URL.
+     */
+    @GetMapping("/{appointmentId}/room-status")
+    @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
+    public RoomStatusResponse roomStatus(@CurrentUser SecurityUser me,
+                                         @PathVariable Integer appointmentId) {
+        return switch (me.getUserType()) {
+            case PATIENT -> appointmentService.roomStatusAsPatient(me.idAsInt(), appointmentId);
+            case DOCTOR -> appointmentService.roomStatusAsDoctor(me.getId(), appointmentId);
+            default -> throw new BadRequestException("Unsupported role for this action");
+        };
     }
 
     /**

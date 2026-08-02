@@ -13,6 +13,14 @@ export const loginWithGoogle = createAsyncThunk('auth/loginWithGoogle', async (c
   try { return await authService.loginWithGoogle(credential) } catch (e) { return rejectWithValue(e?.response?.data?.message || 'Google sign-in failed') }
 })
 
+export const requestOtp = createAsyncThunk('auth/requestOtp', async (phone, { rejectWithValue }) => {
+  try { return await authService.otpRequest(phone) } catch (e) { return rejectWithValue(e?.response?.data?.message || 'Could not send the code') }
+})
+
+export const verifyOtp = createAsyncThunk('auth/verifyOtp', async (payload, { rejectWithValue }) => {
+  try { return await authService.otpVerify(payload) } catch (e) { return rejectWithValue(e?.response?.data?.message || 'Sign-in failed') }
+})
+
 export const registerPatient = createAsyncThunk('auth/registerPatient', async (payload, { rejectWithValue }) => {
   try { return await authService.registerPatient(payload) } catch (e) { return rejectWithValue(e?.response?.data?.message || 'Registration failed') }
 })
@@ -49,12 +57,31 @@ const authSlice = createSlice({
       localStorage.removeItem('mb_user')
       localStorage.removeItem('mb_refresh_token')
     },
+
     clearError(state) { state.error = null },
+
+    /**
+     * Merge server-confirmed profile fields into the cached session user.
+     *
+     * The topbar, the dashboard greeting and the post-login redirect all read
+     * `auth.user`, which is written once at login and rehydrated from
+     * `mb_user`. Saving your profile changes the same fields on the server but
+     * used to leave that copy alone, so a phone signup stayed "New Patient"
+     * with `profile_complete: false` until the next sign-in - a reload did not
+     * help, because the reload is what restores the stale copy.
+     */
+    userUpdated(state, { payload }) {
+      if (!state.user) return
+      state.user = { ...state.user, ...payload }
+      localStorage.setItem('mb_user', JSON.stringify(state.user))
+    },
   },
   extraReducers: (builder) => {
     const fulfilled = (state, { payload }) => {
-      // Doctor registration returns a user but no token - the account is
-      // pending admin approval, so there is no session to establish.
+      // Two callers land here with no token and neither is a failure: doctor
+      // registration (pending admin approval) and an OTP request, which only
+      // says a code was sent. The component reads the payload it needs off the
+      // thunk result; there is no session to establish here.
       if (!payload.token) {
         state.status = 'succeeded'
         return
@@ -70,10 +97,12 @@ const authSlice = createSlice({
     builder
       .addCase(login.pending, pending).addCase(login.fulfilled, fulfilled).addCase(login.rejected, rejected)
       .addCase(loginWithGoogle.pending, pending).addCase(loginWithGoogle.fulfilled, fulfilled).addCase(loginWithGoogle.rejected, rejected)
+      .addCase(requestOtp.pending, pending).addCase(requestOtp.fulfilled, fulfilled).addCase(requestOtp.rejected, rejected)
+      .addCase(verifyOtp.pending, pending).addCase(verifyOtp.fulfilled, fulfilled).addCase(verifyOtp.rejected, rejected)
       .addCase(registerPatient.pending, pending).addCase(registerPatient.fulfilled, fulfilled).addCase(registerPatient.rejected, rejected)
       .addCase(registerDoctor.pending, pending).addCase(registerDoctor.fulfilled, fulfilled).addCase(registerDoctor.rejected, rejected)
   },
 })
 
-export const { logout, clearError } = authSlice.actions
+export const { logout, clearError, userUpdated } = authSlice.actions
 export default authSlice.reducer

@@ -4,8 +4,8 @@
 Prepared for project presentation (CDAC). This single document explains the
 project end to end: problem, architecture, code flow (backend + frontend), and
 every diagram an examiner asks for (Context/DFD, ER, Use Case, Class, Sequence,
-State). The diagrams below are Mermaid — they render on GitHub and in VS Code,
-and rendered PNGs of the same are in [`diagrams/`](diagrams/).
+State). The diagrams below are Mermaid — they render natively on GitHub and
+in VS Code.
 
 ---
 
@@ -38,6 +38,9 @@ money handling, no double-booking, and role-based access control.
 | **Auth** | JWT (access + refresh), BCrypt, Google OAuth2 |
 | **Payments** | Razorpay (server-side order + signature verification) |
 | **Others** | Email (SMTP), WhatsApp/SMS (Twilio), PDF (openhtmltopdf), Swagger/OpenAPI |
+| **Gateway** | Node.js / Express, `http-proxy-middleware`, JWT verification, per-upstream circuit breaker |
+| **Chat / Triage** | Python, FastAPI, SentenceTransformer embeddings, ChromaDB (RAG over an FAQ/symptom corpus) |
+| **Notify service** | .NET 8, `BackgroundService` + `PeriodicTimer`, Twilio SMS, CSV report generation |
 
 ---
 
@@ -76,6 +79,53 @@ operations (book → pay → confirm → earn) in a single transaction — the
 integrity guarantee a split into microservices would lose. Modules stay
 decoupled by a rule: *a module may import another module's `Service` and `dto`,
 never its `entity` or `repository`.*
+
+### 3.1 Microservices extension
+
+The core money/booking flow stays a monolith on purpose (see above), but three
+satellite services sit around it for the pieces that genuinely benefit from
+being separate — a **polyglot gateway architecture**, not a rewrite of the
+monolith:
+
+```mermaid
+flowchart LR
+  UI["React SPA<br/>:5173"]
+  GW["Node/Express Gateway<br/>:4000 — JWT verify, rate limit,<br/>circuit breaker, proxy"]
+  SP["Spring Boot API<br/>:8080/api"]
+  CH["Python FastAPI<br/>Chat/Triage :8000<br/>RAG · ChromaDB"]
+  NT[".NET Notify Service<br/>:5154 — reminders, reports"]
+  TW["Twilio SMS"]
+
+  UI -- "REST + JWT" --> GW
+  GW -- "/api/**" --> SP
+  GW -- "/api/chat, /api/triage" --> CH
+  GW -- "/api/reports" --> NT
+  NT -- "poll reminder candidates<br/>(X-Internal-Api-Key)" --> SP
+  NT --> TW
+```
+
+- **Gateway (Node/Express)** — the single entry point the frontend talks to.
+  It **independently verifies the Spring-issued JWT** (HS384, shared secret)
+  before proxying, so a bad/expired token is rejected in ~1ms without ever
+  reaching Spring; adds rate limiting and a per-upstream circuit breaker so one
+  slow downstream service can't cascade-fail the others.
+- **Chat/Triage service (Python/FastAPI)** — a small RAG pipeline
+  (SentenceTransformer embeddings → ChromaDB vector search) answering FAQ
+  and symptom-checker questions. Python was chosen here specifically because
+  the ML/embedding tooling is native to it — the one place polyglot pays off.
+- **Notify service (.NET)** — a `BackgroundService` on a `PeriodicTimer`
+  that polls a Spring-exposed internal endpoint for appointments due a
+  reminder and sends them via Twilio SMS; also renders CSV reports for the
+  admin dashboard on demand.
+- **Internal-only trust boundary** — Spring's `/internal/**` endpoints and
+  the chat-service both require a shared `X-Internal-Api-Key` header that
+  only the gateway (and, for Spring, the notify-service) holds. A browser can
+  never reach these directly, even if it discovers the URL.
+- **Talking point:** this is intentionally a small, real microservices slice
+  layered on top of a monolith — it demonstrates the pattern (independent
+  deployability, a gateway as the trust boundary, a shared-secret internal
+  API) without paying the full distributed-transaction cost for the
+  booking/payment flow, which stays where ACID guarantees matter most.
 
 ---
 
@@ -423,8 +473,17 @@ Component re-renders via useSelector     renders the doctor cards
 # Backend  (from medibridge-backend/)
 mvn spring-boot:run -Dspring-boot.run.profiles=local     # :8080/api
 
+# Gateway  (from medibridge-gateway/)
+npm install && npm run dev                                # :4000
+
+# Chat/Triage service (from medibridge-chat-service/)
+uvicorn app.main:app --reload                              # :8000
+
+# Notify service (from medibridge-notify-service/src/MediBridge.Notify.Api/)
+dotnet run                                                  # :5154
+
 # Frontend (from medibridge-frontend/)
-npm install && npm run dev                                # :5173
+npm install && npm run dev                                # :5173, routed through the gateway
 ```
 
 **Demo logins** — Patient `aarav.gupta@email.com` / `Test@1234` ·
@@ -449,6 +508,6 @@ insurance integration, mobile app, login rate-limiting.
 
 ---
 
-*Rendered PNG diagrams: [`diagrams/`](diagrams/). Deep-dive docs:
-[BACKEND.md](BACKEND.md) · [FRONTEND.md](FRONTEND.md) ·
-[DATABASE.md](DATABASE.md) · [API_REFERENCE.md](API_REFERENCE.md).*
+*Deep-dive docs: [../README.md](../README.md) (architecture, service
+responsibilities, request flow) · [DATABASE.md](DATABASE.md) (schema) ·
+[BUSINESS_LOGIC.md](BUSINESS_LOGIC.md) (every business rule end to end).*

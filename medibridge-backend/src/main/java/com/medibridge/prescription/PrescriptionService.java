@@ -144,17 +144,30 @@ public class PrescriptionService {
 
     private byte[] renderPrescription(Prescription p) {
         Patient patient = p.getPatient();
+        // Null for a self-booking. Everything clinical on the sheet comes from
+        // the subject, because the dose printed on it is computed from their age
+        // and weight band - printing the parent's would be a real dispensing
+        // error, not a cosmetic one.
+        var subject = p.getConsultation().getAppointment().getFamilyMember();
 
         Map<String, Object> model = new HashMap<>();
         model.put("prescriptionNo", String.format("MB-RX-%05d", p.getId()));
         model.put("dateIssued", p.getDateIssued().format(DATE));
         model.put("generatedOn", LocalDateTime.now().format(STAMP));
 
-        model.put("patientName", patient.getFullName());
-        model.put("patientAge", AppointmentMapper.ageOf(patient.getDateOfBirth()));
-        model.put("patientGender", patient.getGender().name());
-        model.put("patientBloodGroup", patient.getBloodGroup());
+        model.put("patientName", p.getConsultation().getAppointment().subjectName());
+        model.put("patientAge", AppointmentMapper.ageOf(
+                p.getConsultation().getAppointment().subjectDateOfBirth()));
+        model.put("patientGender", subject != null
+                ? subject.getGender().name()
+                : patient.getGender() == null ? null : patient.getGender().name());
+        model.put("patientBloodGroup", subject != null
+                ? subject.getBloodGroup() : patient.getBloodGroup());
+        // Contact details stay the account holder's - the child has no phone,
+        // and the pharmacy needs to reach whoever is responsible.
         model.put("patientPhone", patient.getPhone());
+        model.put("accountHolderName", subject == null ? null : patient.getFullName());
+        model.put("subjectRelation", subject == null ? null : subject.getRelation().name());
 
         model.put("doctorName", p.getDoctor().getFullName());
         model.put("doctorSpecialization", p.getDoctor().getSpecialization().getName());
@@ -176,15 +189,27 @@ public class PrescriptionService {
         return pdfService.render("pdf/prescription", model);
     }
 
-    /** Full medical history PDF: consultations, prescriptions, uploaded documents. */
+    /**
+     * Full medical history PDF: consultations, prescriptions, uploaded documents.
+     *
+     * <p>The account holder's own history only. Everything below is filtered to
+     * visits and documents with no dependent attached, because the sheet is
+     * headed with this patient's name, age and blood group - folding a child's
+     * diagnoses into a document titled with the parent's name is how a history
+     * PDF becomes actively misleading to whoever reads it next.
+     */
     @Transactional(readOnly = true)
     public byte[] medicalHistoryPdf(Patient patient) {
         List<Appointment> appointments =
                 appointmentRepository.findByPatientIdAndStatusInOrderByAppointmentDateDesc(
-                        patient.getId(), Arrays.asList(AppointmentStatus.values()));
+                                patient.getId(), Arrays.asList(AppointmentStatus.values()))
+                        .stream().filter(a -> !a.isForDependent()).toList();
 
         List<Prescription> prescriptions =
-                prescriptionRepository.findByPatientIdOrderByDateIssuedDesc(patient.getId());
+                prescriptionRepository.findByPatientIdOrderByDateIssuedDesc(patient.getId())
+                        .stream()
+                        .filter(p -> !p.getConsultation().getAppointment().isForDependent())
+                        .toList();
 
         List<Map<String, String>> consultations = appointments.stream()
                 .map(a -> consultationRepository.findByAppointmentId(a.getId()).orElse(null))
@@ -207,7 +232,7 @@ public class PrescriptionService {
                 .toList();
 
         List<Map<String, String>> reportRows = reportRepository
-                .findByPatientIdOrderByUploadDateDesc(patient.getId()).stream()
+                .findByPatientIdAndFamilyMemberIsNullOrderByUploadDateDesc(patient.getId()).stream()
                 .map(r -> Map.of(
                         "date", r.getUploadDate() == null ? "-" : r.getUploadDate().format(DATE),
                         "name", r.getReportName(),
@@ -242,7 +267,10 @@ public class PrescriptionService {
         return new PrescriptionResponse(
                 p.getId(),
                 p.getConsultation().getAppointment().getId(),
-                p.getPatient().getFullName(),
+                // The subject of the visit, not the account holder - derived from
+                // the appointment rather than stored again on the prescription,
+                // so there is no second copy to drift.
+                p.getConsultation().getAppointment().subjectName(),
                 p.getDoctor().getFullName(),
                 p.getDoctor().getSpecialization().getName(),
                 p.getConsultation().getDiagnosis(),

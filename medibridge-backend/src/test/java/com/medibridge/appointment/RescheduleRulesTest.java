@@ -161,7 +161,7 @@ class RescheduleRulesTest extends AbstractIntegrationTest {
         // Booked but never paid, so it is still PENDING_PAYMENT.
         var pending = appointmentService.book(patient.getId(),
                 new com.medibridge.appointment.dto.BookAppointmentRequest(
-                        doctor.getId(), slotInDays(doctor, 10).getId(), "Consultation", null));
+                        doctor.getId(), slotInDays(doctor, 10).getId(), "Consultation", null, null));
 
         DoctorSchedule target = slotInDays(doctor, 11);
 

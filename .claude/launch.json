@@ -8,7 +8,8 @@
         "-f",
         "medibridge-backend/pom.xml",
         "spring-boot:run",
-        "-Dspring-boot.run.profiles=local"
+        "-Dspring-boot.run.profiles=local",
+        "-Dspring-boot.run.arguments=--medibridge.sms.enabled=false"
       ],
       "port": 8080
     },
@@ -17,6 +18,21 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "medibridge-frontend", "run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "medibridge-gateway",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "medibridge-gateway", "run", "dev"],
+      "port": 4000
+    },
+    {
+      "name": "medibridge-chat-service",
+      "runtimeExecutable": "medibridge-chat-service/.venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-c",
+        "import os,sys; os.chdir('medibridge-chat-service'); os.execv(sys.executable, [sys.executable,'-m','uvicorn','app.main:app','--reload','--port','8000'])"
+      ],
+      "port": 8000
     }
   ]
 }

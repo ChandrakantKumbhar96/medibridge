@@ -3,6 +3,7 @@ package com.medibridge.appointment.entity;
 import com.medibridge.common.enums.AppointmentStatus;
 import com.medibridge.doctor.entity.Doctor;
 import com.medibridge.doctor.entity.DoctorSchedule;
+import com.medibridge.patient.entity.FamilyMember;
 import com.medibridge.patient.entity.Patient;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,9 +27,26 @@ public class Appointment {
     @Column(name = "appointment_id")
     private Integer id;
 
+    /**
+     * The account holder - who booked, who paid, and who may cancel. Always set,
+     * even when the visit is for a dependent.
+     */
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
+
+    /**
+     * Who the visit is actually for. Null means the account holder themselves.
+     *
+     * <p>Kept separate from {@link #patient} on purpose: the payer, the canceller
+     * and the person in the chair are not always the same, and collapsing them
+     * would put a child's name on a refund and the parent's age on a
+     * prescription. The database enforces that this dependent belongs to
+     * {@code patient} via a composite foreign key - see V12.
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "family_member_id")
+    private FamilyMember familyMember;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "doctor_id", nullable = false)
@@ -41,6 +59,18 @@ public class Appointment {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id", unique = true)
     private DoctorSchedule schedule;
+
+    /**
+     * The completed consultation this free revisit descends from; null on an
+     * ordinary booking.
+     *
+     * <p>UNIQUE at the DB level - see V13. That index, not any field or flag, is
+     * what limits a visit to one free follow-up: two concurrent requests off the
+     * same parent lose there rather than at a check that raced.
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_appointment_id", unique = true)
+    private Appointment parentAppointment;
 
     @Column(name = "request_date", insertable = false, updatable = false)
     private LocalDateTime requestDate;
@@ -161,6 +191,48 @@ public class Appointment {
         if (status == null) status = AppointmentStatus.PENDING_PAYMENT;
         if (consultType == null) consultType = "Consultation";
         if (rescheduleCount == null) rescheduleCount = 0;
+    }
+
+    /** True when this visit is for a dependent rather than the account holder. */
+    public boolean isForDependent() {
+        return familyMember != null;
+    }
+
+    /** True when this booking is the free revisit off an earlier consultation. */
+    public boolean isFollowUp() {
+        return parentAppointment != null;
+    }
+
+    /**
+     * Last instant a free revisit off this consultation may be booked, or null
+     * if it never earned one.
+     *
+     * <p>Runs from {@code completed_at} rather than the slot time, so a doctor
+     * writing their notes up late does not quietly shorten the patient's window.
+     */
+    public LocalDateTime followUpEligibleUntil(int windowDays) {
+        return status == AppointmentStatus.COMPLETED && completedAt != null
+                ? completedAt.plusDays(windowDays)
+                : null;
+    }
+
+    /**
+     * The name that belongs on the doctor's list, the prescription and the
+     * consultation notes - the person being treated, not the person who paid.
+     */
+    public String subjectName() {
+        return familyMember != null ? familyMember.getFullName() : patient.getFullName();
+    }
+
+    /**
+     * Date of birth of the person being treated.
+     *
+     * <p>This is the field that makes the feature clinical rather than cosmetic:
+     * a paediatric dose is computed from the child's age, and reading the
+     * parent's here would print the wrong one on a real prescription.
+     */
+    public java.time.LocalDate subjectDateOfBirth() {
+        return familyMember != null ? familyMember.getDateOfBirth() : patient.getDateOfBirth();
     }
 
     /** True once the consultation time has actually arrived. */

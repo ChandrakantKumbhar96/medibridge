@@ -1,0 +1,11 @@
+{
+  "_note": "Deterministic keyword -> specialty rules, checked before falling back to the LLM. Loaded by app/guardrails/specialty_rules.py.",
+  "rules": [
+    { "keywords": ["chest pain", "shortness of breath", "heart racing"], "specialty": "Cardiology", "urgency": "urgent" },
+    { "keywords": ["skin rash", "itching", "acne"], "specialty": "Dermatology", "urgency": "routine" },
+    { "keywords": ["child", "infant", "toddler"], "specialty": "Pediatrics", "urgency": "routine" },
+    { "keywords": ["joint pain", "back pain", "fracture"], "specialty": "Orthopedics", "urgency": "routine" },
+    { "keywords": ["headache", "migraine", "dizziness"], "specialty": "Neurology", "urgency": "routine" },
+    { "keywords": ["anxiety", "depression", "stress"], "specialty": "Psychiatry", "urgency": "routine" }
+  ]
+}

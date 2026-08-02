@@ -12,4 +12,9 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     boolean existsByEmailIgnoreCase(String email);
 
     Optional<Patient> findByGoogleSub(String googleSub);
+
+    /** Phone login's account lookup. Always pass a PhoneNumbers.toE164 value. */
+    Optional<Patient> findByPhoneE164(String phoneE164);
+
+    boolean existsByPhoneE164(String phoneE164);
 }

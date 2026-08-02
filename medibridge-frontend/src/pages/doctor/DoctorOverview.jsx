@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   Calendar, Clock, CheckCircle2, CalendarClock, FileText, Wallet,
-  ChevronRight, Stethoscope,
+  ChevronRight, Stethoscope, ClipboardCheck,
 } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Badge from '../../components/common/Badge'
 import Button from '../../components/common/Button'
 import Avatar from '../../components/common/Avatar'
 import JoinButton from '../../components/common/JoinButton'
+import QueueStatus from '../../components/common/QueueStatus'
 import { doctorNav } from './doctorNav'
 import { fetchDoctorDashboard } from '../../features/appointments/appointmentsSlice'
 
@@ -113,12 +114,16 @@ export default function DoctorOverview() {
                     <div className="text-sm text-sand-500">
                       {a.age != null ? `${a.age} yrs • ` : ''}{a.type}
                     </div>
+                    {/* The same figure the patient is being shown, from the
+                        same source - two versions of "how late am I" would be
+                        one version too many. */}
+                    <QueueStatus appointment={a} as="doctor" />
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge status={a.status} />
-                <JoinButton appointment={a} label="Start" />
+                <JoinButton appointment={a} as="doctor" label="Start" />
               </div>
             </div>
           ))}
@@ -156,10 +161,19 @@ export default function DoctorOverview() {
               {a.reason && (
                 <div className="mt-2 line-clamp-1 text-sm text-sand-500">Reason: {a.reason}</div>
               )}
-              <Button className="mt-3 w-full py-2"
-                onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
-                <FileText size={15} /> Write Prescription
-              </Button>
+              {/* A second opinion is written up on its own form — it produces an
+                  opinion document, not a prescription. */}
+              {(a.type || '').toLowerCase() === 'second opinion' ? (
+                <Button className="mt-3 w-full py-2"
+                  onClick={() => navigate(`/doctor/opinion/${a.appointment_id}`)}>
+                  <ClipboardCheck size={15} /> Write Opinion
+                </Button>
+              ) : (
+                <Button className="mt-3 w-full py-2"
+                  onClick={() => navigate(`/doctor/prescribe/${a.appointment_id}`)}>
+                  <FileText size={15} /> Write Prescription
+                </Button>
+              )}
             </div>
           ))}
         </div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ClipboardPlus, Upload, Stethoscope, FileCheck2, Star, Award, BadgeCheck,
-  ArrowRight, CheckCircle2,
+  ArrowRight, CheckCircle2, AlertTriangle,
 } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Avatar from '../../components/common/Avatar'
@@ -44,6 +44,9 @@ export default function SecondOpinion() {
 
   const filtered = doctors.filter((d) =>
     spec === 'All' || d.specialization.toLowerCase().startsWith(spec.toLowerCase().slice(0, 5)))
+
+  // recordCount is null while loading — don't flash the warning before we know.
+  const needsReports = recordCount === 0
 
   const request = (d) => {
     navigate('/patient/book', {
@@ -93,25 +96,36 @@ export default function SecondOpinion() {
         ))}
       </div>
 
-      {/* ---- Reports reminder ---- */}
-      <div className="surface mt-6 flex flex-wrap items-center justify-between gap-3 p-5">
+      {/* ---- Reports requirement ----
+          Not a reminder: the server refuses to book a second opinion with
+          nothing on file, because a specialist cannot review a case that
+          isn't there. Blocking here means the patient finds out now rather
+          than at the payment screen. */}
+      <div className={`surface mt-6 flex flex-wrap items-center justify-between gap-3 p-5 ${
+        needsReports ? 'border-warning-200 bg-warning-50/40' : ''}`}>
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-success-50 text-success-600">
-            <CheckCircle2 size={20} />
+          <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+            needsReports
+              ? 'bg-warning-100 text-warning-700'
+              : 'bg-success-50 text-success-600'}`}>
+            {needsReports ? <AlertTriangle size={20} /> : <CheckCircle2 size={20} />}
           </span>
           <div>
-            <div className="font-bold text-sand-900">Have your reports ready</div>
+            <div className="font-bold text-sand-900">
+              {needsReports ? 'Upload a report to continue' : 'Your reports are ready'}
+            </div>
             <div className="text-sm text-sand-500">
               {recordCount == null
-                ? 'Upload your prescriptions, lab tests and scans so the specialist can review them.'
-                : recordCount === 0
-                  ? 'You have no documents uploaded yet — add them so the specialist can review.'
-                  : `${recordCount} document${recordCount === 1 ? '' : 's'} in your records, ready to share.`}
+                ? 'Checking your records…'
+                : needsReports
+                  ? 'A second opinion is a review of your existing diagnosis, so the specialist needs at least one report, prescription or scan to review.'
+                  : `${recordCount} document${recordCount === 1 ? '' : 's'} in your records, ready for the specialist to review.`}
             </div>
           </div>
         </div>
-        <Button variant="outline" onClick={() => navigate('/patient/records')}>
-          <Upload size={15} /> Manage records
+        <Button variant={needsReports ? 'primary' : 'outline'}
+          onClick={() => navigate('/patient/records')}>
+          <Upload size={15} /> {needsReports ? 'Upload reports' : 'Manage records'}
         </Button>
       </div>
 
@@ -164,7 +178,12 @@ export default function SecondOpinion() {
                   </div>
                 </div>
               </div>
-              <Button variant={d.available ? 'primary' : 'disabled'} disabled={!d.available}
+              <Button
+                variant={d.available && !needsReports ? 'primary' : 'disabled'}
+                disabled={!d.available || needsReports}
+                title={needsReports
+                  ? 'Upload at least one report first — the specialist needs something to review'
+                  : undefined}
                 onClick={() => request(d)}>
                 Request second opinion <ArrowRight size={15} />
               </Button>
