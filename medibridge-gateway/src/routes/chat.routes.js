@@ -11,7 +11,10 @@ export const chatRoutes = Router();
 
 chatRoutes.post('/api/chat/message', rateLimiter, requireAuth, express.json(), async (req, res, next) => {
   try {
-    res.json(await sendChatMessage(req.body));
+    // req.user comes from the verified JWT (see auth.js), never from the
+    // request body - the chat-service must not be able to be told who's asking.
+    const payload = { ...req.body, user_id: req.user.sub, role: req.user.type };
+    res.json(await sendChatMessage(payload));
   } catch (err) {
     next(err);
   }
