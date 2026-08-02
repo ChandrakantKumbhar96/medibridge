@@ -1,5 +1,6 @@
 package com.medibridge.prescription;
 
+import com.medibridge.prescription.dto.PrescriptionResponse;
 import com.medibridge.prescription.dto.PrescriptionStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -7,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * Called only by trusted internal services via the {@code X-Internal-Api-Key}
@@ -27,5 +30,12 @@ public class InternalPrescriptionController {
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public PrescriptionStatusResponse getLatest(@PathVariable Integer patientId) {
         return prescriptionService.latestForPatient(patientId);
+    }
+
+    /** Backs the chat-service's get_prescriptions tool - see spring_client.py. */
+    @GetMapping("/patient/{patientId}")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    public List<PrescriptionResponse> listForPatient(@PathVariable Integer patientId) {
+        return prescriptionService.listForPatient(patientId);
     }
 }
