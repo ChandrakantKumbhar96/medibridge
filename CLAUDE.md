@@ -150,3 +150,8 @@ is paid for every time. Only rules that change behaviour belong in it.
 **Committing**
 
 - Never add a `Co-Authored-By: Claude ...` trailer to any commit message.
+- Never commit new feature work onto an existing feature branch (e.g.
+  `chatbot-real-data-tool-calling`) once that branch's PR has merged into
+  main. Each new feature gets its own new branch cut from `main`, its own
+  PR, and its own merge. Only commit onto an existing branch when continuing
+  work that branch's still-open PR covers.
