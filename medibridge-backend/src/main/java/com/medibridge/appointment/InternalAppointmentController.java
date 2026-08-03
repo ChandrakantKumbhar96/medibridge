@@ -8,6 +8,8 @@ import com.medibridge.appointment.dto.RescheduleStatusResponse;
 import com.medibridge.appointment.entity.Appointment;
 import com.medibridge.common.exception.ResourceNotFoundException;
 import com.medibridge.common.util.PhoneNumbers;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,12 +37,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/internal/appointments")
 @RequiredArgsConstructor
+@Tag(name = "Internal - Appointments", description = "Backs the notify-service and chat assistant's tools. Requires X-Internal-Api-Key.")
 public class InternalAppointmentController {
 
     private final AppointmentService appointmentService;
 
     @GetMapping("/{appointmentId}")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Get an appointment by id")
     public AppointmentResponse getById(@PathVariable Integer appointmentId) {
         Appointment appointment = appointmentService.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
@@ -58,6 +62,7 @@ public class InternalAppointmentController {
     /** Backs the chat-service's get_appointment_count tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}/count")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Count a patient's upcoming appointments", description = "Backs the chat-service's get_appointment_count tool.")
     public long getPatientAppointmentCount(@PathVariable Integer patientId) {
         return appointmentService.countUpcomingForPatient(patientId);
     }
@@ -65,6 +70,7 @@ public class InternalAppointmentController {
     /** Backs the chat-service's get_appointment_count tool - see spring_client.py. */
     @GetMapping("/doctor/{doctorId}/count")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Count a doctor's upcoming appointments", description = "Backs the chat-service's get_appointment_count tool.")
     public long getDoctorAppointmentCount(@PathVariable String doctorId) {
         return appointmentService.countUpcomingForDoctor(doctorId);
     }
@@ -72,6 +78,7 @@ public class InternalAppointmentController {
     /** Backs the chat-service's get_today_queue_count tool - see spring_client.py. */
     @GetMapping("/doctor/{doctorId}/today-count")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Count a doctor's appointments today", description = "Backs the chat-service's get_today_queue_count tool.")
     public long getDoctorTodayCount(@PathVariable String doctorId) {
         return appointmentService.countTodayForDoctor(doctorId);
     }
@@ -79,6 +86,7 @@ public class InternalAppointmentController {
     /** Backs the chat-service's get_next_appointment tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}/next")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Get a patient's next appointment", description = "Backs the chat-service's get_next_appointment tool.")
     public NextAppointmentResponse getNextForPatient(@PathVariable Integer patientId) {
         return appointmentService.nextForPatient(patientId);
     }
@@ -86,6 +94,7 @@ public class InternalAppointmentController {
     /** Backs the chat-service's get_upcoming_appointments tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}/upcoming")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "List a patient's upcoming appointments", description = "Backs the chat-service's get_upcoming_appointments tool.")
     public List<AppointmentResponse> getUpcomingForPatient(@PathVariable Integer patientId) {
         return appointmentService.getPatientAppointments(patientId).get("upcoming");
     }
@@ -93,6 +102,7 @@ public class InternalAppointmentController {
     /** Backs the chat-service's get_appointment_history tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}/history")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "List a patient's past appointments", description = "Backs the chat-service's get_appointment_history tool.")
     public List<AppointmentResponse> getHistoryForPatient(@PathVariable Integer patientId) {
         return appointmentService.getPatientAppointments(patientId).get("past");
     }
@@ -100,6 +110,7 @@ public class InternalAppointmentController {
     /** Backs the chat-service's get_next_appointment tool - see spring_client.py. */
     @GetMapping("/doctor/{doctorId}/next")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Get a doctor's next appointment", description = "Backs the chat-service's get_next_appointment tool.")
     public NextAppointmentResponse getNextForDoctor(@PathVariable String doctorId) {
         return appointmentService.nextForDoctor(doctorId);
     }
@@ -107,6 +118,7 @@ public class InternalAppointmentController {
     /** Backs the chat-service's get_reschedule_status tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}/reschedule-status")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Get a patient's reschedule status", description = "Backs the chat-service's get_reschedule_status tool.")
     public RescheduleStatusResponse getRescheduleStatus(@PathVariable Integer patientId) {
         return appointmentService.rescheduleStatusForPatient(patientId);
     }
@@ -114,6 +126,7 @@ public class InternalAppointmentController {
     /** Backs the chat-service's get_doctor_dashboard tool - see spring_client.py. */
     @GetMapping("/doctor/{doctorId}/dashboard")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Get a doctor's dashboard", description = "Backs the chat-service's get_doctor_dashboard tool.")
     public Map<String, List<AppointmentResponse>> getDoctorDashboard(@PathVariable String doctorId) {
         return appointmentService.getDoctorDashboard(doctorId);
     }
@@ -121,6 +134,7 @@ public class InternalAppointmentController {
     /** Backs the chat-service's get_next_available_slot tool - see spring_client.py. */
     @GetMapping("/next-available")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Find the soonest open slot", description = "Backs the chat-service's get_next_available_slot tool.")
     public NextAvailableResponse getNextAvailable(
             @RequestParam(required = false) String specialization) {
         return appointmentService.nextAvailable(specialization)
@@ -129,6 +143,7 @@ public class InternalAppointmentController {
 
     @GetMapping("/reminder-candidates")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "List appointments needing a reminder", description = "Backs the notify-service's NoShowReminderJob.")
     public List<ReminderCandidateResponse> getReminderCandidates() {
         return appointmentService.findAppointmentsNeedingReminder().stream()
                 .map(a -> new ReminderCandidateResponse(

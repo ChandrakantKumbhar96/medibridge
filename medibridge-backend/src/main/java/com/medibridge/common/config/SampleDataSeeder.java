@@ -110,6 +110,11 @@ public class SampleDataSeeder {
         // have no reviews yet a few completed consultations and ratings.
         seedRatingsForNewDoctors();
 
+        // Pair this run's new patients 1:1 with this run's new doctors so the
+        // extra accounts aren't empty shells - each pair gets an appointment,
+        // and about half get a full consultation/prescription/review chain too.
+        seedMoreDemoAppointments(newDoctors, newPatients);
+
         log.warn("""
 
                 =====================================================================
@@ -198,7 +203,84 @@ public class SampleDataSeeder {
                 new Seed("Dr. Vikram Rao", "vikram.rao@medibridge.com", "+91 98765 43215",
                         "Neurology", "MD-12350-2022", 6, 1000, 30,
                         "Neurologist with interest in migraine, epilepsy and stroke "
-                        + "rehabilitation.", false));
+                        + "rehabilitation.", false),
+
+                new Seed("Dr. Farhan Ali", "farhan.ali@medibridge.com", "+91 98765 43225",
+                        "Cardiology", "MD-12460-2011", 14, 850, 30,
+                        "Cardiologist specialising in arrhythmia management and pacemaker "
+                        + "follow-up.", true),
+                new Seed("Dr. Ishita Bhatt", "ishita.bhatt@medibridge.com", "+91 98765 43226",
+                        "Cardiology", "MD-12461-2019", 7, 700, 30,
+                        "General cardiology with a focus on lipid disorders and cardiac "
+                        + "rehabilitation.", true),
+                new Seed("Dr. Manoj Trivedi", "manoj.trivedi@medibridge.com", "+91 98765 43227",
+                        "Cardiology", "MD-12462-2006", 22, 1200, 30,
+                        "Senior cardiologist experienced in heart failure and valvular "
+                        + "disease.", true),
+                new Seed("Dr. Ritika Chawla", "ritika.chawla@medibridge.com", "+91 98765 43228",
+                        "Cardiology", "MD-12463-2015", 11, 780, 30,
+                        "Preventive cardiology and echocardiography specialist.", true),
+
+                new Seed("Dr. Aakash Verma", "aakash.verma@medibridge.com", "+91 98765 43229",
+                        "Dermatology", "MD-12464-2016", 10, 620, 20,
+                        "Dermatologist treating eczema, psoriasis and vitiligo.", true),
+                new Seed("Dr. Simran Kaur", "simran.kaur@medibridge.com", "+91 98765 43230",
+                        "Dermatology", "MD-12465-2012", 13, 680, 20,
+                        "Cosmetic dermatologist specialising in chemical peels and laser "
+                        + "resurfacing.", true),
+                new Seed("Dr. Yash Choudhary", "yash.choudhary@medibridge.com", "+91 98765 43231",
+                        "Dermatology", "MD-12466-2020", 6, 580, 20,
+                        "Dermatologist focused on adolescent acne and scar management.", true),
+
+                new Seed("Dr. Kiran Bose", "kiran.bose@medibridge.com", "+91 98765 43232",
+                        "General Physician", "MD-12467-2009", 17, 520, 15,
+                        "Internal medicine physician managing chronic illness and "
+                        + "preventive screening.", true),
+                new Seed("Dr. Aditi Rane", "aditi.rane@medibridge.com", "+91 98765 43233",
+                        "General Physician", "MD-12468-2018", 8, 470, 15,
+                        "Family physician for routine check-ups, infections and "
+                        + "vaccinations.", true),
+                new Seed("Dr. Suresh Iyer", "suresh.iyer@medibridge.com", "+91 98765 43234",
+                        "General Physician", "MD-12469-2005", 20, 600, 15,
+                        "Senior general physician with focus on geriatric and lifestyle "
+                        + "care.", true),
+
+                new Seed("Dr. Varun Kapoor", "varun.kapoor@medibridge.com", "+91 98765 43235",
+                        "Orthopedics", "MD-12470-2013", 15, 880, 30,
+                        "Orthopaedic surgeon specialising in knee and hip replacement.", true),
+                new Seed("Dr. Nandini Rao", "nandini.rao@medibridge.com", "+91 98765 43236",
+                        "Orthopedics", "MD-12471-2017", 9, 760, 30,
+                        "Sports orthopaedist treating ligament and tendon injuries.", true),
+                new Seed("Dr. Pranav Joshi", "pranav.joshi@medibridge.com", "+91 98765 43237",
+                        "Orthopedics", "MD-12472-2010", 16, 900, 30,
+                        "Spine specialist managing disc disorders and chronic back pain.", true),
+                new Seed("Dr. Tanya Malik", "tanya.malik@medibridge.com", "+91 98765 43238",
+                        "Orthopedics", "MD-12473-2021", 5, 700, 30,
+                        "Orthopaedic surgeon with interest in fracture care and "
+                        + "rehabilitation.", true),
+
+                new Seed("Dr. Rakesh Suri", "rakesh.suri@medibridge.com", "+91 98765 43239",
+                        "Pediatrics", "MD-12474-2014", 12, 530, 20,
+                        "Paediatrician covering growth monitoring and childhood "
+                        + "infections.", true),
+                new Seed("Dr. Divya Menon", "divya.menon@medibridge.com", "+91 98765 43240",
+                        "Pediatrics", "MD-12475-2019", 7, 490, 20,
+                        "Paediatrician with special interest in neonatal care.", true),
+                new Seed("Dr. Amit Saxena", "amit.saxena@medibridge.com", "+91 98765 43241",
+                        "Pediatrics", "MD-12476-2008", 18, 560, 20,
+                        "Senior paediatrician managing chronic childhood conditions and "
+                        + "allergies.", true),
+
+                new Seed("Dr. Shalini Pillai", "shalini.pillai@medibridge.com", "+91 98765 43242",
+                        "Neurology", "MD-12477-2012", 13, 980, 30,
+                        "Neurologist specialising in epilepsy and headache disorders.", true),
+                new Seed("Dr. Gaurav Bansal", "gaurav.bansal@medibridge.com", "+91 98765 43243",
+                        "Neurology", "MD-12478-2016", 9, 900, 30,
+                        "Neurologist treating movement disorders and neuropathy.", true),
+                new Seed("Dr. Preeti Nambiar", "preeti.nambiar@medibridge.com", "+91 98765 43244",
+                        "Neurology", "MD-12479-2007", 19, 1050, 30,
+                        "Senior neurologist with expertise in stroke care and "
+                        + "rehabilitation.", true));
 
         // Per-doctor idempotency: an email already in the DB is not recreated,
         // but its qualifications/languages are backfilled if missing (those
@@ -367,7 +449,68 @@ public class SampleDataSeeder {
                         "78 Dharampeth, Nagpur, Maharashtra"),
                 new Seed("Meghna Pillai", "meghna.pillai@email.com", "+91 90001 00000",
                         LocalDate.of(2000, 8, 8), Patient.Gender.Female, "A-",
-                        "12 T. Nagar, Chennai, Tamil Nadu"));
+                        "12 T. Nagar, Chennai, Tamil Nadu"),
+
+                new Seed("Aditya Kulkarni", "aditya.kulkarni@email.com", "+91 90002 10001",
+                        LocalDate.of(1992, 5, 14), Patient.Gender.Male, "B+",
+                        "22 FC Road, Pune, Maharashtra"),
+                new Seed("Nisha Agarwal", "nisha.agarwal@email.com", "+91 90002 10002",
+                        LocalDate.of(1997, 9, 2), Patient.Gender.Female, "O+",
+                        "14 Salt Lake, Kolkata, West Bengal"),
+                new Seed("Devendra Singh", "devendra.singh@email.com", "+91 90002 10003",
+                        LocalDate.of(1980, 1, 21), Patient.Gender.Male, "A-",
+                        "5 Civil Lines, Lucknow, Uttar Pradesh"),
+                new Seed("Pallavi Joshi", "pallavi.joshi@email.com", "+91 90002 10004",
+                        LocalDate.of(1999, 11, 8), Patient.Gender.Female, "AB+",
+                        "31 Vastrapur, Ahmedabad, Gujarat"),
+                new Seed("Harsh Vardhan", "harsh.vardhan@email.com", "+91 90002 10005",
+                        LocalDate.of(1986, 3, 30), Patient.Gender.Male, "O-",
+                        "8 Sadar Bazaar, Jaipur, Rajasthan"),
+                new Seed("Swati Bhosale", "swati.bhosale@email.com", "+91 90002 10006",
+                        LocalDate.of(1994, 7, 17), Patient.Gender.Female, "B-",
+                        "19 Kothrud, Pune, Maharashtra"),
+                new Seed("Manish Tiwari", "manish.tiwari@email.com", "+91 90002 10007",
+                        LocalDate.of(1978, 12, 25), Patient.Gender.Male, "A+",
+                        "3 MP Nagar, Bhopal, Madhya Pradesh"),
+                new Seed("Radhika Menon", "radhika.menon@email.com", "+91 90002 10008",
+                        LocalDate.of(2002, 4, 19), Patient.Gender.Female, "O+",
+                        "27 Vyttila, Kochi, Kerala"),
+                new Seed("Sourav Chatterjee", "sourav.chatterjee@email.com", "+91 90002 10009",
+                        LocalDate.of(1983, 6, 11), Patient.Gender.Male, "AB-",
+                        "44 Park Street, Kolkata, West Bengal"),
+                new Seed("Ankita Deshpande", "ankita.deshpande@email.com", "+91 90002 10010",
+                        LocalDate.of(1991, 10, 5), Patient.Gender.Female, "A+",
+                        "16 Deccan Gymkhana, Pune, Maharashtra"),
+                new Seed("Vishal Reddy", "vishal.reddy@email.com", "+91 90002 10011",
+                        LocalDate.of(1989, 2, 27), Patient.Gender.Male, "B+",
+                        "60 Jubilee Hills, Hyderabad, Telangana"),
+                new Seed("Neelam Yadav", "neelam.yadav@email.com", "+91 90002 10012",
+                        LocalDate.of(1996, 8, 13), Patient.Gender.Female, "O-",
+                        "9 Sector 62, Noida, Uttar Pradesh"),
+                new Seed("Arvind Pandey", "arvind.pandey@email.com", "+91 90002 10013",
+                        LocalDate.of(1975, 5, 9), Patient.Gender.Male, "A-",
+                        "21 Alambagh, Lucknow, Uttar Pradesh"),
+                new Seed("Bhavna Shah", "bhavna.shah@email.com", "+91 90002 10014",
+                        LocalDate.of(2000, 1, 30), Patient.Gender.Female, "AB+",
+                        "38 Satellite, Ahmedabad, Gujarat"),
+                new Seed("Kunal Oberoi", "kunal.oberoi@email.com", "+91 90002 10015",
+                        LocalDate.of(1987, 9, 22), Patient.Gender.Male, "O+",
+                        "11 Model Town, New Delhi"),
+                new Seed("Shreya Kulkarni", "shreya.kulkarni@email.com", "+91 90002 10016",
+                        LocalDate.of(1993, 12, 3), Patient.Gender.Female, "B-",
+                        "25 Aundh, Pune, Maharashtra"),
+                new Seed("Tarun Bhatia", "tarun.bhatia@email.com", "+91 90002 10017",
+                        LocalDate.of(1981, 4, 16), Patient.Gender.Male, "A+",
+                        "17 Sector 15, Chandigarh"),
+                new Seed("Ishika Kapoor", "ishika.kapoor@email.com", "+91 90002 10018",
+                        LocalDate.of(1998, 6, 28), Patient.Gender.Female, "O+",
+                        "48 Malviya Nagar, Jaipur, Rajasthan"),
+                new Seed("Rajat Nanda", "rajat.nanda@email.com", "+91 90002 10019",
+                        LocalDate.of(1984, 11, 14), Patient.Gender.Male, "AB-",
+                        "6 Vashi, Navi Mumbai, Maharashtra"),
+                new Seed("Meenal Kelkar", "meenal.kelkar@email.com", "+91 90002 10020",
+                        LocalDate.of(2001, 2, 8), Patient.Gender.Female, "B+",
+                        "33 Shivaji Nagar, Pune, Maharashtra"));
 
         // A phone-first account has no email at all (V14), and this ran at
         // startup - so one OTP signup made every subsequent boot fail here.
@@ -468,6 +611,98 @@ public class SampleDataSeeder {
                 .withHour(15).withMinute(0), "Schedule conflict at work");
 
         log.info("Seeded sample appointments, prescriptions and reviews");
+    }
+
+    /**
+     * Extra appointments for this run's newly seeded patients/doctors, pairing
+     * them 1:1. Roughly half go through the full completed+prescribed+reviewed
+     * chain, the rest are a mix of upcoming and cancelled so those screens have
+     * more than a handful of rows to show too.
+     */
+    private void seedMoreDemoAppointments(List<Doctor> newDoctors, List<Patient> newPatients) {
+        if (newDoctors.isEmpty() || newPatients.isEmpty()) {
+            return;
+        }
+
+        int pairs = Math.min(newDoctors.size(), newPatients.size());
+        for (int i = 0; i < pairs; i++) {
+            Patient patient = newPatients.get(i);
+            Doctor doctor = newDoctors.get(i);
+
+            switch (i % 4) {
+                case 0 -> cancelled(patient, doctor, LocalDateTime.now().plusDays(5 + i)
+                        .withHour(11).withMinute(0), "Patient requested reschedule");
+                case 1 -> confirmedUpcoming(patient, doctor, "Routine consultation");
+                default -> {
+                    Appointment appt = completed(patient, doctor, LocalDateTime.now()
+                            .minusDays(1 + i).withHour(9 + (i % 6)).withMinute(0),
+                            "Consultation with " + doctor.getFullName());
+                    DemoPrescription rx = prescriptionFor(doctor.getSpecialization().getName());
+                    prescribe(appt, rx.diagnosis(), rx.notes(), rx.advice(), rx.medicines());
+                    review(appt, rx.stars(), rx.experience(), rx.highlights(), rx.reviewText());
+                }
+            }
+        }
+
+        log.info("Seeded {} additional demo appointments", pairs);
+    }
+
+    private record DemoPrescription(String diagnosis, String notes, String advice,
+                                    List<String[]> medicines, short stars,
+                                    Rating.OverallExperience experience,
+                                    Set<Rating.Highlight> highlights, String reviewText) {
+    }
+
+    /** Specialty-appropriate demo diagnosis/prescription/review, reused across pairs. */
+    private DemoPrescription prescriptionFor(String spec) {
+        return switch (spec) {
+            case "Cardiology" -> new DemoPrescription(
+                    "Hypertension, Stage 1", "BP mildly elevated on repeat readings. ECG normal.",
+                    "Low-sodium diet, regular light exercise, monitor BP weekly.",
+                    List.<String[]>of(new String[]{"Amlodipine", "5 mg", "1-0-0", "30 days", "After breakfast"}),
+                    (short) 5, Rating.OverallExperience.Excellent,
+                    Set.of(Rating.Highlight.CLEAR_EXPLANATIONS, Rating.Highlight.ACCURATE_DIAGNOSIS),
+                    "Thorough check-up, explained the readings clearly.");
+            case "Dermatology" -> new DemoPrescription(
+                    "Acne vulgaris, mild", "Scattered inflammatory lesions, no scarring.",
+                    "Gentle cleanser twice daily, avoid picking lesions.",
+                    List.<String[]>of(new String[]{"Adapalene Gel 0.1%", "Topical", "0-0-1", "8 weeks",
+                            "Apply thinly at night"}),
+                    (short) 4, Rating.OverallExperience.Good,
+                    Set.of(Rating.Highlight.FOLLOW_UP_CARE),
+                    "Skin is already clearing up after a couple of weeks.");
+            case "Orthopedics" -> new DemoPrescription(
+                    "Mechanical lower back pain", "No radicular signs. Reduced lumbar flexion.",
+                    "Physiotherapy twice weekly, avoid heavy lifting for 2 weeks.",
+                    List.<String[]>of(new String[]{"Aceclofenac", "100 mg", "1-0-1", "5 days", "After food"}),
+                    (short) 4, Rating.OverallExperience.Good,
+                    Set.of(Rating.Highlight.BEDSIDE_MANNER),
+                    "Pain has reduced a lot after following the advice.");
+            case "Pediatrics" -> new DemoPrescription(
+                    "Viral upper respiratory infection", "Mild fever, clear chest on auscultation.",
+                    "Plenty of fluids, rest, paracetamol only if fever crosses 100.4F.",
+                    List.<String[]>of(new String[]{"Paracetamol Syrup", "125 mg/5ml", "SOS", "5 days",
+                            "Only if fever"}),
+                    (short) 5, Rating.OverallExperience.Excellent,
+                    Set.of(Rating.Highlight.FRIENDLY_STAFF, Rating.Highlight.BEDSIDE_MANNER),
+                    "Great with kids, made my child comfortable throughout.");
+            case "Neurology" -> new DemoPrescription(
+                    "Migraine without aura", "Episodic, triggered by stress and poor sleep.",
+                    "Maintain a headache diary, regular sleep schedule, avoid known triggers.",
+                    List.<String[]>of(new String[]{"Rizatriptan", "10 mg", "SOS", "30 days",
+                            "At onset of headache"}),
+                    (short) 5, Rating.OverallExperience.Excellent,
+                    Set.of(Rating.Highlight.ACCURATE_DIAGNOSIS, Rating.Highlight.FOLLOW_UP_CARE),
+                    "Finally got a clear explanation for what triggers my migraines.");
+            default -> new DemoPrescription(
+                    "General wellness check-up", "No acute findings on examination.",
+                    "Maintain a balanced diet and routine annual check-ups.",
+                    List.<String[]>of(new String[]{"Multivitamin", "1 tablet", "1-0-0", "30 days",
+                            "After breakfast"}),
+                    (short) 4, Rating.OverallExperience.Good,
+                    Set.of(Rating.Highlight.FRIENDLY_STAFF),
+                    "Smooth consultation, no complaints.");
+        };
     }
 
     private Appointment completed(Patient patient, Doctor doctor, LocalDateTime when,
