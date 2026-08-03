@@ -25,6 +25,7 @@ services:
     restart: unless-stopped
 
   backend:
+    image: chandrakantdevop/medibridge-backend:latest
     build: ./medibridge-backend
     depends_on:
       mysql:
@@ -62,6 +63,7 @@ services:
     restart: unless-stopped
 
   chat-service:
+    image: chandrakantdevop/medibridge-chat-service:latest
     build: ./medibridge-chat-service
     depends_on:
       redis:
@@ -88,6 +90,7 @@ services:
     restart: unless-stopped
 
   notify-service:
+    image: chandrakantdevop/medibridge-notify-service:latest
     build:
       context: ./medibridge-notify-service
       dockerfile: src/MediBridge.Notify.Api/Dockerfile
@@ -103,6 +106,7 @@ services:
     restart: unless-stopped
 
   gateway:
+    image: chandrakantdevop/medibridge-gateway:latest
     build: ./medibridge-gateway
     depends_on:
       backend:
@@ -131,6 +135,7 @@ services:
     restart: unless-stopped
 
   frontend:
+    image: chandrakantdevop/medibridge-frontend:latest
     build:
       context: ./medibridge-frontend
       args:
