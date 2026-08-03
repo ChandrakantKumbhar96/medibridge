@@ -2,6 +2,8 @@ package com.medibridge.doctor;
 
 import com.medibridge.doctor.dto.DoctorResponse;
 import com.medibridge.doctor.dto.ScheduleDayDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/internal/doctors")
 @RequiredArgsConstructor
+@Tag(name = "Internal - Doctors", description = "Backs the chat assistant's tools. Requires X-Internal-Api-Key.")
 public class InternalDoctorController {
 
     private final DoctorService doctorService;
@@ -30,6 +33,7 @@ public class InternalDoctorController {
     /** Backs the chat-service's get_my_profile tool (doctor role) - see spring_client.py. */
     @GetMapping("/{doctorId}/profile")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Get a doctor's own profile", description = "Backs the chat-service's get_my_profile tool (doctor role).")
     public DoctorResponse getProfile(@PathVariable String doctorId) {
         return doctorService.getOwnProfile(doctorId);
     }
@@ -37,6 +41,7 @@ public class InternalDoctorController {
     /** Backs the chat-service's get_weekly_schedule tool - see spring_client.py. */
     @GetMapping("/{doctorId}/weekly-schedule")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Get a doctor's weekly schedule", description = "Backs the chat-service's get_weekly_schedule tool.")
     public List<ScheduleDayDto> getWeeklySchedule(@PathVariable String doctorId) {
         return doctorService.getWeeklySchedule(doctorId);
     }
@@ -44,6 +49,7 @@ public class InternalDoctorController {
     /** Backs the chat-service's get_treated_patients tool - see spring_client.py. */
     @GetMapping("/{doctorId}/treated-patients")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "List patients a doctor has treated", description = "Backs the chat-service's get_treated_patients tool.")
     public List<Map<String, Object>> getTreatedPatients(@PathVariable String doctorId) {
         return doctorService.getTreatedPatients(doctorId);
     }
@@ -55,6 +61,7 @@ public class InternalDoctorController {
      */
     @GetMapping("/search")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Search doctors", description = "Backs the chat-service's search_doctors tool. Only ACTIVE doctors are returned.")
     public List<DoctorResponse> search(
             @RequestParam(required = false) String specialization,
             @RequestParam(required = false) String search) {
@@ -69,6 +76,7 @@ public class InternalDoctorController {
      */
     @GetMapping("/{doctorId}/public-profile")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Get a doctor's public profile", description = "Backs the chat-service's get_doctor_profile tool.")
     public DoctorResponse getPublicProfile(@PathVariable String doctorId) {
         return doctorService.getDoctor(doctorId);
     }

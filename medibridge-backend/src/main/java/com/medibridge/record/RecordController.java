@@ -3,6 +3,8 @@ package com.medibridge.record;
 import com.medibridge.common.security.CurrentUser;
 import com.medibridge.common.security.SecurityUser;
 import com.medibridge.record.dto.RecordResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/records")
 @RequiredArgsConstructor
+@Tag(name = "Medical Records", description = "Patient-uploaded reports")
 public class RecordController {
 
     private final RecordService recordService;
@@ -29,6 +32,7 @@ public class RecordController {
      */
     @GetMapping
     @PreAuthorize("hasRole('PATIENT')")
+    @Operation(summary = "List my records", description = "Omit `subject` for everyone on the account, `self` for the holder alone, or a family member id.")
     public List<RecordResponse> myRecords(@CurrentUser SecurityUser me,
                                           @RequestParam(required = false) String subject) {
         return recordService.listForSubject(me.idAsInt(), subject);
@@ -36,6 +40,7 @@ public class RecordController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('PATIENT')")
+    @Operation(summary = "Upload a record", description = "Multipart upload. Stored under a generated UUID filename with an allow-listed content type.")
     public RecordResponse upload(@CurrentUser SecurityUser me,
                                  @RequestPart("file") MultipartFile file,
                                  @RequestParam("report_name") String reportName,
@@ -47,6 +52,7 @@ public class RecordController {
 
     @GetMapping("/{reportId}/download")
     @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
+    @Operation(summary = "Download a record", description = "Patient gets their own, doctor gets one for a patient they treat.")
     public ResponseEntity<byte[]> download(@CurrentUser SecurityUser me,
                                            @PathVariable Integer reportId) {
 
@@ -65,6 +71,7 @@ public class RecordController {
 
     @DeleteMapping("/{reportId}")
     @PreAuthorize("hasRole('PATIENT')")
+    @Operation(summary = "Delete a record")
     public ResponseEntity<Void> delete(@CurrentUser SecurityUser me,
                                        @PathVariable Integer reportId) {
         recordService.delete(me.idAsInt(), reportId);

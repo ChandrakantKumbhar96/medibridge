@@ -8,6 +8,8 @@ import com.medibridge.appointment.entity.Appointment;
 import com.medibridge.common.exception.BadRequestException;
 import com.medibridge.common.security.CurrentUser;
 import com.medibridge.common.security.SecurityUser;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/appointments")
 @RequiredArgsConstructor
+@Tag(name = "Appointments", description = "Booking, cancellation, reschedule and the consultation room")
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
@@ -36,6 +39,7 @@ public class AppointmentController {
 
     @GetMapping("/patient")
     @PreAuthorize("hasRole('PATIENT')")
+    @Operation(summary = "List my appointments", description = "Returns upcoming and past appointments for the signed-in patient.")
     public Map<String, List<AppointmentResponse>> myAppointments(@CurrentUser SecurityUser me) {
         return appointmentService.getPatientAppointments(me.idAsInt());
     }
@@ -51,6 +55,7 @@ public class AppointmentController {
      */
     @GetMapping("/next-available")
     @PreAuthorize("hasRole('PATIENT')")
+    @Operation(summary = "Find the soonest open slot", description = "Optionally narrowed to one specialization. 204 when nothing qualifies.")
     public ResponseEntity<NextAvailableResponse> nextAvailable(
             @RequestParam(value = "specialization", required = false) String specialization) {
         return appointmentService.nextAvailable(specialization)
@@ -61,6 +66,7 @@ public class AppointmentController {
     @PostMapping
     @PreAuthorize("hasRole('PATIENT')")
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Book an appointment", description = "Books a slot and locks in the price. Confirms on payment.")
     public AppointmentResponse book(@CurrentUser SecurityUser me,
                                     @Valid @RequestBody BookAppointmentRequest request) {
         return appointmentService.book(me.idAsInt(), request);
@@ -81,6 +87,7 @@ public class AppointmentController {
     @PostMapping("/{appointmentId}/follow-up")
     @PreAuthorize("hasRole('PATIENT')")
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Book a free follow-up", description = "Books the one free revisit a completed consultation earns. 409 if already used or the slot is taken.")
     public AppointmentResponse bookFollowUp(@CurrentUser SecurityUser me,
                                             @PathVariable Integer appointmentId,
                                             @RequestBody Map<String, Integer> body) {
@@ -98,6 +105,7 @@ public class AppointmentController {
      */
     @PatchMapping("/{appointmentId}/cancel")
     @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
+    @Operation(summary = "Cancel an appointment", description = "Refunds automatically per policy: full refund for a doctor cancellation, and for a patient outside the free-cancellation window; partial inside it.")
     public AppointmentResponse cancel(@CurrentUser SecurityUser me,
                                       @PathVariable Integer appointmentId,
                                       @RequestBody(required = false) Map<String, String> body) {
@@ -114,12 +122,14 @@ public class AppointmentController {
 
     @GetMapping("/doctor/dashboard")
     @PreAuthorize("hasRole('DOCTOR')")
+    @Operation(summary = "Get my dashboard", description = "Today's appointments, upcoming, awaiting notes, and completed.")
     public Map<String, List<AppointmentResponse>> doctorDashboard(@CurrentUser SecurityUser me) {
         return appointmentService.getDoctorDashboard(me.getId());
     }
 
     @GetMapping("/doctor")
     @PreAuthorize("hasRole('DOCTOR')")
+    @Operation(summary = "List my appointments")
     public List<AppointmentResponse> doctorAppointments(@CurrentUser SecurityUser me) {
         return appointmentService.getDoctorAppointments(me.getId());
     }
@@ -134,6 +144,7 @@ public class AppointmentController {
      */
     @PatchMapping("/{appointmentId}/complete")
     @PreAuthorize("hasRole('DOCTOR')")
+    @Operation(summary = "Mark a consultation done", description = "Refuses to complete an appointment whose scheduled time has not yet arrived.")
     public AppointmentResponse complete(@CurrentUser SecurityUser me,
                                         @PathVariable Integer appointmentId) {
         return appointmentService.complete(me.getId(), appointmentId);
@@ -149,6 +160,7 @@ public class AppointmentController {
      */
     @GetMapping("/{appointmentId}/join")
     @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
+    @Operation(summary = "Get the consultation room URL", description = "Minted on demand for a paid, confirmed appointment inside the join window. 400 outside the window.")
     public Map<String, String> join(@CurrentUser SecurityUser me,
                                     @PathVariable Integer appointmentId) {
         String link = switch (me.getUserType()) {
@@ -167,6 +179,7 @@ public class AppointmentController {
      */
     @GetMapping("/{appointmentId}/room-status")
     @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
+    @Operation(summary = "Get consultation room status", description = "Read-only: who has joined. Polled by the patient's waiting room, records nothing.")
     public RoomStatusResponse roomStatus(@CurrentUser SecurityUser me,
                                          @PathVariable Integer appointmentId) {
         return switch (me.getUserType()) {
@@ -187,6 +200,7 @@ public class AppointmentController {
      */
     @PatchMapping("/{appointmentId}/reschedule")
     @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
+    @Operation(summary = "Reschedule an appointment", description = "Moves a confirmed appointment to a different slot with the same doctor. Patient moves are limited by notice period and count.")
     public AppointmentResponse reschedule(@CurrentUser SecurityUser me,
                                           @PathVariable Integer appointmentId,
                                           @RequestBody Map<String, Integer> body) {
