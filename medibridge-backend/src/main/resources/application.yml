@@ -74,7 +74,7 @@ logging:
 
 medibridge:
   cors:
-    allowed-origins: http://localhost:5173
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
 
   ratelimit:
     # X-Forwarded-For is attacker-controlled unless a proxy overwrites it, so it
