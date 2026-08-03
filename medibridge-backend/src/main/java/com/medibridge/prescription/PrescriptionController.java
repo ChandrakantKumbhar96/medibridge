@@ -6,6 +6,8 @@ import com.medibridge.common.security.SecurityUser;
 import com.medibridge.patient.PatientRepository;
 import com.medibridge.prescription.dto.PrescriptionRequest;
 import com.medibridge.prescription.dto.PrescriptionResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +20,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Prescriptions", description = "Doctor-issued prescriptions and the medical history PDF")
 public class PrescriptionController {
 
     private final PrescriptionService prescriptionService;
@@ -25,6 +28,7 @@ public class PrescriptionController {
 
     @PostMapping("/prescriptions")
     @PreAuthorize("hasRole('DOCTOR')")
+    @Operation(summary = "Issue a prescription")
     public PrescriptionResponse create(@CurrentUser SecurityUser me,
                                        @Valid @RequestBody PrescriptionRequest request) {
         return prescriptionService.create(me.getId(), request);
@@ -32,13 +36,14 @@ public class PrescriptionController {
 
     @GetMapping("/prescriptions")
     @PreAuthorize("hasRole('PATIENT')")
+    @Operation(summary = "List my prescriptions")
     public List<PrescriptionResponse> myPrescriptions(@CurrentUser SecurityUser me) {
         return prescriptionService.listForPatient(me.idAsInt());
     }
 
-    /** Prescription PDF - patient gets their own, doctor gets ones they issued. */
     @GetMapping("/prescriptions/{prescriptionId}/pdf")
     @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
+    @Operation(summary = "Download a prescription PDF", description = "Patient gets their own, doctor gets ones they issued.")
     public ResponseEntity<byte[]> prescriptionPdf(@CurrentUser SecurityUser me,
                                                   @PathVariable Integer prescriptionId) {
         byte[] pdf = switch (me.getUserType()) {
@@ -52,9 +57,9 @@ public class PrescriptionController {
         return pdfResponse(pdf, "prescription-" + prescriptionId + ".pdf");
     }
 
-    /** Full medical history PDF for the signed-in patient. */
     @GetMapping("/records/medical-history/pdf")
     @PreAuthorize("hasRole('PATIENT')")
+    @Operation(summary = "Download my full medical history PDF")
     public ResponseEntity<byte[]> medicalHistoryPdf(@CurrentUser SecurityUser me) {
         var patient = patientRepository.findById(me.idAsInt())
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));

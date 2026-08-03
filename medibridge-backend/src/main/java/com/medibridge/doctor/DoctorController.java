@@ -3,6 +3,8 @@ package com.medibridge.doctor;
 import com.medibridge.common.security.CurrentUser;
 import com.medibridge.common.security.SecurityUser;
 import com.medibridge.doctor.dto.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,11 +24,13 @@ import java.util.Map;
  */
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Doctors (Discovery)", description = "Public browsing of doctors, specialties and slots")
 public class DoctorController {
 
     private final DoctorService doctorService;
 
     @GetMapping("/doctors")
+    @Operation(summary = "List doctors", description = "Public directory, optionally filtered by specialization or search text.")
     public List<DoctorResponse> listDoctors(
             @RequestParam(required = false) String specialization,
             @RequestParam(required = false) String search) {
@@ -34,25 +38,27 @@ public class DoctorController {
     }
 
     @GetMapping("/doctors/{doctorId}")
+    @Operation(summary = "Get a doctor's public profile")
     public DoctorResponse getDoctor(@PathVariable String doctorId) {
         return doctorService.getDoctor(doctorId);
     }
 
     @GetMapping("/doctors/{doctorId}/slots")
+    @Operation(summary = "Get a doctor's available slots for a date")
     public List<Map<String, Object>> getSlots(
             @PathVariable String doctorId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return doctorService.getAvailableSlots(doctorId, date);
     }
 
-    /** Cards on the booking wizard's first step: name, emoji, doctor count. */
     @GetMapping("/specialties")
+    @Operation(summary = "List specialties", description = "Cards on the booking wizard's first step: name, emoji, doctor count.")
     public List<SpecialtyResponse> listSpecialties() {
         return doctorService.listSpecialties();
     }
 
-    /** Flat names for the register form dropdown. */
     @GetMapping("/specializations")
+    @Operation(summary = "List specialization names", description = "Flat names for the register form dropdown.")
     public List<String> listSpecializations() {
         return doctorService.listSpecializationNames();
     }

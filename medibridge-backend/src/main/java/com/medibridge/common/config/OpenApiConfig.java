@@ -38,8 +38,8 @@ public class OpenApiConfig {
                                 3. Click **Authorize** (top right) and paste it.
 
                                 **Demo accounts** (password `Test@1234`, admin `Admin@123`)
-                                - Patient: `john.doe@email.com`
-                                - Doctor:  `sarah.johnson@medibridge.com`
+                                - Patient: `aarav.gupta@email.com`
+                                - Doctor:  `aditya.nair@medibridge.com`
                                 - Admin:   `admin@medibridge.com`
 
                                 **Booking flow**
