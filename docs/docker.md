@@ -152,6 +152,67 @@ docker compose build --no-cache backend
 docker exec -it medibridge-mysql-1 mysql -uroot -p medibridge
 ```
 
+## Running from Docker Hub (no source needed)
+
+All 5 built services are published under `chandrakantdevop` on Docker Hub:
+`medibridge-backend`, `medibridge-chat-service`, `medibridge-notify-service`,
+`medibridge-gateway`, `medibridge-frontend` (all `:latest`). Anyone with
+Docker installed can run the full stack without cloning the repo.
+
+**Works as-is only on `localhost`.** The frontend image has
+`VITE_GATEWAY_API_URL=http://localhost:4000/api` baked in at build time -
+fine on the puller's own machine, broken if the stack is deployed to a real
+server under a different address. Deploying elsewhere means rebuilding the
+frontend from source with the correct build arg; pulling the image alone
+won't fix it.
+
+### 1. Get the compose file and env template
+
+```bash
+# Grab just these two files - no need to clone the whole repo.
+curl -O https://raw.githubusercontent.com/ChandrakantKumbhar96/Medibridge-Platform/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/ChandrakantKumbhar96/Medibridge-Platform/main/.env.example
+```
+
+### 2. Create `.env`
+
+```bash
+cp .env.example .env
+```
+
+Required: `DB_PASSWORD`, `JWT_SECRET`, `SPRING_INTERNAL_API_KEY`,
+`GATEWAY_INTERNAL_API_KEY` - pick any values, they just need to match between
+services (compose wires that up automatically). Everything else (mail,
+Twilio, Razorpay, Google, Groq) is optional; those features stay
+disabled/simulated without them.
+
+### 3. Pull the images
+
+```bash
+# docker-compose.yml has both `image:` and `build:` per service. Without
+# this step, `docker compose up` tries to build locally from source that
+# isn't there and fails. `pull` fetches the pre-built images instead.
+docker compose pull
+```
+
+### 4. Start the stack
+
+```bash
+# No --build - that would try (and fail) to build from missing source.
+# Compose starts services in healthcheck order automatically:
+# mysql -> backend -> chat-service/notify-service -> gateway -> frontend.
+docker compose up -d
+```
+
+### 5. Use it
+
+- App: `http://localhost:3000`
+- Demo admin: `admin@medibridge.com` / `Admin@123` (seeded by `DataSeeder`
+  on the backend's first boot against the empty DB)
+
+Check everything came up healthy with `docker compose ps` (see Status
+section above).
+
 ## Troubleshooting notes
 
 - **`backend` unhealthy / dependents never start**: check
