@@ -146,3 +146,7 @@ is paid for every time. Only rules that change behaviour belong in it.
   No walkthrough of code I can read myself.
 - Ask before starting work when the request is ambiguous. A wrong guess costs
   more than the question.
+
+**Committing**
+
+- Never add a `Co-Authored-By: Claude ...` trailer to any commit message.
