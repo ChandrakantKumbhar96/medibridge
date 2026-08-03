@@ -1,14 +1,34 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Logo from '../common/Logo'
 
 /**
  * Public site header — frosted and sticky, so it stays available as the
- * landing page scrolls without blocking the hero imagery behind it.
+ * landing page scrolls without blocking the hero imagery behind it. Condenses
+ * once the page scrolls past the hero, matching how Practo/Zocdoc-style
+ * marketing sites shrink their nav instead of leaving it hero-sized throughout.
  */
 export default function PublicNavbar() {
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
-    <header className="sticky top-0 z-40 border-b border-sand-200/60 bg-white/75 backdrop-blur-xl backdrop-saturate-150">
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-3.5">
+    <header
+      className={`sticky top-0 z-40 border-b bg-white/75 backdrop-blur-xl backdrop-saturate-150 transition-shadow duration-300 ${
+        scrolled ? 'border-sand-200/80 shadow-soft' : 'border-sand-200/60'
+      }`}
+    >
+      <div
+        className={`mx-auto flex max-w-[1200px] items-center justify-between px-6 transition-[padding] duration-300 ${
+          scrolled ? 'py-2.5' : 'py-3.5'
+        }`}
+      >
         <Link to="/"><Logo /></Link>
 
         <nav className="flex items-center gap-1 sm:gap-2">

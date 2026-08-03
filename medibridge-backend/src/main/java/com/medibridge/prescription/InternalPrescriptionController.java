@@ -2,6 +2,8 @@ package com.medibridge.prescription;
 
 import com.medibridge.prescription.dto.PrescriptionResponse;
 import com.medibridge.prescription.dto.PrescriptionStatusResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/internal/prescriptions")
 @RequiredArgsConstructor
+@Tag(name = "Internal - Prescriptions", description = "Backs the chat assistant's tools. Requires X-Internal-Api-Key.")
 public class InternalPrescriptionController {
 
     private final PrescriptionService prescriptionService;
@@ -28,6 +31,7 @@ public class InternalPrescriptionController {
     /** Backs the chat-service's get_prescription_status tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}/latest")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Get a patient's latest prescription status", description = "Backs the chat-service's get_prescription_status tool.")
     public PrescriptionStatusResponse getLatest(@PathVariable Integer patientId) {
         return prescriptionService.latestForPatient(patientId);
     }
@@ -35,6 +39,7 @@ public class InternalPrescriptionController {
     /** Backs the chat-service's get_prescriptions tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "List a patient's prescriptions", description = "Backs the chat-service's get_prescriptions tool.")
     public List<PrescriptionResponse> listForPatient(@PathVariable Integer patientId) {
         return prescriptionService.listForPatient(patientId);
     }

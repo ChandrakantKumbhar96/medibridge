@@ -1,6 +1,8 @@
 package com.medibridge.record;
 
 import com.medibridge.record.dto.RecordResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/internal/records")
 @RequiredArgsConstructor
+@Tag(name = "Internal - Records", description = "Backs the chat assistant's tools. Requires X-Internal-Api-Key.")
 public class InternalRecordController {
 
     private final RecordService recordService;
@@ -27,6 +30,7 @@ public class InternalRecordController {
     /** Backs the chat-service's get_medical_records tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "List a patient's records", description = "Backs the chat-service's get_medical_records tool.")
     public List<RecordResponse> listForPatient(@PathVariable Integer patientId) {
         return recordService.listForPatient(patientId);
     }

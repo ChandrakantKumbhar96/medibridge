@@ -4,6 +4,8 @@ import com.medibridge.common.security.CurrentUser;
 import com.medibridge.common.security.SecurityUser;
 import com.medibridge.payout.dto.EarningResponse;
 import com.medibridge.payout.dto.PayoutResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +24,7 @@ import java.util.Map;
  */
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Payouts", description = "Doctor earnings and platform settlement runs")
 public class PayoutController {
 
     private final PayoutService payoutService;
@@ -30,18 +33,21 @@ public class PayoutController {
 
     @GetMapping("/doctor/earnings/summary")
     @PreAuthorize("hasRole('DOCTOR')")
+    @Operation(summary = "Get my earnings summary")
     public Map<String, Object> mySummary(@CurrentUser SecurityUser me) {
         return payoutService.getEarningsSummary(me.getId());
     }
 
     @GetMapping("/doctor/earnings")
     @PreAuthorize("hasRole('DOCTOR')")
+    @Operation(summary = "List my earnings")
     public List<EarningResponse> myEarnings(@CurrentUser SecurityUser me) {
         return payoutService.getEarnings(me.getId());
     }
 
     @GetMapping("/doctor/payouts")
     @PreAuthorize("hasRole('DOCTOR')")
+    @Operation(summary = "List my payouts")
     public List<PayoutResponse> myPayouts(@CurrentUser SecurityUser me) {
         return payoutService.getPayoutsForDoctor(me.getId());
     }
@@ -50,25 +56,21 @@ public class PayoutController {
 
     @GetMapping("/admin/payouts")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "List all payouts")
     public List<PayoutResponse> allPayouts() {
         return payoutService.getAllPayouts();
     }
 
     @GetMapping("/admin/payouts/summary")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get platform settlement summary")
     public Map<String, Object> platformSummary() {
         return payoutService.getPlatformSummary();
     }
 
-    /**
-     * Creates payout batches for every doctor with unsettled earnings.
-     *
-     * <p>Defaults to the last {@code payout_cycle_days}. Safe to re-run: the
-     * unique key on (doctor, period) means a second run for the same window
-     * cannot pay anyone twice.
-     */
     @PostMapping("/admin/payouts/run")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Run a settlement batch", description = "Creates payout batches for every doctor with unsettled earnings for the given period, defaulting to the last payout_cycle_days. Safe to re-run: the unique key on (doctor, period) prevents double-paying.")
     public List<PayoutResponse> runSettlement(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -81,9 +83,9 @@ public class PayoutController {
         return payoutService.runSettlementForAll(periodStart, periodEnd);
     }
 
-    /** Records that the bank transfer actually happened. */
     @PatchMapping("/admin/payouts/{payoutId}/paid")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Mark a payout paid", description = "Records that the bank transfer actually happened.")
     public PayoutResponse markPaid(@PathVariable Integer payoutId,
                                    @RequestBody Map<String, String> body) {
         return payoutService.markPaid(payoutId, body.get("reference"), body.get("notes"));

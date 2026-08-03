@@ -2,6 +2,8 @@ package com.medibridge.payment;
 
 import com.medibridge.payment.dto.PaymentResponse;
 import com.medibridge.payment.dto.RefundStatusResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/internal/payments")
 @RequiredArgsConstructor
+@Tag(name = "Internal - Payments", description = "Backs the chat assistant's tools. Requires X-Internal-Api-Key.")
 public class InternalPaymentController {
 
     private final PaymentService paymentService;
@@ -28,6 +31,7 @@ public class InternalPaymentController {
     /** Backs the chat-service's get_refund_status tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}/latest-refund")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "Get a patient's latest refund status", description = "Backs the chat-service's get_refund_status tool.")
     public RefundStatusResponse getLatestRefund(@PathVariable Integer patientId) {
         return paymentService.latestRefundForPatient(patientId);
     }
@@ -35,6 +39,7 @@ public class InternalPaymentController {
     /** Backs the chat-service's get_payment_history tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "List a patient's payments", description = "Backs the chat-service's get_payment_history tool.")
     public List<PaymentResponse> listForPatient(@PathVariable Integer patientId) {
         return paymentService.listForPatient(patientId);
     }
