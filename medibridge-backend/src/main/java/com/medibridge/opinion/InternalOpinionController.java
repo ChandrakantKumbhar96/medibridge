@@ -1,6 +1,8 @@
 package com.medibridge.opinion;
 
 import com.medibridge.opinion.dto.OpinionResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/internal/opinions")
 @RequiredArgsConstructor
+@Tag(name = "Internal - Second Opinions", description = "Backs the chat assistant's tools. Requires X-Internal-Api-Key.")
 public class InternalOpinionController {
 
     private final OpinionService opinionService;
@@ -27,6 +30,7 @@ public class InternalOpinionController {
     /** Backs the chat-service's get_second_opinions tool - see spring_client.py. */
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "List a patient's second opinions", description = "Backs the chat-service's get_second_opinions tool.")
     public List<OpinionResponse> listForPatient(@PathVariable Integer patientId) {
         return opinionService.listForPatient(patientId);
     }

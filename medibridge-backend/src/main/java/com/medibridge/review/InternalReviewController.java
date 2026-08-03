@@ -1,6 +1,8 @@
 package com.medibridge.review;
 
 import com.medibridge.review.dto.RatingResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/internal/reviews")
 @RequiredArgsConstructor
+@Tag(name = "Internal - Reviews", description = "Backs the chat assistant's tools. Requires X-Internal-Api-Key.")
 public class InternalReviewController {
 
     private final ReviewService reviewService;
@@ -27,6 +30,7 @@ public class InternalReviewController {
     /** Backs the chat-service's get_my_reviews tool - see spring_client.py. */
     @GetMapping("/doctor/{doctorId}")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @Operation(summary = "List a doctor's reviews", description = "Backs the chat-service's get_my_reviews tool.")
     public List<RatingResponse> listForDoctor(@PathVariable String doctorId) {
         return reviewService.listForDoctor(doctorId);
     }
