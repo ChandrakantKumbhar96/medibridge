@@ -11,7 +11,9 @@ function required(name, fallback) {
 export const env = {
   port: Number(process.env.PORT ?? 4000),
   nodeEnv: process.env.NODE_ENV ?? 'development',
-  corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+  corsOrigin: (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim()),
   springApiUrl: required('SPRING_API_URL', 'http://localhost:8080'),
   chatServiceUrl: process.env.CHAT_SERVICE_URL ?? 'http://localhost:8000',
   notifyServiceUrl: process.env.NOTIFY_SERVICE_URL ?? 'http://localhost:5000',
