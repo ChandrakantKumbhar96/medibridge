@@ -75,7 +75,7 @@ services:
     environment:
       PORT: 8000
       ENV: production
-      CORS_ORIGIN: http://localhost:3000
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
       GROQ_MODEL_FAST: ${GROQ_MODEL_FAST:-openai/gpt-oss-120b}
