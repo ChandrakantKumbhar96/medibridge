@@ -1,0 +1,70 @@
+MediBridge — Run Locally (no Docker)
+=====================================
+
+Prerequisites:
+- Java 21
+- Maven 3.9+
+- MySQL 8
+- Node 18+
+- (optional) Python 3.11+ and .NET 8 SDK — only needed for chat/notify services
+
+1. Create the database
+-----------------------
+mysql -u root -p -e "CREATE DATABASE medibridge CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+2. Backend (Spring Boot, :8080)
+--------------------------------
+Copy medibridge-backend/application-local.yml.example to application-local.yml
+and fill in your MySQL password and a JWT secret (min 32 bytes).
+
+cd medibridge-backend
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+
+Flyway builds the schema and seeds demo data on first run.
+
+3. Frontend (React/Vite, :5173)
+---------------------------------
+Copy medibridge-frontend/.env.example to .env.
+
+cd medibridge-frontend
+npm install
+npm run dev
+
+The frontend talks to the gateway by default (VITE_GATEWAY_API_URL, falls
+back to http://localhost:4000/api). Start the gateway too, or point that
+variable straight at Spring's :8080/api to skip it.
+
+4. Gateway (Node/Express, :4000) — required for the frontend's default config
+--------------------------------------------------------------------------------
+cd medibridge-gateway
+npm install
+npm run dev
+
+5. Optional satellites
+------------------------
+Chat/Triage (symptom checker / chat widget), :8000:
+  cd medibridge-chat-service
+  uvicorn app.main:app --reload
+
+Notify (SMS reminders / CSV report export), :5154:
+  cd medibridge-notify-service/src/MediBridge.Notify.Api
+  dotnet run
+
+URLs
+-----
+App:          http://localhost:5173
+Gateway:      http://localhost:4000/api
+Spring API:   http://localhost:8080/api
+Swagger UI:   http://localhost:8080/api/swagger-ui.html
+
+Demo accounts (password Test@1234, admin Admin@123)
+-------------------------------------------------------
+Patient: john.doe@email.com
+Doctor:  sarah.johnson@medibridge.com
+Admin:   admin@medibridge.com
+
+Razorpay test mode: card 4111 1111 1111 1111 (any future expiry/CVV),
+or UPI success@razorpay.
+
+The frontend also runs standalone with zero backend — set VITE_USE_MOCK=true
+and no backend is needed.

@@ -1,0 +1,103 @@
+MediBridge — Run with Docker
+==============================
+
+Prerequisite: Docker Desktop installed. Run all commands from the repo root
+(where docker-compose.yml lives).
+
+1. Create your .env
+----------------------
+cp .env.example .env
+
+Required values (pick anything, they just need to match across services —
+compose wires that up automatically):
+  DB_PASSWORD
+  JWT_SECRET
+  SPRING_INTERNAL_API_KEY
+  GATEWAY_INTERNAL_API_KEY
+
+Everything else (mail, Twilio, Razorpay, Google, Groq) is optional — those
+features stay disabled/simulated without them.
+
+2. Build and start the stack
+-------------------------------
+docker compose up --build -d
+
+Builds all 5 app images locally (backend, chat-service, notify-service,
+gateway, frontend) plus MySQL/Redis, and starts everything in healthcheck
+order: mysql -> backend -> chat-service/notify-service -> gateway -> frontend.
+
+3. Check status / logs
+-------------------------
+docker compose ps
+docker compose logs -f
+docker compose logs -f backend        (single service)
+docker compose logs --tail 50 gateway (quick check, no follow)
+
+4. Use it
+-----------
+App:          http://localhost:3000
+Gateway:      http://localhost:4000
+Demo admin:   admin@medibridge.com / Admin@123 (seeded by DataSeeder on
+              backend's first boot against the empty DB)
+
+5. Iterating on one service after a code change
+---------------------------------------------------
+docker compose up --build -d backend
+(Compose automatically restarts anything that depends on it.)
+
+6. Stop / remove
+-------------------
+docker compose down       (keeps MySQL data volume)
+docker compose down -v    (full reset — wipes MySQL volume, reseeds on next boot)
+docker compose stop / docker compose start   (pause without removing containers)
+
+7. Other useful commands
+----------------------------
+docker exec -it medibridge-backend-1 sh                 (shell into backend)
+docker exec -it medibridge-mysql-1 mysql -uroot -p medibridge   (MySQL shell)
+docker stats                                             (live CPU/mem per container)
+docker compose build --no-cache backend                  (force clean rebuild)
+docker system prune                                       (free disk space)
+
+--------------------------------------------------------------------------
+Running from Docker Hub instead (no source clone needed)
+--------------------------------------------------------------------------
+All 5 built services are published under chandrakantdevop on Docker Hub:
+medibridge-backend, medibridge-chat-service, medibridge-notify-service,
+medibridge-gateway, medibridge-frontend (all :latest).
+
+Works as-is only on localhost — the frontend image has
+VITE_GATEWAY_API_URL=http://localhost:4000/api baked in at build time.
+Deploying elsewhere requires rebuilding the frontend from source with the
+correct build arg.
+
+1. Grab just the compose file and env template:
+   curl -O https://raw.githubusercontent.com/ChandrakantKumbhar96/Medibridge-Platform/main/docker-compose.yml
+   curl -O https://raw.githubusercontent.com/ChandrakantKumbhar96/Medibridge-Platform/main/.env.example
+
+2. cp .env.example .env    (fill in the same 4 required values as above)
+
+3. docker compose pull     (fetch pre-built images instead of building)
+
+4. docker compose up -d    (no --build — source isn't there)
+
+5. Open http://localhost:3000, log in as admin@medibridge.com / Admin@123
+
+--------------------------------------------------------------------------
+Troubleshooting
+--------------------------------------------------------------------------
+- backend unhealthy / dependents never start:
+  docker logs medibridge-backend-1 --tail 80
+  If Tomcat started fine but healthcheck still fails:
+  docker exec medibridge-backend-1 curl -sv http://localhost:8080/api/actuator/health
+
+- Login / any POST from frontend returns 403 near-instantly:
+  Spring Security's CORS filter rejecting the Origin header. Check
+  CORS_ALLOWED_ORIGINS matches http://localhost:3000 in docker-compose.yml.
+
+- Google Sign-In "origin not allowed":
+  Not a Docker issue — add http://localhost:3000 to the OAuth client's
+  Authorized JavaScript origins in Google Cloud Console.
+
+- application.yml or source changes need --build; plain env var changes in
+  docker-compose.yml only need a plain "up -d".

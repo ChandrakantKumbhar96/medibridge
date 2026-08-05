@@ -1,0 +1,96 @@
+MediBridge — Full Seeded Database Data (SampleDataSeeder / DataSeeder)
+=========================================================================
+Seeded automatically on first backend boot against an empty DB.
+All patient & doctor accounts share password: Test@1234
+Admin account password: Admin@123
+
+ADMIN (1)
+===========
+Name: Admin User | Email: admin@medibridge.com | Password: Admin@123
+
+DOCTORS (30)
+==============
+Name                    | Email                            | Specialty          | Fee(Rs) | Status
+------------------------|-----------------------------------|--------------------|---------|--------
+Dr. Aditya Nair         | aditya.nair@medibridge.com         | Cardiology         | 800     | Active
+Dr. Kavya Reddy         | kavya.reddy@medibridge.com          | Cardiology         | 750     | Active
+Dr. Sameer Khan         | sameer.khan@medibridge.com           | Cardiology         | 1100    | Active
+Dr. Farhan Ali          | farhan.ali@medibridge.com             | Cardiology         | 850     | Active
+Dr. Ishita Bhatt        | ishita.bhatt@medibridge.com           | Cardiology         | 700     | Active
+Dr. Manoj Trivedi       | manoj.trivedi@medibridge.com          | Cardiology         | 1200    | Active
+Dr. Ritika Chawla       | ritika.chawla@medibridge.com          | Cardiology         | 780     | Active
+
+Dr. Rohan Mehta         | rohan.mehta@medibridge.com             | Dermatology        | 600     | Active
+Dr. Neha Kulkarni       | neha.kulkarni@medibridge.com           | Dermatology        | 650     | Active
+Dr. Arjun Malhotra      | arjun.malhotra@medibridge.com          | Dermatology        | 700     | Active
+Dr. Aakash Verma        | aakash.verma@medibridge.com            | Dermatology        | 620     | Active
+Dr. Simran Kaur         | simran.kaur@medibridge.com             | Dermatology        | 680     | Active
+Dr. Yash Choudhary      | yash.choudhary@medibridge.com          | Dermatology        | 580     | Active
+
+Dr. Meera Joshi         | meera.joshi@medibridge.com             | General Physician  | 500     | Active
+Dr. Pooja Nair          | pooja.nair@medibridge.com              | General Physician  | 450     | Active
+Dr. Sanjay Gupta        | sanjay.gupta@medibridge.com            | General Physician  | 550     | Active
+Dr. Kiran Bose          | kiran.bose@medibridge.com              | General Physician  | 520     | Active
+Dr. Aditi Rane          | aditi.rane@medibridge.com              | General Physician  | 470     | Active
+Dr. Suresh Iyer         | suresh.iyer@medibridge.com             | General Physician  | 600     | Active
+
+Dr. Rajesh Patel        | rajesh.patel@medibridge.com            | Orthopedics        | 900     | Active
+Dr. Deepak Sharma       | deepak.sharma@medibridge.com           | Orthopedics        | 850     | Active
+Dr. Varun Kapoor        | varun.kapoor@medibridge.com            | Orthopedics        | 880     | Active
+Dr. Nandini Rao         | nandini.rao@medibridge.com             | Orthopedics        | 760     | Active
+Dr. Pranav Joshi        | pranav.joshi@medibridge.com            | Orthopedics        | 900     | Active
+Dr. Tanya Malik         | tanya.malik@medibridge.com             | Orthopedics        | 700     | Active
+
+Dr. Anita Desai         | anita.desai@medibridge.com             | Pediatrics         | 550     | Active
+Dr. Ritu Agarwal        | ritu.agarwal@medibridge.com            | Pediatrics         | 500     | Active
+Dr. Rakesh Suri         | rakesh.suri@medibridge.com             | Pediatrics         | 530     | Active
+Dr. Divya Menon         | divya.menon@medibridge.com             | Pediatrics         | 490     | Active
+Dr. Amit Saxena         | amit.saxena@medibridge.com             | Pediatrics         | 560     | Active
+
+Dr. Nikhil Menon        | nikhil.menon@medibridge.com            | Neurology          | 950     | Active
+Dr. Vikram Rao          | vikram.rao@medibridge.com              | Neurology          | 1000    | PENDING (not yet approved — left this way on purpose so the admin approval screen has something to act on)
+Dr. Shalini Pillai      | shalini.pillai@medibridge.com          | Neurology          | 980     | Active
+Dr. Gaurav Bansal       | gaurav.bansal@medibridge.com           | Neurology          | 900     | Active
+Dr. Preeti Nambiar      | preeti.nambiar@medibridge.com          | Neurology          | 1050    | Active
+
+PATIENTS (30)
+===============
+Name                | Email                          | Phone
+--------------------|---------------------------------|------------------
+Aarav Gupta         | aarav.gupta@email.com            | +91 90000 11111
+Priya Sharma        | priya.sharma@email.com           | +91 90000 22222
+Rahul Verma         | rahul.verma@email.com            | +91 90000 33333
+Sneha Iyer          | sneha.iyer@email.com             | +91 90000 44444
+Karan Malhotra      | karan.malhotra@email.com         | +91 90000 55555
+Ananya Rao          | ananya.rao@email.com             | +91 90000 66666
+Vivek Nair          | vivek.nair@email.com             | +91 90000 77777
+Isha Kapoor         | isha.kapoor@email.com            | +91 90000 88888
+Rohit Deshmukh      | rohit.deshmukh@email.com         | +91 90000 99999
+Meghna Pillai       | meghna.pillai@email.com          | +91 90001 00000
+Aditya Kulkarni     | aditya.kulkarni@email.com        | +91 90002 10001
+Nisha Agarwal       | nisha.agarwal@email.com          | +91 90002 10002
+Devendra Singh      | devendra.singh@email.com         | +91 90002 10003
+Pallavi Joshi       | pallavi.joshi@email.com          | +91 90002 10004
+Harsh Vardhan       | harsh.vardhan@email.com          | +91 90002 10005
+Swati Bhosale       | swati.bhosale@email.com          | +91 90002 10006
+Manish Tiwari       | manish.tiwari@email.com          | +91 90002 10007
+Radhika Menon       | radhika.menon@email.com          | +91 90002 10008
+Sourav Chatterjee   | sourav.chatterjee@email.com      | +91 90002 10009
+Ankita Deshpande    | ankita.deshpande@email.com       | +91 90002 10010
+Vishal Reddy        | vishal.reddy@email.com           | +91 90002 10011
+Neelam Yadav        | neelam.yadav@email.com           | +91 90002 10012
+Arvind Pandey       | arvind.pandey@email.com          | +91 90002 10013
+Bhavna Shah         | bhavna.shah@email.com            | +91 90002 10014
+Kunal Oberoi        | kunal.oberoi@email.com           | +91 90002 10015
+Shreya Kulkarni     | shreya.kulkarni@email.com        | +91 90002 10016
+Tarun Bhatia        | tarun.bhatia@email.com           | +91 90002 10017
+Ishika Kapoor       | ishika.kapoor@email.com          | +91 90002 10018
+Rajat Nanda         | rajat.nanda@email.com            | +91 90002 10019
+Meenal Kelkar       | meenal.kelkar@email.com          | +91 90002 10020
+
+Note: one additional patient account is seeded phone-first (no email, sign-in
+by OTP/phone code only) — see SampleDataSeeder.java around line 515 for detail.
+
+Source: medibridge-backend/src/main/java/com/medibridge/common/config/SampleDataSeeder.java
+This data only exists after the backend has booted at least once against an
+empty database (local run or Docker) — it is not present until then.
